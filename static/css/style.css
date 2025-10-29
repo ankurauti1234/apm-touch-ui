@@ -23,7 +23,7 @@
     --border: 215 20% 87%;
     --input: 215 20% 87%;
     --ring: 217 90% 55%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 }
 
 body {
@@ -53,16 +53,23 @@ body {
 }
 
 /* Progress Bar */
+/* FULL RESET FOR MAIN PAGE */
 #progress-bar {
     display: flex;
     gap: 0.25rem;
-    margin-bottom: 2rem;
+    padding: 1rem 1rem 0.5rem;
     overflow-x: auto;
     scrollbar-width: none;
 }
+#progress-bar::-webkit-scrollbar { display: none; }
 
-#progress-bar::-webkit-scrollbar {
-    display: none;
+#main-content {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: hsl(var(--background));
 }
 
 .progress-step {
@@ -75,7 +82,6 @@ body {
     border-radius: calc(var(--radius) - 2px);
     text-align: center;
     transition: all 0.2s ease;
-    position: relative;
 }
 
 .progress-step.active {
@@ -257,12 +263,56 @@ ul li {
     border-bottom: 1px solid hsl(var(--border));
 }
 
-.members-table th, .members-table td {
-    text-align: center;
+/* Member Cards */
+.members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
 }
 
-.members-table tbody tr:hover {
-    background: hsl(var(--accent));
+.member-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.member-card:hover {
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.1);
+}
+
+.member-card.inactive {
+    opacity: 0.6;
+    background: hsl(var(--muted));
+}
+
+.member-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.member-info .material-icons {
+    color: hsl(var(--primary));
+}
+
+.status-toggle {
+    font-size: 1.5rem;
+}
+
+.status-toggle.on .material-icons {
+    color: hsl(var(--primary));
+}
+
+.status-toggle.off .material-icons {
+    color: hsl(var(--muted-foreground));
 }
 
 /* Material Icons */
@@ -297,114 +347,157 @@ ul li {
     z-index: 999;
 }
 
-/* On-Screen Keyboard */
-.keyboard {
+/* Responsive */
+@media (max-width: 640px) {
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+    .button { padding: 0.5rem 1rem; font-size: 0.75rem; }
+}
+
+
+/* ────────────────────── MAIN DASHBOARD (FULL-SCREEN) ────────────────────── */
+.main-dashboard {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: hsl(var(--background));
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* ────────────────────── GRID (FULL WIDTH & HEIGHT) ────────────────────── */
+.members-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 0.75rem;
+    padding: 0.75rem;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+/* ────────────────────── CARD BASE ────────────────────── */
+.member-card-grid {
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: hsl(var(--card));
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.member-card-grid::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg-image, none);
+    background-size: cover;
+    background-position: center;
+    transition: all 0.3s ease;
+    z-index: 0;
+}
+
+/* ────────────────────── ACTIVE STATE (GLOW + SHADOW) ────────────────────── */
+.member-card-grid.active {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 2px #4ade80, 0 8px 20px rgba(74, 222, 128, 0.3);
+}
+
+.member-card-grid.active::before {
+    filter: brightness(1.05) saturate(1.1);
+}
+
+/* ────────────────────── INACTIVE ────────────────────── */
+.member-card-grid.inactive::before {
+    filter: grayscale(0.8) brightness(0.7);
+}
+
+.member-card-grid.empty::before {
+    background: hsl(var(--muted));
+}
+
+/* ────────────────────── NAME TAG (LEFT, WITH BG) ────────────────────── */
+.name-tag {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-top-right-radius: var(--radius);
+    z-index: 1;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    max-width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.member-card-grid.empty .name-tag {
+    background: transparent;
+    color: hsl(var(--muted-foreground));
+    font-weight: normal;
+    text-shadow: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 1rem;
+}
+
+/* ────────────────────── BOTTOM BAR ────────────────────── */
+.bottom-bar {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(to top, hsl(var(--card) / 0.95), hsl(var(--card)));
-    border-top: 1px solid hsl(var(--border) / 0.5);
-    padding: 1.25rem;
+    background: hsl(var(--card));
+    border-top: 1px solid hsl(var(--border));
+    padding: 0.75rem;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
     z-index: 1000;
+    height: 4rem;
+}
+
+.bar-btn {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    box-shadow: 0 -4px 12px rgb(0 0 0 / 0.15);
-    border-radius: 0.5rem 0.5rem 0 0;
-    transition: transform 0.3s ease;
-}
-
-.keyboard-row {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.keyboard-key {
-    display: flex;
     align-items: center;
-    justify-content: center;
-    width: 3.5rem;
-    height: 3.5rem;
-    background: hsl(var(--secondary));
-    color: hsl(var(--secondary-foreground));
+    gap: 0.25rem;
+    background: none;
     border: none;
-    border-radius: calc(var(--radius) / 1.5);
-    font-size: 1.1rem;
-    font-family: 'Inter', sans-serif;
+    color: hsl(var(--foreground));
+    font-size: 0.75rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
-    text-transform: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    transition: background 0.2s ease;
+}
+.bar-btn:hover { background: hsl(var(--accent)); }
+.bar-btn .material-icons { font-size: 1.25rem; }
+
+/* ────────────────────── RESPONSIVE ────────────────────── */
+@media (max-width: 1024px) {
+    .members-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
 }
 
-.keyboard-key:hover {
-    background: hsl(var(--secondary) / 0.9);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgb(0 0 0 / 0.15);
-}
-
-.keyboard-key:active, .keyboard-key.active {
-    background: linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--primary) / 0.8));
-    color: hsl(var(--primary-foreground));
-    transform: translateY(0);
-    box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.2);
-}
-
-.keyboard-key.shift.active {
-    background: linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--primary) / 0.8));
-    color: hsl(var(--primary-foreground));
-}
-
-.keyboard-key.space {
-    flex: 2;
-    width: auto;
-    min-width: 10rem;
-    border-radius: calc(var(--radius) / 1.5);
-}
-
-.keyboard-key.backspace, .keyboard-key.close, .keyboard-key.shift, .keyboard-key.symbol {
-    width: 4.5rem;
-    font-size: 0.9rem;
-}
-
-.keyboard-key.backspace .material-icons, .keyboard-key.close .material-icons {
-    font-size: 1.5rem;
-}
-
-/* Responsive Design */
-@media (max-width: 640px) {
-    h1 {
-        font-size: 1.5rem;
-    }
-
-    h2 {
-        font-size: 1.25rem;
-    }
-
-    .button {
-        padding: 0.5rem 1rem;
-        font-size: 0.75rem;
-    }
-
-    .keyboard {
-        padding: 1rem;
-        gap: 0.5rem;
-    }
-
-    .keyboard-key {
-        width: 2.8rem;
-        height: 2.8rem;
-        font-size: 0.95rem;
-    }
-
-    .keyboard-key.space {
-        min-width: 7rem;
-    }
-
-    .keyboard-key.backspace, .keyboard-key.close, .keyboard-key.shift, .keyboard-key.symbol {
-        width: 3.8rem;
-    }
+@media (max-width: 480px) {
+    .members-grid { gap: 0.5rem; padding: 0.5rem; }
+    .name-tag { font-size: 0.75rem; padding: 0.4rem 0.6rem; }
 }

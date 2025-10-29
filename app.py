@@ -19,8 +19,11 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QShortcut
 
+import paho.mqtt.client as mqtt
+import ssl
+
 # ----------------------------------------------------------------------
-# 1. Qt / Chromium sandbox settings (required on many embedded images)
+# 1. Qt / Chromium sandbox settings
 # ----------------------------------------------------------------------
 os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
 os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
@@ -31,16 +34,17 @@ os.chmod("/tmp/runtime-root", 0o700)
 # 2. Flask application
 # ----------------------------------------------------------------------
 app = Flask(__name__, static_folder="static", template_folder="templates")
-CORS(app)                     # allow the WebEngine page to call the API
+CORS(app)
 
 # ----------------------------------------------------------------------
-# 3. Device configuration (same as your new code)
+# 3. Device configuration
 # ----------------------------------------------------------------------
 DEVICE_CONFIG = {
     "device_id_file": "/var/lib/device_id.txt",
     "hhid_file": "/var/lib/hhid.txt",
     "default_meter_id": "AM100003",
     "members_file": "/var/lib/meter_members.json",
+    "certs_dir": "/opt/apm/certs"
 }
 
 SYSTEM_FILES = {
@@ -53,7 +57,7 @@ SYSTEM_FILES = {
 }
 
 # ----------------------------------------------------------------------
-# 4. Load meter-id (fallback to default)
+# 4. Load meter-id
 # ----------------------------------------------------------------------
 try:
     with open(DEVICE_CONFIG["device_id_file"], "r") as f:
@@ -103,8 +107,73 @@ def save_members_data(data: dict):
         json.dump(data, f, indent=2)
 
 
+def load_members_data() -> dict:
+    try:
+        with open(DEVICE_CONFIG["members_file"], "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"meter_id": METER_ID, "hhid": load_hhid(), "members": []}
+
+
 # ----------------------------------------------------------------------
-# 6. Flask routes (identical to your new version – only tiny clean-ups)
+# 6. MQTT Setup
+# ----------------------------------------------------------------------
+MQTT_TOPIC = "apm/ar/events"
+AWS_IOT_ENDPOINT = "a3uoz4wfsx2nz3-ats.iot.ap-south-1.amazonaws.com"  # CHANGE IF NEEDED
+
+client = None
+
+
+def init_mqtt():
+    global client
+    certs_dir = DEVICE_CONFIG["certs_dir"]
+    keyfile = os.path.join(certs_dir, f"{METER_ID}.key")
+    certfile = os.path.join(certs_dir, f"{METER_ID}Chain.crt")
+    cafile = os.path.join(certs_dir, "AmazonRootCA1.pem")
+
+    if not all(os.path.exists(p) for p in [keyfile, certfile, cafile]):
+        print(f"[MQTT] Certs missing: {keyfile}, {certfile}, {cafile}")
+        return False
+
+    client = mqtt.Client(client_id=METER_ID)
+    client.tls_set(ca_certs=cafile, certfile=certfile, keyfile=keyfile, tls_version=ssl.PROTOCOL_TLSv1_2)
+    client.on_connect = lambda c, u, f, rc: print(f"[MQTT] Connected: {rc}")
+    client.on_disconnect = lambda c, u, rc: print(f"[MQTT] Disconnected: {rc}")
+    client.on_publish = lambda c, u, m: print(f"[MQTT] Published: {m}")
+
+    try:
+        client.connect(AWS_IOT_ENDPOINT, 8883, keepalive=60)
+        client.loop_start()
+        time.sleep(2)
+        return True
+    except Exception as e:
+        print(f"[MQTT] Connection failed: {e}")
+        return False
+
+
+def publish_member_event():
+    data = load_members_data()
+    payload = {
+        "meter_id": data["meter_id"],
+        "members": [
+            {
+                "age": m.get("age"),
+                "gender": m.get("gender"),
+                "active": m.get("active", True)
+            }
+            for m in data.get("members", [])
+            if m.get("age") and m.get("gender")
+        ]
+    }
+    if client and client.is_connected():
+        result = client.publish(MQTT_TOPIC, json.dumps(payload))
+        print(f"[MQTT] Published to {MQTT_TOPIC}: {payload}")
+    else:
+        print("[MQTT] Not connected, skipping publish")
+
+
+# ----------------------------------------------------------------------
+# 7. Flask routes
 # ----------------------------------------------------------------------
 API_BASE = "https://bt72jq8w9i.execute-api.ap-south-1.amazonaws.com/test"
 INITIATE_URL = f"{API_BASE}/initiate-assignment"
@@ -265,12 +334,28 @@ def submit_otp():
 @app.route("/api/members", methods=["GET"])
 def get_members():
     try:
-        with open(DEVICE_CONFIG["members_file"], "r") as f:
-            data = json.load(f)
-        data["hhid"] = load_hhid()
+        data = load_members_data()
         return jsonify({"success": True, "data": data}), 200
-    except FileNotFoundError:
-        return jsonify({"success": False, "error": "No members data"}), 404
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/toggle_member_status", methods=["POST"])
+def toggle_member_status():
+    index = request.json.get("index")
+    if index is None or not isinstance(index, int):
+        return jsonify({"success": False, "error": "Invalid index"}), 400
+
+    try:
+        data = load_members_data()
+        if 0 <= index < len(data["members"]):
+            member = data["members"][index]
+            member["active"] = not member.get("active", True)
+            save_members_data(data)
+            publish_member_event()
+            return jsonify({"success": True, "member": member}), 200
+        else:
+            return jsonify({"success": False, "error": "Index out of range"}), 400
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -307,15 +392,14 @@ def close_application():
 
 
 # ----------------------------------------------------------------------
-# 7. Flask runner (non-blocking)
+# 8. Flask runner
 # ----------------------------------------------------------------------
 def run_flask():
-    # debug=False, use_reloader=False → safe for threading
     app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False, threaded=True)
 
 
 # ----------------------------------------------------------------------
-# 8. PyQt5 full-screen WebEngine window
+# 9. PyQt5 Browser
 # ----------------------------------------------------------------------
 class BrowserWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -324,26 +408,20 @@ class BrowserWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.browser)
         self.showFullScreen()
 
-        # ---- basic settings ------------------------------------------------
         self.browser.setZoomFactor(1.0)
         settings = self.browser.settings()
         settings.setAttribute(QWebEngineSettings.ShowScrollBars, False)
         settings.setAttribute(QWebEngineSettings.JavascriptEnabled, True)
 
-        # ---- prevent pinch-zoom / ctrl-wheel --------------------------------
         self.browser.setAttribute(Qt.WA_AcceptTouchEvents, False)
         self.setAttribute(Qt.WA_AcceptTouchEvents, False)
 
-        # ---- JavaScript that disables all zoom gestures --------------------
         ZOOM_PREVENT_JS = """
         (function(){
-            // meta viewport
             var m = document.createElement('meta');
             m.name = 'viewport';
             m.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
             document.head.appendChild(m);
-
-            // block gestures
             var block = function(e){ e.preventDefault(); };
             document.addEventListener('gesturestart',  block, {passive:false});
             document.addEventListener('gesturechange', block, {passive:false});
@@ -351,41 +429,28 @@ class BrowserWindow(QtWidgets.QMainWindow):
             document.addEventListener('touchmove', function(e){
                 if(e.touches.length>1) e.preventDefault();
             }, {passive:false});
-
-            // block ctrl-wheel
             document.addEventListener('wheel', function(e){
                 if(e.ctrlKey) e.preventDefault();
             }, {passive:false});
         })();
         """
 
-        # inject after page load
         def _inject(ok: bool):
             if ok:
                 self.browser.page().runJavaScript(ZOOM_PREVENT_JS)
 
         self.browser.loadFinished.connect(_inject)
 
-        # ---- disable keyboard zoom shortcuts -------------------------------
-        for seq in [
-            QKeySequence.ZoomIn,
-            QKeySequence.ZoomOut,
-            "Ctrl+=",
-            "Ctrl+-",
-            "Ctrl+0",
-        ]:
+        for seq in [QKeySequence.ZoomIn, QKeySequence.ZoomOut, "Ctrl+=", "Ctrl+-", "Ctrl+0"]:
             QShortcut(QKeySequence(seq), self, lambda: None)
 
-        # ---- finally load the local Flask UI --------------------------------
         self.browser.setUrl(QUrl("http://127.0.0.1:5000"))
 
-    # Alt+F4 = exit
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_F4 and event.modifiers() == Qt.AltModifier:
             self.close()
         super().keyPressEvent(event)
 
-    # block ctrl-wheel zoom
     def wheelEvent(self, event):
         if event.modifiers() & Qt.ControlModifier:
             event.ignore()
@@ -394,16 +459,18 @@ class BrowserWindow(QtWidgets.QMainWindow):
 
 
 # ----------------------------------------------------------------------
-# 9. Main entry point
+# 10. Main
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
-    # 1. start Flask in a daemon thread
-    threading.Thread(target=run_flask, daemon=True).start()
+    # Start MQTT
+    threading.Thread(target=init_mqtt, daemon=True).start()
+    time.sleep(2)
 
-    # 2. give Flask a moment to bind the port (very important!)
+    # Start Flask
+    threading.Thread(target=run_flask, daemon=True).start()
     time.sleep(1.5)
 
-    # 3. launch Qt application
+    # Start Qt
     qt_app = QtWidgets.QApplication(sys.argv)
     win = BrowserWindow()
     win.show()

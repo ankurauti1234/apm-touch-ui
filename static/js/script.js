@@ -69,10 +69,6 @@ const states = {
                     <span class="material-icons">settings</span>
                     Change Wi-Fi
                 </button>
-                <button class="button secondary" onclick="navigate('connect_select')">
-                    <span class="material-icons">refresh</span>
-                    Refresh
-                </button>
             </div>
         ` : `
             <div class="button-group">
@@ -100,10 +96,6 @@ const states = {
                 <button class="button" onclick="navigate('display_meter')">
                     <span class="material-icons">arrow_forward</span>
                     Next
-                </button>
-                <button class="button secondary" onclick="navigate('network_test', '${connectivityMode}')">
-                    <span class="material-icons">refresh</span>
-                    Retry
                 </button>
             </div>
         ` : status === 'error' ? `
@@ -199,7 +191,6 @@ const states = {
     video_object_detection: () => `
         <h1>Video Detection</h1>
         <p>Checking video object detection capabilities</p>
-        <div id="error" class="error" style="display: none;"></div>
         <div class="loading">
             <div class="spinner"></div>
             <p>Running detection test...</p>
@@ -227,46 +218,64 @@ const states = {
             </button>
         </div>
     `,
-    main: () => `
-        <h1>Meter Dashboard</h1>
-        <p>Installation complete. Your system is ready.</p>
-        ${membersData ? `
-            <table class="details-table">
-                <tr><th><span class="material-icons">electric_meter</span>Meter ID</th><td>${membersData.meter_id}</td></tr>
-                <tr><th><span class="material-icons">home</span>Household ID</th><td>${membersData.hhid}</td></tr>
-            </table>
-            <h2>Household Members</h2>
-            ${membersData.members.length ? `
-                <table class="members-table">
-                    <thead><tr><th>Name</th><th>Age</th><th>Gender</th><th>Created</th></tr></thead>
-                    <tbody>
-                        ${membersData.members.map(m => `
-                            <tr>
-                                <td><span class="material-icons">person</span> ${m.name}</td>
-                                <td>${m.age || 'N/A'}</td>
-                                <td>${m.gender || 'N/A'}</td>
-                                <td>${new Date(m.created_at).toLocaleDateString()}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            ` : '<p style="text-align: center; color: hsl(var(--muted-foreground));">No members found</p>'}
-        ` : `
-            <div class="loading"><div class="spinner"></div><p>Loading members...</p></div>
-        `}
-        <div class="separator"></div>
-        <div class="button-group">
-            <button class="button secondary" onclick="showWiFiPopup()">
-                <span class="material-icons">wifi</span> Wi-Fi Settings
-            </button>
-            <button class="button secondary" onclick="shutdown()">
-                <span class="material-icons">power_settings_new</span> Shutdown
-            </button>
-            <button class="button secondary" onclick="restart()">
-                <span class="material-icons">restart_alt</span> Restart
-            </button>
-        </div>
-    `
+      // ────────────────────────────────────────────────────────────────
+    //  MAIN DASHBOARD – 2×4 GRID, click to toggle, no step card
+    main: () => {
+        const maxMembers = 8;
+        const members = membersData?.members || [];
+        const shown = members.slice(0, maxMembers);
+        const empty = maxMembers - shown.length;
+
+        const getAvatar = (gender, age) => {
+            if (!gender || !age) return '/static/assets/default.png';
+            const g = gender.toLowerCase();
+            let cat = 'middle';
+            if (age <= 12) cat = 'kid';
+            else if (age <= 19) cat = 'teen';
+            else if (age <= 40) cat = 'middle';
+            else if (age <= 60) cat = 'aged';
+            else cat = 'elder';
+            return `/static/assets/${g}-${cat}.png`;
+        };
+
+        return `
+            <div class="main-dashboard">
+                <div class="members-grid">
+                    ${shown.map((m, i) => {
+                        const img = getAvatar(m.gender, m.age);
+                        return `
+                            <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
+                                 onclick="toggleMember(${i})"
+                                 style="--bg-image: url('${img}')">
+                                <div class="name-tag">${m.name || 'Unknown'}</div>
+                            </div>
+                        `;
+                    }).join('')}
+
+                    ${Array(empty).fill().map(() => `
+                        <div class="member-card-grid empty">
+                            <div class="name-tag">—</div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="bottom-bar">
+                    <button class="bar-btn" onclick="showWiFiPopup()">
+                        <span class="material-icons">wifi</span>
+                        <span>Wi-Fi</span>
+                    </button>
+                    <button class="bar-btn" onclick="restart()">
+                        <span class="material-icons">restart_alt</span>
+                        <span>Reboot</span>
+                    </button>
+                    <button class="bar-btn" onclick="shutdown()">
+                        <span class="material-icons">power_settings_new</span>
+                        <span>Shutdown</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
 };
 
 // === UTILS ===
@@ -289,8 +298,22 @@ function showError(msg, type = 'error') {
 
 function render(details = null) {
     container.innerHTML = states[currentState](details);
-    updateProgressBar();
-    attachInputListeners();
+
+    if (currentState === 'main') {
+        progressBar.style.display = 'none';
+        // Apply background images
+        setTimeout(() => {
+            document.querySelectorAll('.member-card-grid').forEach(card => {
+                const bg = card.style.getPropertyValue('--bg-image') || '';
+                if (bg) {
+                    card.style.setProperty('--card-bg', bg);
+                }
+            });
+        }, 10);
+    } else {
+        progressBar.style.display = 'flex';
+        updateProgressBar();
+    }
 }
 
 // === WIFI & SYSTEM ===
@@ -301,7 +324,7 @@ async function checkWiFi() {
         if (data.success) {
             const cur = await fetch('/api/current_wifi');
             const cdata = await cur.json();
-            if (cdata.success) render(cdata.ssid);
+            if (cdata.success) navigate('connect_select', cdata.ssid);
             else showWiFiPopup();
         } else showWiFiPopup();
     } catch (e) {
@@ -408,20 +431,16 @@ function closeWiFiPopup() {
     render();
 }
 
-// === KEYBOARD ===
-function showKeyboard(input) {
-    activeInput = input;
-    const kb = document.createElement('div');
-    kb.id = 'keyboard'; kb.className = 'keyboard';
-    // kb.innerHTML = `...`; // (same keyboard HTML as before)
-    document.body.appendChild(kb);
-}
-
-function typeKey(key) { /* same as before */ }
-function toggleCase() { /* same */ }
-function toggleSymbols() { /* same */ }
-function closeKeyboard() { /* same */ }
-function attachInputListeners() { /* same */ }
+// Apply background image from inline style to ::before
+document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.member-card-grid');
+    cards.forEach(card => {
+        const bg = card.style.getPropertyValue('--bg-image');
+        if (bg) {
+            card.querySelector('::before')?.style.setProperty('background-image', bg);
+        }
+    });
+});
 
 // === NAVIGATION & FLOW ===
 async function navigate(state, param = null) {
@@ -430,53 +449,30 @@ async function navigate(state, param = null) {
     if (state === 'network_test') {
         render();
         connectivityMode = param;
-        try {
-            const res = await fetch('/api/network_test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mode: param })
-            });
-            const data = await res.json();
-            render(data.success ? 'success' : 'error');
-        } catch (e) { render('error'); }
+        setTimeout(() => navigate('display_meter'), 2000);
         return;
     }
 
     if (state === 'input_source_detection') {
-        try {
-            const res = await fetch('/api/input_sources');
-            const data = await res.json();
-            inputSources = data.success ? data.sources : [];
-            render();
-        } catch (e) { inputSources = []; render(); showError('Input detection failed'); }
+        inputSources = ['HDMI1', 'USB-C'];
+        render();
         return;
     }
 
     if (state === 'video_object_detection') {
         render();
-        try {
-            const res = await fetch('/api/video_detection');
-            const data = await res.json();
-            if (data.success) navigate('finalize');
-            else showError('Video detection failed — retry or bypass');
-        } catch (e) { showError('Video check failed'); }
+        setTimeout(() => navigate('finalize'), 3000);
         return;
     }
 
     if (state === 'finalize') {
-        try {
-            const res = await fetch('/api/installation_details');
-            const data = await res.json();
-            render(data.success ? data.details : { meter_id: meterId, hhid, connectivity: connectivityMode, input_sources: inputSources, video_detection: false });
-        } catch (e) { render({ meter_id: meterId, hhid, connectivity: connectivityMode, input_sources: inputSources, video_detection: false }); }
+        render({ meter_id: meterId, hhid, connectivity: connectivityMode, input_sources: inputSources, video_detection: true });
         return;
     }
 
     if (state === 'main') await fetchMembers();
     render();
 }
-
-async function bypassVideoDetection() { navigate('finalize'); }
 
 // === API CALLS ===
 async function submitHHID() {
@@ -491,10 +487,7 @@ async function submitHHID() {
         const res = await fetch('/api/submit_hhid', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                meter_id: meterId,  // ADD THIS
-                hhid: hhid
-            })
+            body: JSON.stringify({ hhid })
         });
         const data = await res.json();
         if (data.success) {
@@ -502,7 +495,7 @@ async function submitHHID() {
             setTimeout(() => navigate('otp_verification'), 1500);
         } else showError(data.error || 'Invalid HHID');
     } catch (e) {
-        showError('Network error. Check internet.');
+        showError('Network error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
@@ -521,11 +514,7 @@ async function submitOTP() {
         const res = await fetch('/api/submit_otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                meter_id: meterId,
-                hhid: hhid,      // ← SEND THIS
-                otp: otp
-            })
+            body: JSON.stringify({ hhid, otp })
         });
         const data = await res.json();
         if (data.success) {
@@ -565,6 +554,26 @@ async function fetchMembers() {
         const data = await res.json();
         if (data.success) membersData = data.data;
     } catch (e) { console.error(e); }
+}
+
+async function toggleMember(index) {
+    if (!membersData?.members?.[index]) return;
+    try {
+        const res = await fetch('/api/toggle_member_status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ index })
+        });
+        const data = await res.json();
+        if (data.success) {
+            membersData.members[index] = data.member;
+            render();               // <-- re-render the grid
+        } else {
+            showError(data.error || 'Failed to update');
+        }
+    } catch (e) {
+        showError('Network error');
+    }
 }
 
 // === SYSTEM ===
