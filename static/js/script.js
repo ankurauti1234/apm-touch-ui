@@ -14,6 +14,8 @@ let connectivityMode = '';
 let inputSources = [];
 let membersData = null;
 let activeInput = null;
+let shiftActive = false;
+let capsLock = false;
 
 // === STEPS ===
 const steps = [
@@ -28,6 +30,28 @@ const steps = [
     { id: 'finalize', label: 'Summary' },
     { id: 'main', label: 'Complete' }
 ];
+
+// === KEYBOARD LAYOUTS ===
+const keyboardLayouts = {
+    normal: [
+        ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+        ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+    ],
+    shift: [
+        ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'],
+        ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+        ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+        ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+    ],
+    symbols: [
+        ['~', '`', '|', '·', '√', 'π', '÷', '×', '¶', '•'],
+        ['-', '_', '+', '=', '[', ']', '{', '}', '\\', '/'],
+        ['<', '>', '?', ':', ';', '"', "'", ',', '.'],
+        ['€', '£', '¥', '₹', '©', '®', '™', '§', '¢']
+    ]
+};
 
 // === STATE TEMPLATES ===
 const states = {
@@ -218,8 +242,6 @@ const states = {
             </button>
         </div>
     `,
-      // ────────────────────────────────────────────────────────────────
-    //  MAIN DASHBOARD – 2×4 GRID, click to toggle, no step card
     main: () => {
         const maxMembers = 8;
         const members = membersData?.members || [];
@@ -278,6 +300,178 @@ const states = {
     }
 };
 
+// === KEYBOARD FUNCTIONS ===
+function showKeyboard(inputElement) {
+    activeInput = inputElement;
+    
+    // Check if keyboard already exists
+    const existing = document.getElementById('virtual-keyboard');
+    if (existing) {
+        // Just update the active input, don't recreate keyboard
+        renderKeys();
+        return;
+    }
+
+    // Create keyboard container
+    const keyboard = document.createElement('div');
+    keyboard.id = 'virtual-keyboard';
+    keyboard.className = 'virtual-keyboard';
+    
+    keyboard.innerHTML = `
+        <div class="keyboard-header">
+            <span class="keyboard-title">
+                <span class="material-icons">keyboard</span>
+                Keyboard
+            </span>
+            <button class="keyboard-close" onclick="hideKeyboard()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="keyboard-body">
+            <div class="keyboard-keys" id="keyboard-keys"></div>
+            <div class="keyboard-bottom-row">
+                <button class="key-special key-shift" onclick="toggleShift()">
+                    <span class="material-icons">arrow_upward</span>
+                    <span class="key-label">Shift</span>
+                </button>
+                <button class="key key-space" onclick="insertChar(' ')">Space</button>
+                <button class="key-special key-backspace" onclick="backspace()">
+                    <span class="material-icons">backspace</span>
+                </button>
+                <button class="key-special key-enter" onclick="pressEnter()">
+                    <span class="material-icons">keyboard_return</span>
+                    <span class="key-label">Enter</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(keyboard);
+    renderKeys();
+    
+    // Prevent keyboard from closing when clicking inside
+    keyboard.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    
+    // Prevent keyboard from closing when input gains focus
+    inputElement.addEventListener('focus', (e) => {
+        e.stopPropagation();
+    });
+}
+
+function renderKeys() {
+    const keysContainer = document.getElementById('keyboard-keys');
+    if (!keysContainer) return;
+    
+    const layout = shiftActive ? keyboardLayouts.shift : keyboardLayouts.normal;
+    
+    keysContainer.innerHTML = layout.map((row, rowIndex) => {
+        return `
+            <div class="keyboard-row keyboard-row-${rowIndex}">
+                ${row.map(key => `
+                    <button class="key" onclick="insertChar('${key}')">${key}</button>
+                `).join('')}
+            </div>
+        `;
+    }).join('');
+}
+
+function toggleShift() {
+    shiftActive = !shiftActive;
+    const shiftBtn = document.querySelector('.key-shift');
+    if (shiftBtn) {
+        shiftBtn.classList.toggle('active', shiftActive);
+    }
+    renderKeys();
+}
+
+function insertChar(char) {
+    if (!activeInput) return;
+    
+    const start = activeInput.selectionStart || 0;
+    const end = activeInput.selectionEnd || 0;
+    const text = activeInput.value;
+    
+    activeInput.value = text.substring(0, start) + char + text.substring(end);
+    activeInput.selectionStart = activeInput.selectionEnd = start + char.length;
+    
+    // Keep input focused but don't trigger focus event
+    setTimeout(() => {
+        if (activeInput) activeInput.focus();
+    }, 0);
+    
+    // Auto-disable shift after typing a character (except for symbols)
+    if (shiftActive && char.match(/[A-Z]/)) {
+        setTimeout(() => {
+            shiftActive = false;
+            const shiftBtn = document.querySelector('.key-shift');
+            if (shiftBtn) shiftBtn.classList.remove('active');
+            renderKeys();
+        }, 100);
+    }
+}
+
+function backspace() {
+    if (!activeInput) return;
+    
+    const start = activeInput.selectionStart || 0;
+    const end = activeInput.selectionEnd || 0;
+    const text = activeInput.value;
+    
+    if (start !== end) {
+        activeInput.value = text.substring(0, start) + text.substring(end);
+        activeInput.selectionStart = activeInput.selectionEnd = start;
+    } else if (start > 0) {
+        activeInput.value = text.substring(0, start - 1) + text.substring(start);
+        activeInput.selectionStart = activeInput.selectionEnd = start - 1;
+    }
+    
+    // Keep input focused
+    setTimeout(() => {
+        if (activeInput) activeInput.focus();
+    }, 0);
+}
+
+function pressEnter() {
+    if (!activeInput) return;
+    hideKeyboard();
+    
+    // Trigger submit if it's the OTP or HHID field
+    if (activeInput.id === 'hhid') {
+        submitHHID();
+    } else if (activeInput.id === 'otp') {
+        submitOTP();
+    }
+}
+
+function hideKeyboard() {
+    const keyboard = document.getElementById('virtual-keyboard');
+    if (keyboard) {
+        keyboard.classList.add('hiding');
+        setTimeout(() => keyboard.remove(), 300);
+    }
+    activeInput = null;
+    shiftActive = false;
+}
+
+// Close keyboard when clicking outside
+document.addEventListener('click', (e) => {
+    const keyboard = document.getElementById('virtual-keyboard');
+    const targetInput = e.target.closest('input[type="text"], input[type="password"]');
+    
+    if (keyboard && !e.target.closest('.virtual-keyboard')) {
+        // If clicking on an input, keep keyboard open and update activeInput
+        if (targetInput) {
+            activeInput = targetInput;
+            renderKeys();
+        } else {
+            // If clicking outside both keyboard and input, close keyboard
+            hideKeyboard();
+        }
+    }
+});
+
 // === UTILS ===
 function updateProgressBar() {
     const idx = steps.findIndex(s => s.id === currentState);
@@ -301,7 +495,6 @@ function render(details = null) {
 
     if (currentState === 'main') {
         progressBar.style.display = 'none';
-        // Apply background images
         setTimeout(() => {
             document.querySelectorAll('.member-card-grid').forEach(card => {
                 const bg = card.style.getPropertyValue('--bg-image') || '';
@@ -389,7 +582,12 @@ async function connectWiFi() {
     const ssid = document.getElementById('ssid').value;
     const pass = document.getElementById('password').value;
     const err = document.getElementById('wifi-error');
-    if (!ssid || !pass) return showError('SSID & password required', 'error');
+    if (!ssid || !pass) {
+        err.innerHTML = '<span class="material-icons">error</span> SSID & password required';
+        err.className = 'error';
+        err.style.display = 'flex';
+        return;
+    }
 
     try {
         const res = await fetch('/api/wifi/connect', {
@@ -430,17 +628,6 @@ function closeWiFiPopup() {
     });
     render();
 }
-
-// Apply background image from inline style to ::before
-document.addEventListener('DOMContentLoaded', () => {
-    const cards = document.querySelectorAll('.member-card-grid');
-    cards.forEach(card => {
-        const bg = card.style.getPropertyValue('--bg-image');
-        if (bg) {
-            card.querySelector('::before')?.style.setProperty('background-image', bg);
-        }
-    });
-});
 
 // === NAVIGATION & FLOW ===
 async function navigate(state, param = null) {
@@ -567,7 +754,7 @@ async function toggleMember(index) {
         const data = await res.json();
         if (data.success) {
             membersData.members[index] = data.member;
-            render();               // <-- re-render the grid
+            render();
         } else {
             showError(data.error || 'Failed to update');
         }
