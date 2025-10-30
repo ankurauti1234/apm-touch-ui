@@ -329,6 +329,67 @@ def submit_otp():
         return jsonify({"success": result.get("success", False)}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+@app.route("/api/input_sources", methods=["GET"])
+def get_input_sources():
+    sources = []
+    errors = []
+
+    # Check Jack (line-in or internal)
+    if os.path.exists(SYSTEM_FILES["jack_status"]):
+        try:
+            status = open(SYSTEM_FILES["jack_status"]).read().strip()
+            if status == "line_in":
+                sources.append("line_in")
+            elif status == "internal":
+                sources.append("internal")
+            else:
+                errors.append(f"Unknown jack_status: {status}")
+        except Exception as e:
+            errors.append(f"Error reading jack_status: {str(e)}")
+    else:
+        pass  # No jack input
+
+    # Check HDMI
+    if os.path.exists(SYSTEM_FILES["hdmi_input"]):
+        sources.append("HDMI")
+    else:
+        pass  # No HDMI
+
+    if not sources and not errors:
+        return jsonify({
+            "success": False,
+            "error": "No input sources detected",
+            "sources": []
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "sources": sources,
+        "errors": errors if errors else None
+    }), 200
+    
+@app.route("/api/video_detection", methods=["GET"])
+def check_video_detection():
+    if os.path.exists(SYSTEM_FILES["video_detection"]):
+        try:
+            content = open(SYSTEM_FILES["video_detection"]).read().strip()
+            return jsonify({
+                "success": True,
+                "detected": True,
+                "status": content or "active"
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "success": False,
+                "error": f"Failed to read video_detection: {str(e)}"
+            }), 500
+    else:
+        return jsonify({
+            "success": True,
+            "detected": False,
+            "status": "not_running"
+        }), 200
 
 
 @app.route("/api/members", methods=["GET"])
