@@ -205,11 +205,25 @@ def current_wifi():
         if not ok:
             return jsonify({"success": False, "error": "nmcli failed"}), 500
 
+        active_wifi = None
         for line in out.strip().split("\n"):
-            if ":wifi:" in line and "wlan" in line:
-                ssid = line.split(":")[0]
-                return jsonify({"success": True, "ssid": ssid})
-        return jsonify({"success": False, "error": "No Wi-Fi"}), 404
+            if not line.strip():
+                continue
+            parts = line.split(":")
+            if len(parts) < 3:
+                continue
+            name, conn_type, device = parts[0], parts[1], parts[2]
+
+            # Match any Wi-Fi connection (not just 'wlan')
+            if conn_type == "wifi" and device.startswith("wlan") or device.startswith("wlx"):
+                active_wifi = name
+                break  # Take first active Wi-Fi
+
+        if active_wifi:
+            return jsonify({"success": True, "ssid": active_wifi}), 200
+        else:
+            return jsonify({"success": False, "error": "No active Wi-Fi connection"}), 404
+
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
