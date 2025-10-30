@@ -25,10 +25,10 @@ import ssl
 # ----------------------------------------------------------------------
 # 1. Qt / Chromium sandbox settings
 # ----------------------------------------------------------------------
-os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
-os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
-os.makedirs("/tmp/runtime-root", exist_ok=True)
-os.chmod("/tmp/runtime-root", 700)
+# os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
+# os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
+# os.makedirs("/tmp/runtime-root", exist_ok=True)
+# os.chmod("/tmp/runtime-root", 700)
 
 # ----------------------------------------------------------------------
 # 2. Flask application
