@@ -193,7 +193,21 @@ def check_installation():
 
 @app.route("/api/check_wifi", methods=["GET"])
 def check_wifi():
-    return jsonify({"success": os.path.exists(SYSTEM_FILES["wifi_up"])})
+    try:
+        ok, out = run_system_command(
+            ["nmcli", "-t", "-f", "TYPE,DEVICE", "connection", "show", "--active"]
+        )
+        if not ok:
+            return jsonify({"success": False}), 200
+
+        for line in out.strip().split("\n"):
+            if line and ":wifi:" in line:
+                device = line.split(":")[1]
+                if device.startswith("wlan") or device.startswith("wlx"):
+                    return jsonify({"success": True}), 200
+        return jsonify({"success": False}), 200
+    except:
+        return jsonify({"success": False}), 200
 
 
 @app.route("/api/current_wifi", methods=["GET"])
