@@ -4,22 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Touch Meter Installation</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+
+    <!-- POPPINS FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- MATERIAL ICONS -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+    <!-- MAIN CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
-    <div class="container">
-        <div class="card">
-            <div id="progress-bar"></div>
-            <div id="main-content">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Initializing system...</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- MAIN CONTENT -->
+    <div id="main-content"></div>
+
+    <!-- PROGRESS BAR (moved into card by JS) -->
+    <div id="progress-bar" style="display: none;"></div>
+
+    <!-- MAIN JS -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

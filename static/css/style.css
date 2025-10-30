@@ -1,10 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   RESET AND BASE STYLES
+   RESET & BASE – POPPINS FONT
    ═══════════════════════════════════════════════════════════════════════ */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 :root {
@@ -29,7 +34,6 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: hsl(var(--background));
     color: hsl(var(--foreground));
     line-height: 1.5;
@@ -39,11 +43,21 @@ body {
     align-items: center;
     justify-content: center;
     padding: 1rem;
+    overflow-x: hidden;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════════════════════════════ */
 .container {
     width: 100%;
     max-width: 42rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
 }
 
 .card {
@@ -51,46 +65,39 @@ body {
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    padding: 1.5rem;
+    padding: 2rem;
+    width: 100%;
+    max-width: 36rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   PROGRESS BAR
-   ═══════════════════════════════════════════════════════════════════════ */
+/* PROGRESS BAR – INSIDE CARD */
 #progress-bar {
     display: flex;
-    gap: 0.25rem;
-    padding: 1rem 1rem 0.5rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-#progress-bar::-webkit-scrollbar { display: none; }
-
-#main-content {
-    margin: 0;
-    padding: 0;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0 1.5rem;
+    margin-bottom: 1rem;
     width: 100%;
-    height: 100vh;
-    overflow: hidden;
-    background: hsl(var(--background));
+    max-width: 32rem;
 }
 
 .progress-step {
-    flex: 1;
-    padding: 0.25rem 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: hsl(var(--muted-foreground));
+    width: 2.5rem;
+    height: 0.5rem;
     background: hsl(var(--muted));
-    border-radius: calc(var(--radius) - 2px);
-    text-align: center;
-    transition: all 0.2s ease;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
 }
 
 .progress-step.active {
     background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+    width: 3rem;
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.3);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -161,6 +168,7 @@ p {
     gap: 0.75rem;
     margin-top: 1.5rem;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -189,7 +197,7 @@ input::placeholder {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   ERROR AND SUCCESS MESSAGES
+   ERROR / SUCCESS
    ═══════════════════════════════════════════════════════════════════════ */
 .error, .success {
     display: none;
@@ -199,6 +207,8 @@ input::placeholder {
     margin-bottom: 1rem;
     border-radius: var(--radius);
     font-size: 0.875rem;
+    width: 100%;
+    max-width: 32rem;
 }
 
 .error {
@@ -212,7 +222,7 @@ input::placeholder {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   LOADING SPINNER
+   LOADING
    ═══════════════════════════════════════════════════════════════════════ */
 .loading {
     display: flex;
@@ -242,14 +252,21 @@ input::placeholder {
     height: 1px;
     background: hsl(var(--border));
     margin: 1.5rem 0;
+    width: 100%;
+    max-width: 32rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   LISTS
+   LISTS & TABLES
    ═══════════════════════════════════════════════════════════════════════ */
 ul {
     list-style: none;
     margin-bottom: 1.5rem;
+    text-align: left;
+    width: 100%;
+    max-width: 32rem;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 ul li {
@@ -261,29 +278,24 @@ ul li {
     color: hsl(var(--foreground));
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   TABLES
-   ═══════════════════════════════════════════════════════════════════════ */
-.details-table, .members-table {
+.details-table {
     width: 100%;
+    max-width: 32rem;
     border-collapse: collapse;
-    margin-bottom: 1.5rem;
+    margin: 1.5rem auto;
+    font-size: 0.875rem;
 }
 
-.details-table th, .members-table th {
+.details-table th, .details-table td {
+    padding: 0.75rem;
     text-align: left;
-    padding: 0.75rem;
-    font-weight: 500;
-    font-size: 0.875rem;
-    color: hsl(var(--foreground));
-    background: hsl(var(--muted));
+    border-bottom: 1px solid hsl(var(--border));
 }
 
-.details-table td, .members-table td {
-    padding: 0.75rem;
-    font-size: 0.875rem;
+.details-table th {
+    background: hsl(var(--muted));
+    font-weight: 500;
     color: hsl(var(--foreground));
-    border-bottom: 1px solid hsl(var(--border));
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -295,7 +307,7 @@ ul li {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   WI-FI POPUP
+   POPUP
    ═══════════════════════════════════════════════════════════════════════ */
 .popup {
     position: fixed;
@@ -314,22 +326,13 @@ ul li {
 }
 
 @keyframes popupIn {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -45%);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-    }
+    from { opacity: 0; transform: translate(-50%, -45%); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
 }
 
 .overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgb(0 0 0 / 0.5);
     z-index: 999;
     animation: fadeIn 0.3s ease;
@@ -337,11 +340,11 @@ ul li {
 
 @keyframes fadeIn {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   MAIN DASHBOARD (FULL-SCREEN)
+   MAIN DASHBOARD
    ═══════════════════════════════════════════════════════════════════════ */
 .main-dashboard {
     margin: 0;
@@ -354,9 +357,6 @@ ul li {
     flex-direction: column;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   MEMBERS GRID (2×4)
-   ═══════════════════════════════════════════════════════════════════════ */
 .members-grid {
     flex: 1;
     display: grid;
@@ -438,9 +438,6 @@ ul li {
     font-size: 1rem;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   BOTTOM BAR
-   ═══════════════════════════════════════════════════════════════════════ */
 .bottom-bar {
     position: fixed;
     bottom: 0;
@@ -471,6 +468,7 @@ ul li {
     border-radius: var(--radius);
     transition: background 0.2s ease;
 }
+
 .bar-btn:hover { background: hsl(var(--accent)); }
 .bar-btn .material-icons { font-size: 1.25rem; }
 
@@ -498,28 +496,15 @@ ul li {
 }
 
 @keyframes slideUp {
-    from {
-        transform: translateY(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes slideDown {
-    from {
-        transform: translateY(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateY(100%);
-        opacity: 0;
-    }
+    from { transform: translateY(0); opacity: 1; }
+    to   { transform: translateY(100%); opacity: 0; }
 }
 
-/* Keyboard Header */
 .keyboard-header {
     display: flex;
     align-items: center;
@@ -557,7 +542,6 @@ ul li {
     transform: scale(1.1);
 }
 
-/* Keyboard Body */
 .keyboard-body {
     flex: 1;
     display: flex;
@@ -573,32 +557,17 @@ ul li {
     gap: 0.5rem;
 }
 
-/* Keyboard Rows */
 .keyboard-row {
     display: flex;
     gap: 0.4rem;
     justify-content: center;
 }
 
-.keyboard-row-0 {
-    justify-content: center;
-}
+.keyboard-row-0 { justify-content: center; }
+.keyboard-row-1 { justify-content: center; }
+.keyboard-row-2 { justify-content: center; padding: 0 1.5rem; }
+.keyboard-row-3 { justify-content: center; padding: 0 3rem; }
 
-.keyboard-row-1 {
-    justify-content: center;
-}
-
-.keyboard-row-2 {
-    justify-content: center;
-    padding: 0 1.5rem;
-}
-
-.keyboard-row-3 {
-    justify-content: center;
-    padding: 0 3rem;
-}
-
-/* Key Styles */
 .key {
     min-width: 2.5rem;
     height: 2.5rem;
@@ -632,7 +601,6 @@ ul li {
     background: hsl(var(--primary) / 0.2);
 }
 
-/* Bottom Row Special Keys */
 .keyboard-bottom-row {
     display: flex;
     gap: 0.5rem;
@@ -683,131 +651,28 @@ ul li {
     background: hsl(var(--card));
 }
 
-.key-label {
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-
 .key-special .material-icons {
     font-size: 1.125rem;
 }
 
-.key-backspace,
-.key-enter {
+.key-backspace, .key-enter {
     min-width: 4rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   RESPONSIVE DESIGN
+   RESPONSIVE
    ═══════════════════════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {
     .members-grid {
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(4, 1fr);
-        gap: 0.75rem;
-        padding: 0.75rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .keyboard-row-2 {
-        padding: 0 1rem;
-    }
-    
-    .keyboard-row-3 {
-        padding: 0 2rem;
-    }
-    
-    .key {
-        min-width: 2rem;
-        height: 2.25rem;
-        font-size: 0.875rem;
-    }
-    
-    .key-special {
-        min-width: 3rem;
-        height: 2.25rem;
-        font-size: 0.7rem;
-    }
-    
-    .key-space {
-        min-width: 8rem;
     }
 }
 
 @media (max-width: 640px) {
     h1 { font-size: 1.5rem; }
-    h2 { font-size: 1.25rem; }
     .button { padding: 0.5rem 1rem; font-size: 0.75rem; }
-    
-    .members-grid { gap: 0.5rem; padding: 0.5rem; }
-    .name-tag { font-size: 0.75rem; padding: 0.4rem 0.6rem; }
-    
-    .keyboard-body {
-        padding: 0.5rem;
-    }
-    
-    .key {
-        min-width: 1.75rem;
-        height: 2rem;
-        font-size: 0.8rem;
-    }
-    
-    .key-special {
-        min-width: 2.5rem;
-        height: 2rem;
-        padding: 0 0.5rem;
-    }
-    
-    .key-space {
-        min-width: 6rem;
-    }
-    
-    .keyboard-bottom-row {
-        gap: 0.35rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .keyboard-row-2 {
-        padding: 0 0.5rem;
-    }
-    
-    .keyboard-row-3 {
-        padding: 0 1rem;
-    }
-    
-    .key {
-        min-width: 1.5rem;
-        max-width: 2.5rem;
-    }
-    
-    .keyboard-bottom-row {
-        flex-wrap: wrap;
-    }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   ACCESSIBILITY
-   ═══════════════════════════════════════════════════════════════════════ */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-/* Focus styles for accessibility */
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-}
-
-.key:focus-visible,
-.key-special:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 1px;
+    .key { min-width: 1.75rem; height: 2rem; font-size: 0.8rem; }
+    .key-special { min-width: 2.5rem; height: 2rem; }
+    .key-space { min-width: 6rem; }
 }

@@ -119,7 +119,7 @@ def load_members_data() -> dict:
 # 6. MQTT Setup
 # ----------------------------------------------------------------------
 MQTT_TOPIC = "apm/ar/events"
-AWS_IOT_ENDPOINT = "a3uoz4wfsx2nz3-ats.iot.ap-south-1.amazonaws.com"  # CHANGE IF NEEDED
+AWS_IOT_ENDPOINT = "a3uoz4wfsx2nz3-ats.iot.ap-south-1.amazonaws.com"
 
 client = None
 

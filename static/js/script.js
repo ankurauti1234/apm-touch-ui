@@ -1,9 +1,3 @@
-// === CONFIG ===
-const API_BASE = "https://bt72jq8w9i.execute-api.ap-south-1.amazonaws.com/test";
-const INITIATE_URL = `${API_BASE}/initiate-assignment`;
-const VERIFY_URL = `${API_BASE}/verify-otp`;
-const MEMBERS_URL = `${API_BASE}/members`;
-
 // === UI ELEMENTS ===
 const container = document.getElementById('main-content');
 const progressBar = document.getElementById('progress-bar');
@@ -15,7 +9,6 @@ let inputSources = [];
 let membersData = null;
 let activeInput = null;
 let shiftActive = false;
-let capsLock = false;
 
 // === STEPS ===
 const steps = [
@@ -44,12 +37,6 @@ const keyboardLayouts = {
         ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
         ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
         ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
-    ],
-    symbols: [
-        ['~', '`', '|', '·', '√', 'π', '÷', '×', '¶', '•'],
-        ['-', '_', '+', '=', '[', ']', '{', '}', '\\', '/'],
-        ['<', '>', '?', ':', ';', '"', "'", ',', '.'],
-        ['€', '£', '¥', '₹', '©', '®', '™', '§', '¢']
     ]
 };
 
@@ -304,15 +291,13 @@ const states = {
 function showKeyboard(inputElement) {
     activeInput = inputElement;
     
-    // Check if keyboard already exists
     const existing = document.getElementById('virtual-keyboard');
     if (existing) {
-        // Just update the active input, don't recreate keyboard
         renderKeys();
+        scrollInputIntoView();
         return;
     }
 
-    // Create keyboard container
     const keyboard = document.createElement('div');
     keyboard.id = 'virtual-keyboard';
     keyboard.className = 'virtual-keyboard';
@@ -348,16 +333,10 @@ function showKeyboard(inputElement) {
     
     document.body.appendChild(keyboard);
     renderKeys();
-    
-    // Prevent keyboard from closing when clicking inside
-    keyboard.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
-    
-    // Prevent keyboard from closing when input gains focus
-    inputElement.addEventListener('focus', (e) => {
-        e.stopPropagation();
-    });
+    scrollInputIntoView();
+
+    keyboard.addEventListener('click', e => e.stopPropagation());
+    inputElement.addEventListener('focus', e => e.stopPropagation());
 }
 
 function renderKeys() {
@@ -366,23 +345,17 @@ function renderKeys() {
     
     const layout = shiftActive ? keyboardLayouts.shift : keyboardLayouts.normal;
     
-    keysContainer.innerHTML = layout.map((row, rowIndex) => {
-        return `
-            <div class="keyboard-row keyboard-row-${rowIndex}">
-                ${row.map(key => `
-                    <button class="key" onclick="insertChar('${key}')">${key}</button>
-                `).join('')}
-            </div>
-        `;
-    }).join('');
+    keysContainer.innerHTML = layout.map((row, rowIndex) => `
+        <div class="keyboard-row keyboard-row-${rowIndex}">
+            ${row.map(key => `<button class="key" onclick="insertChar('${key}')">${key}</button>`).join('')}
+        </div>
+    `).join('');
 }
 
 function toggleShift() {
     shiftActive = !shiftActive;
     const shiftBtn = document.querySelector('.key-shift');
-    if (shiftBtn) {
-        shiftBtn.classList.toggle('active', shiftActive);
-    }
+    if (shiftBtn) shiftBtn.classList.toggle('active', shiftActive);
     renderKeys();
 }
 
@@ -393,16 +366,13 @@ function insertChar(char) {
     const end = activeInput.selectionEnd || 0;
     const text = activeInput.value;
     
-    activeInput.value = text.substring(0, start) + char + text.substring(end);
-    activeInput.selectionStart = activeInput.selectionEnd = start + char.length;
+    activeInput.value = text.slice(0, start) + char + text.slice(end);
+    const newPos = start + char.length;
+    activeInput.selectionStart = activeInput.selectionEnd = newPos;
     
-    // Keep input focused but don't trigger focus event
-    setTimeout(() => {
-        if (activeInput) activeInput.focus();
-    }, 0);
-    
-    // Auto-disable shift after typing a character (except for symbols)
-    if (shiftActive && char.match(/[A-Z]/)) {
+    scrollInputIntoView();
+
+    if (shiftActive && /[A-Z]/.test(char)) {
         setTimeout(() => {
             shiftActive = false;
             const shiftBtn = document.querySelector('.key-shift');
@@ -420,29 +390,22 @@ function backspace() {
     const text = activeInput.value;
     
     if (start !== end) {
-        activeInput.value = text.substring(0, start) + text.substring(end);
+        activeInput.value = text.slice(0, start) + text.slice(end);
         activeInput.selectionStart = activeInput.selectionEnd = start;
     } else if (start > 0) {
-        activeInput.value = text.substring(0, start - 1) + text.substring(start);
+        activeInput.value = text.slice(0, start - 1) + text.slice(start);
         activeInput.selectionStart = activeInput.selectionEnd = start - 1;
     }
     
-    // Keep input focused
-    setTimeout(() => {
-        if (activeInput) activeInput.focus();
-    }, 0);
+    scrollInputIntoView();
 }
 
 function pressEnter() {
     if (!activeInput) return;
     hideKeyboard();
     
-    // Trigger submit if it's the OTP or HHID field
-    if (activeInput.id === 'hhid') {
-        submitHHID();
-    } else if (activeInput.id === 'otp') {
-        submitOTP();
-    }
+    if (activeInput.id === 'hhid') submitHHID();
+    else if (activeInput.id === 'otp') submitOTP();
 }
 
 function hideKeyboard() {
@@ -455,31 +418,83 @@ function hideKeyboard() {
     shiftActive = false;
 }
 
-// Close keyboard when clicking outside
+function scrollInputIntoView() {
+    if (!activeInput) return;
+    
+    requestAnimationFrame(() => {
+        const inputRect = activeInput.getBoundingClientRect();
+        const keyboard = document.getElementById('virtual-keyboard');
+        if (!keyboard) return;
+
+        const keyboardTop = keyboard.getBoundingClientRect().top;
+        const inputBottom = inputRect.bottom;
+
+        if (inputBottom > keyboardTop - 100) {
+            const scrollAmount = inputBottom - (keyboardTop - 120);
+            window.scrollBy(0, scrollAmount);
+        }
+
+        activeInput.focus();
+    });
+}
+
 document.addEventListener('click', (e) => {
     const keyboard = document.getElementById('virtual-keyboard');
     const targetInput = e.target.closest('input[type="text"], input[type="password"]');
     
     if (keyboard && !e.target.closest('.virtual-keyboard')) {
-        // If clicking on an input, keep keyboard open and update activeInput
         if (targetInput) {
             activeInput = targetInput;
             renderKeys();
+            scrollInputIntoView();
         } else {
-            // If clicking outside both keyboard and input, close keyboard
             hideKeyboard();
         }
     }
 });
 
-// === UTILS ===
+// === RENDER FUNCTION ===
+function render(details = null) {
+    const html = states[currentState](details);
+
+    if (currentState === 'main') {
+        container.innerHTML = html;
+        progressBar.style.display = 'none';
+        setTimeout(() => {
+            document.querySelectorAll('.member-card-grid').forEach(card => {
+                const bg = card.style.getPropertyValue('--bg-image') || '';
+                if (bg) card.style.setProperty('--card-bg', bg);
+            });
+        }, 10);
+    } else {
+        container.innerHTML = `
+            <div class="container">
+                <div class="card">
+                    <div id="progress-bar-temp"></div>
+                    ${html}
+                </div>
+            </div>`;
+        
+        const temp = container.querySelector('#progress-bar-temp');
+        if (temp && progressBar) {
+            temp.parentNode.insertBefore(progressBar, temp);
+            temp.remove();
+            progressBar.style.display = 'flex';
+            updateProgressBar();
+        }
+    }
+}
+
+// === PROGRESS BAR ===
 function updateProgressBar() {
+    if (!progressBar) return;
     const idx = steps.findIndex(s => s.id === currentState);
     progressBar.innerHTML = steps.map((_, i) => `
         <div class="progress-step ${i <= idx ? 'active' : ''}"></div>
     `).join('');
 }
 
+// === ERROR HANDLING ===
 function showError(msg, type = 'error') {
     const el = document.getElementById('error');
     if (el) {
@@ -490,47 +505,16 @@ function showError(msg, type = 'error') {
     }
 }
 
-function render(details = null) {
-    container.innerHTML = states[currentState](details);
-
-    if (currentState === 'main') {
-        progressBar.style.display = 'none';
-        setTimeout(() => {
-            document.querySelectorAll('.member-card-grid').forEach(card => {
-                const bg = card.style.getPropertyValue('--bg-image') || '';
-                if (bg) {
-                    card.style.setProperty('--card-bg', bg);
-                }
-            });
-        }, 10);
-    } else {
-        progressBar.style.display = 'flex';
-        updateProgressBar();
-    }
-}
-
-// === WIFI & SYSTEM ===
-async function checkWiFi() {
-    try {
-        const res = await fetch('/api/check_wifi');
-        const data = await res.json();
-        if (data.success) {
-            const cur = await fetch('/api/current_wifi');
-            const cdata = await cur.json();
-            if (cdata.success) navigate('connect_select', cdata.ssid);
-            else showWiFiPopup();
-        } else showWiFiPopup();
-    } catch (e) {
-        showError('Wi-Fi check failed');
-        render();
-    }
-}
-
+// === WIFI POPUP ===
 async function showWiFiPopup() {
+    closeWiFiPopup();
+
     const popup = document.createElement('div');
-    popup.id = 'wifi-popup'; popup.className = 'popup';
+    popup.id = 'wifi-popup';
+    popup.className = 'popup';
     const overlay = document.createElement('div');
-    overlay.id = 'wifi-overlay'; overlay.className = 'overlay';
+    overlay.id = 'wifi-overlay';
+    overlay.className = 'overlay';
     overlay.onclick = closeWiFiPopup;
 
     popup.innerHTML = `
@@ -552,6 +536,7 @@ async function showWiFiPopup() {
 async function scanWiFi() {
     const select = document.getElementById('ssid');
     const err = document.getElementById('wifi-error');
+    if (!select || !err) return;
     try {
         const res = await fetch('/api/wifi/networks');
         const data = await res.json();
@@ -574,14 +559,18 @@ async function scanWiFi() {
 }
 
 function togglePasswordField() {
-    document.getElementById('password').style.display = 
-        document.getElementById('ssid').value ? 'block' : 'none';
+    const passwordField = document.getElementById('password');
+    const ssid = document.getElementById('ssid');
+    if (passwordField && ssid) {
+        passwordField.style.display = ssid.value ? 'block' : 'none';
+    }
 }
 
 async function connectWiFi() {
-    const ssid = document.getElementById('ssid').value;
-    const pass = document.getElementById('password').value;
+    const ssid = document.getElementById('ssid')?.value;
+    const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
+    if (!err) return;
     if (!ssid || !pass) {
         err.innerHTML = '<span class="material-icons">error</span> SSID & password required';
         err.className = 'error';
@@ -608,6 +597,7 @@ async function connectWiFi() {
 
 async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
+    if (!err) return;
     try {
         const res = await fetch('/api/wifi/disconnect', { method: 'POST' });
         const data = await res.json();
@@ -629,7 +619,7 @@ function closeWiFiPopup() {
     render();
 }
 
-// === NAVIGATION & FLOW ===
+// === NAVIGATION ===
 async function navigate(state, param = null) {
     currentState = state;
 
@@ -662,13 +652,31 @@ async function navigate(state, param = null) {
 }
 
 // === API CALLS ===
+async function checkWiFi() {
+    try {
+        const res = await fetch('/api/check_wifi');
+        const data = await res.json();
+        if (data.success) {
+            const cur = await fetch('/api/current_wifi');
+            const cdata = await cur.json();
+            if (cdata.success) navigate('connect_select', cdata.ssid);
+            else showWiFiPopup();
+        } else showWiFiPopup();
+    } catch (e) {
+        showError('Wi-Fi check failed');
+        render();
+    }
+}
+
 async function submitHHID() {
-    hhid = document.getElementById('hhid').value.trim();
+    hhid = document.getElementById('hhid')?.value.trim();
     if (!hhid) return showError('Enter HHID');
 
-    const btn = event.target;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
+    const btn = event?.target;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
+    }
 
     try {
         const res = await fetch('/api/submit_hhid', {
@@ -684,18 +692,22 @@ async function submitHHID() {
     } catch (e) {
         showError('Network error');
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
+        }
     }
 }
 
 async function submitOTP() {
-    const otp = document.getElementById('otp').value.trim();
+    const otp = document.getElementById('otp')?.value.trim();
     if (!otp || otp.length !== 4) return showError('Enter 4-digit OTP');
 
-    const btn = event.target;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-icons">hourglass_top</span> Verifying...';
+    const btn = event?.target;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Verifying...';
+    }
 
     try {
         const res = await fetch('/api/submit_otp', {
@@ -710,15 +722,19 @@ async function submitOTP() {
     } catch (e) {
         showError('Network error');
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP';
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP';
+        }
     }
 }
 
 async function finalizeInstallation() {
-    const btn = event.target;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-icons">hourglass_top</span> Finalizing...';
+    const btn = event?.target;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Finalizing...';
+    }
 
     try {
         const res = await fetch('/api/finalize', { method: 'POST' });
@@ -730,8 +746,10 @@ async function finalizeInstallation() {
     } catch (e) {
         showError('Failed to finalize');
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<span class="material-icons">check_circle</span> Finalize Installation';
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">check_circle</span> Finalize Installation';
+        }
     }
 }
 
@@ -763,13 +781,12 @@ async function toggleMember(index) {
     }
 }
 
-// === SYSTEM ===
 async function shutdown() {
     if (!confirm('Shutdown system?')) return;
     try {
         const res = await fetch('/api/shutdown', { method: 'POST' });
-        const data = await res.json();
-        alert(data.success ? 'Shutting down...' : data.error);
+        const ShutdownData = await res.json();
+        alert(ShutdownData.success ? 'Shutting down...' : ShutdownData.error);
     } catch (e) { alert('Shutdown failed'); }
 }
 
