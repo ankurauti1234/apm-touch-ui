@@ -201,12 +201,18 @@ def check_wifi():
             return jsonify({"success": False}), 200
 
         for line in out.strip().split("\n"):
-            if line and ":wifi:" in line:
-                device = line.split(":")[1]
-                if device.startswith("wlan") or device.startswith("wlx"):
-                    return jsonify({"success": True}), 200
+            if not line.strip():
+                continue
+            parts = line.split(":", 1)
+            if len(parts) < 2:
+                continue
+            conn_type, device = parts[0], parts[1]
+
+            if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
+                return jsonify({"success": True}), 200
+
         return jsonify({"success": False}), 200
-    except:
+    except Exception:
         return jsonify({"success": False}), 200
 
 
@@ -219,24 +225,20 @@ def current_wifi():
         if not ok:
             return jsonify({"success": False, "error": "nmcli failed"}), 500
 
-        active_wifi = None
         for line in out.strip().split("\n"):
             if not line.strip():
                 continue
-            parts = line.split(":")
+            parts = line.split(":", 2)  # Only split into 3 parts
             if len(parts) < 3:
                 continue
+
             name, conn_type, device = parts[0], parts[1], parts[2]
 
-            # Match any Wi-Fi connection (not just 'wlan')
-            if conn_type == "wifi" and device.startswith("wlan") or device.startswith("wlx"):
-                active_wifi = name
-                break  # Take first active Wi-Fi
+            # Match 802-11-wireless (not "wifi")
+            if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
+                return jsonify({"success": True, "ssid": name}), 200
 
-        if active_wifi:
-            return jsonify({"success": True, "ssid": active_wifi}), 200
-        else:
-            return jsonify({"success": False, "error": "No active Wi-Fi connection"}), 404
+        return jsonify({"success": False, "error": "No active Wi-Fi connection"}), 404
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
