@@ -303,6 +303,10 @@ def list_wifi_networks():
         return jsonify({"success": True, "networks": nets}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+@app.route("/api/check_gsm", methods=["GET"])
+def check_gsm():
+    return jsonify({"success": os.path.exists(SYSTEM_FILES["gsm_up"])})
 
 
 @app.route("/api/shutdown", methods=["POST"])
@@ -473,6 +477,40 @@ def finalize():
         return jsonify({"success": False, "error": "Timeout"}), 504
     except Exception as e:
         set_installation_done()
+        return jsonify({"success": False, "error": str(e)}), 500
+    
+# === SHUTDOWN ===
+@app.route("/api/shutdown", methods=["POST"])
+def api_shutdown():
+    try:
+        # Use systemd (recommended on Raspberry Pi OS, Ubuntu, etc.)
+        result = subprocess.run(
+            ["sudo", "systemctl", "poweroff"],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        return jsonify({"success": True, "message": "Shutting down..."}), 200
+    except subprocess.CalledProcessError as e:
+        return jsonify({"success": False, "error": f"Shutdown failed: {e.stderr.strip()}"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# === RESTART ===
+@app.route("/api/restart", methods=["POST"])
+def api_restart():
+    try:
+        result = subprocess.run(
+            ["sudo", "systemctl", "reboot"],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        return jsonify({"success": True, "message": "Restarting..."}), 200
+    except subprocess.CalledProcessError as e:
+        return jsonify({"success": False, "error": f"Restart failed: {e.stderr.strip()}"}), 500
+    except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 
