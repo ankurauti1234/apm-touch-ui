@@ -400,22 +400,20 @@ function scrollInputIntoView() {
 }
 
 /* click-outside → hide keyboard */
+/* click-outside → hide keyboard */
 document.addEventListener('click', e => {
     const kb = document.getElementById('virtual-keyboard');
     const target = e.target.closest('input[type=text],input[type=password]');
+
     if (kb && !e.target.closest('.virtual-keyboard')) {
         if (target) {
             activeInput = target;
-            const containerCard = document.querySelector('.container');
-            if (containerCard) containerCard.classList.add('lifted');
-            renderKeys();
-            scrollInputIntoView();
-        }
-        else {
-            const containerCard = document.querySelector('.container');
-            if (containerCard) containerCard.classList.remove('lifted');
+            showKeyboard(target);
+        } else {
             hideKeyboard();
         }
+    } else if (!kb && target && target.matches('input[type=text], input[type=password]')) {
+        showKeyboard(target);
     }
 });
 
