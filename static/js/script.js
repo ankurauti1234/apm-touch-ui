@@ -144,7 +144,9 @@ const states = {
         <div id="error" class="error" style="display:none;"></div>
         <input type="text" id="hhid" placeholder="Enter HHID (e.g. HH1002)" onfocus="showKeyboard(this)">
         <div class="button-group">
-            
+            <button class="button" onclick="submitHHID()">
+                <span class="material-icons">send</span> Submit & Send OTP
+            </button>
             <button class="button secondary" onclick="navigate('display_meter')">
                 <span class="material-icons">arrow_back</span> Back
             </button>
@@ -746,7 +748,7 @@ async function checkVideoDetection() {
             status.dataset.detected = 'true';
             document.querySelector('.button-group')
                 .insertAdjacentHTML('afterbegin', `
-                    <button class="button" onclick="submitHHID()">
+                    <button class="button" onclick="navigate('finalize')">
                         <span class="material-icons">send</span> Submit & Send OTP
                     </button>
             `);
@@ -1101,7 +1103,7 @@ async function init() {
         const r = await fetch('/api/check_installation');
         const d = await r.json();
         meterId = d.meter_id;
-        currentState = d.installed ? 'main' : 'welcome';
+        currentState = d.installed ? 'display_meter' : 'welcome';
         if (d.installed) await fetchMembers();
         render();
     } catch { currentState = 'welcome'; render(); }
