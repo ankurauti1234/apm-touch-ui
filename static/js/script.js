@@ -144,8 +144,8 @@ const states = {
         <div id="error" class="error" style="display:none;"></div>
         <input type="text" id="hhid" placeholder="Enter HHID (e.g. HH1002)" onfocus="showKeyboard(this)">
         <div class="button-group">
-            <button class="button" onclick="navigate('otp_verification')">
-                <span class="material-icons">arrow_forward</span> Next
+            <button class="button" onclick="submitHHID()">
+                <span class="material-icons">send</span> Submit & Send OTP
             </button>
             <button class="button secondary" onclick="navigate('display_meter')">
                 <span class="material-icons">arrow_back</span> Back
@@ -748,8 +748,8 @@ async function checkVideoDetection() {
             status.dataset.detected = 'true';
             document.querySelector('.button-group')
                 .insertAdjacentHTML('afterbegin', `
-                    <button class="button" onclick="submitHHID()">
-                        <span class="material-icons">send</span> Submit & Send OTP
+                    <button class="button" onclick="navigate('finalize')">
+                        <span class="material-icons">send</span> Next
                     </button>
             `);
         } else {
