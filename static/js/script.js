@@ -1021,11 +1021,11 @@ function resetScreensaverTimer() {
     hideScreensaver();
     restoreBrightness();
 
-    // Pre-dim at 10 seconds (10 seconds before screensaver)
-    preDimTimeout = setTimeout(preDimBrightness, 10000);
+    // Pre-dim at 20 seconds (10 seconds before screensaver)
+    preDimTimeout = setTimeout(preDimBrightness, 20000);
 
-    // Show screensaver at 20 seconds
-    screensaverTimeout = setTimeout(showScreensaver, 20000);
+    // Show screensaver at 30 seconds
+    screensaverTimeout = setTimeout(showScreensaver, 30000);
 }
 
 // Start screensaver timer ONLY when on the main dashboard
