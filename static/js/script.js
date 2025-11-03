@@ -400,20 +400,22 @@ function scrollInputIntoView() {
 }
 
 /* click-outside → hide keyboard */
-/* click-outside → hide keyboard */
 document.addEventListener('click', e => {
     const kb = document.getElementById('virtual-keyboard');
     const target = e.target.closest('input[type=text],input[type=password]');
-
     if (kb && !e.target.closest('.virtual-keyboard')) {
         if (target) {
             activeInput = target;
-            showKeyboard(target);
-        } else {
+            const containerCard = document.querySelector('.container');
+            if (containerCard) containerCard.classList.add('lifted');
+            renderKeys();
+            scrollInputIntoView();
+        }
+        else {
+            const containerCard = document.querySelector('.container');
+            if (containerCard) containerCard.classList.remove('lifted');
             hideKeyboard();
         }
-    } else if (!kb && target && target.matches('input[type=text], input[type=password]')) {
-        showKeyboard(target);
     }
 });
 
@@ -474,7 +476,7 @@ async function showWiFiPopup() {
     const overlay = document.createElement('div'); overlay.id = 'wifi-overlay'; overlay.className = 'overlay'; overlay.onclick = closeWiFiPopup;
     const popup = document.createElement('div'); popup.id = 'wifi-popup'; popup.className = 'popup';
     popup.innerHTML = `
-        <div class="card" id="wifi-card" >
+        <div class="container" id="wifi-card" >
             <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
             <p>Choose a network to connect</p>
             <div id="wifi-error" class="error" style="display:none;"></div>
