@@ -144,8 +144,8 @@ const states = {
         <div id="error" class="error" style="display:none;"></div>
         <input type="text" id="hhid" placeholder="Enter HHID (e.g. HH1002)" onfocus="showKeyboard(this)">
         <div class="button-group">
-            <button class="button" onclick="navigate('otp_verification')">
-                <span class="material-icons">arrow_forward</span> Next
+            <button class="button" onclick="submitHHID()">
+                <span class="material-icons">send</span> Submit & Send OTP
             </button>
             <button class="button secondary" onclick="navigate('display_meter')">
                 <span class="material-icons">arrow_back</span> Back
@@ -176,9 +176,6 @@ const states = {
             <!-- Filled by JS -->
         </ul>
         <div class="button-group">
-            <button class="button secondary" onclick="navigate('otp_verification')">
-                <span class="material-icons">arrow_back</span> Back
-            </button>
         </div>
     </div>
 `,
@@ -190,9 +187,6 @@ const states = {
         <div id="video-results" style="display:none;">
             <div id="video-status"></div>
             <div class="button-group">
-                <button class="button secondary" onclick="navigate('input_source_detection')">
-                    <span class="material-icons">arrow_back</span> Back
-                </button>
             </div>
         </div>`,
 
@@ -553,9 +547,6 @@ function closeWiFiPopup() {
 
 
 function showSettingsPopup() {
-    if (document.getElementById('wifi-popup')) {
-        closeWiFiPopup();
-    }
     if (document.getElementById('settings-popup')) {
         closeSettingsPopup();
         return; // already open
@@ -592,6 +583,10 @@ function showSettingsPopup() {
   `;
 
     document.body.append(overlay, popup);
+
+    if (document.getElementById('wifi-popup')) {
+        closeWiFiPopup();
+    }
 
     // close popup when clicking outside it
     overlay.addEventListener('click', (e) => {
@@ -748,8 +743,8 @@ async function checkVideoDetection() {
             status.dataset.detected = 'true';
             document.querySelector('.button-group')
                 .insertAdjacentHTML('afterbegin', `
-                    <button class="button" onclick="submitHHID()">
-                        <span class="material-icons">send</span> Submit & Send OTP
+                    <button class="button" onclick="navigate('finalize')">
+                        <span class="material-icons">arrow_forward</span> Next
                     </button>
             `);
         } else {
@@ -1026,11 +1021,11 @@ function resetScreensaverTimer() {
     hideScreensaver();
     restoreBrightness();
 
-    // Pre-dim at 10 seconds (10 seconds before screensaver)
-    preDimTimeout = setTimeout(preDimBrightness, 10000);
+    // Pre-dim at 20 seconds (10 seconds before screensaver)
+    preDimTimeout = setTimeout(preDimBrightness, 20000);
 
-    // Show screensaver at 20 seconds
-    screensaverTimeout = setTimeout(showScreensaver, 20000);
+    // Show screensaver at 30 seconds
+    screensaverTimeout = setTimeout(showScreensaver, 30000);
 }
 
 // Start screensaver timer ONLY when on the main dashboard
