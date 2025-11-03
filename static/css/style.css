@@ -79,6 +79,12 @@ body {
     align-items: center;
 }
 
+#wifi-card {
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+}
+
 /* PROGRESS BAR – INSIDE CARD */
 #progress-bar {
     display: flex;
