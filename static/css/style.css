@@ -69,14 +69,6 @@ body {
     border: 0;
     box-shadow: none;
     padding: 0;
-    width: auto;
-    max-width: none;
-    margin: 0;
-    display: block;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: flex-start;
-    flex: 0;
 }
 
 .card {

@@ -476,7 +476,7 @@ async function showWiFiPopup() {
     const overlay = document.createElement('div'); overlay.id = 'wifi-overlay'; overlay.className = 'overlay'; overlay.onclick = closeWiFiPopup;
     const popup = document.createElement('div'); popup.id = 'wifi-popup'; popup.className = 'popup';
     popup.innerHTML = `
-        <div class="popup container" id="wifi-card" >
+        <div class="popup" id="wifi-card" >
             <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
             <p>Choose a network to connect</p>
             <div id="wifi-error" class="error" style="display:none;"></div>
