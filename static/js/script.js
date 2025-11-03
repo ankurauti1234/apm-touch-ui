@@ -252,7 +252,7 @@ function showKeyboard(el) {
     activeInput = el;
 
     // Lift the container card
-    const containerCard = document.querySelector('.bounce');
+    const containerCard = document.querySelector('.container');
     if (containerCard) {
         containerCard.classList.add('lifted');
     }
@@ -374,8 +374,13 @@ function hideKeyboard() {
         setTimeout(() => kb.remove(), 300);
     }
 
+    const popupCard = document.querySelector('.popup');
+    if (popupCard) {
+        popupCard.classList.remove('lifted');
+    }
+
     // Settle the container card back down
-    const containerCard = document.querySelector('.bounce');
+    const containerCard = document.querySelector('.container');
     if (containerCard) {
         containerCard.classList.remove('lifted');
     }
@@ -402,17 +407,36 @@ function scrollInputIntoView() {
 /* click-outside → hide keyboard */
 document.addEventListener('click', e => {
     const kb = document.getElementById('virtual-keyboard');
+    const target = e.target.closest('input[type=text], input[type=password]');
+
+    if (kb && !e.target.closest('.virtual-keyboard')) {
+        if (target) {
+            activeInput = target;
+            showKeyboard(target);
+        } else {
+            hideKeyboard();
+        }
+    }
+    // NEW: Handle inputs in .popup when keyboard is closed
+    else if (!kb && target && target.closest('.popup')) {
+        showKeyboard(target);
+    }
+});
+
+/* click-outside → hide keyboard */
+document.addEventListener('click', e => {
+    const kb = document.getElementById('virtual-keyboard');
     const target = e.target.closest('input[type=text],input[type=password]');
     if (kb && !e.target.closest('.virtual-keyboard')) {
         if (target) {
             activeInput = target;
-            const containerCard = document.querySelector('.bounce');
+            const containerCard = document.querySelector('.container');
             if (containerCard) containerCard.classList.add('lifted');
             renderKeys();
             scrollInputIntoView();
         }
         else {
-            const containerCard = document.querySelector('.bounce');
+            const containerCard = document.querySelector('.container');
             if (containerCard) containerCard.classList.remove('lifted');
             hideKeyboard();
         }
@@ -474,7 +498,7 @@ async function showWiFiPopup() {
     closeSettingsPopup();
     closeWiFiPopup();
     const overlay = document.createElement('div'); overlay.id = 'wifi-overlay'; overlay.className = 'overlay'; overlay.onclick = closeWiFiPopup;
-    const popup = document.createElement('div'); popup.id = 'wifi-popup'; popup.className = 'popup bounce';
+    const popup = document.createElement('div'); popup.id = 'wifi-popup'; popup.className = 'popup';
     popup.innerHTML = `
             <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
             <p>Choose a network to connect</p>
