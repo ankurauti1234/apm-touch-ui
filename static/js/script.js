@@ -252,7 +252,7 @@ function showKeyboard(el) {
     activeInput = el;
 
     // Lift the container card
-    const containerCard = document.querySelector('.container');
+    const containerCard = document.querySelector('.bounce');
     if (containerCard) {
         containerCard.classList.add('lifted');
     }
@@ -375,7 +375,7 @@ function hideKeyboard() {
     }
 
     // Settle the container card back down
-    const containerCard = document.querySelector('.container');
+    const containerCard = document.querySelector('.bounce');
     if (containerCard) {
         containerCard.classList.remove('lifted');
     }
@@ -406,13 +406,13 @@ document.addEventListener('click', e => {
     if (kb && !e.target.closest('.virtual-keyboard')) {
         if (target) {
             activeInput = target;
-            const containerCard = document.querySelector('.container');
+            const containerCard = document.querySelector('.bounce');
             if (containerCard) containerCard.classList.add('lifted');
             renderKeys();
             scrollInputIntoView();
         }
         else {
-            const containerCard = document.querySelector('.container');
+            const containerCard = document.querySelector('.bounce');
             if (containerCard) containerCard.classList.remove('lifted');
             hideKeyboard();
         }
@@ -474,7 +474,7 @@ async function showWiFiPopup() {
     closeSettingsPopup();
     closeWiFiPopup();
     const overlay = document.createElement('div'); overlay.id = 'wifi-overlay'; overlay.className = 'overlay'; overlay.onclick = closeWiFiPopup;
-    const popup = document.createElement('div'); popup.id = 'wifi-popup'; popup.className = 'popup container';
+    const popup = document.createElement('div'); popup.id = 'wifi-popup'; popup.className = 'popup bounce';
     popup.innerHTML = `
             <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
             <p>Choose a network to connect</p>
