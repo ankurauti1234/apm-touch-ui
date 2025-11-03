@@ -1103,10 +1103,9 @@ async function init() {
         const r = await fetch('/api/check_installation');
         const d = await r.json();
         meterId = d.meter_id;
-        currentState = d.installed ? 'display_meter' : 'welcome';
+        currentState = d.installed ? 'main' : 'welcome';
         if (d.installed) await fetchMembers();
         render();
     } catch { currentState = 'welcome'; render(); }
 }
 init();
-
