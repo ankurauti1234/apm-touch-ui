@@ -144,7 +144,9 @@ const states = {
         <div id="error" class="error" style="display:none;"></div>
         <input type="text" id="hhid" placeholder="Enter HHID (e.g. HH1002)" onfocus="showKeyboard(this)">
         <div class="button-group">
-            
+            <button class="button" onclick="navigate('otp_verification')">
+                <span class="material-icons">arrow_forward</span> Next
+            </button>
             <button class="button secondary" onclick="navigate('display_meter')">
                 <span class="material-icons">arrow_back</span> Back
             </button>
