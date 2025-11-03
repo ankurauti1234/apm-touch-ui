@@ -374,11 +374,6 @@ function hideKeyboard() {
         setTimeout(() => kb.remove(), 300);
     }
 
-    const popupCard = document.querySelector('.popup');
-    if (popupCard) {
-        popupCard.classList.remove('lifted');
-    }
-
     // Settle the container card back down
     const containerCard = document.querySelector('.container');
     if (containerCard) {
@@ -403,25 +398,6 @@ function scrollInputIntoView() {
         activeInput.focus();
     });
 }
-
-/* click-outside → hide keyboard */
-document.addEventListener('click', e => {
-    const kb = document.getElementById('virtual-keyboard');
-    const target = e.target.closest('input[type=text], input[type=password]');
-
-    if (kb && !e.target.closest('.virtual-keyboard')) {
-        if (target) {
-            activeInput = target;
-            showKeyboard(target);
-        } else {
-            hideKeyboard();
-        }
-    }
-    // NEW: Handle inputs in .popup when keyboard is closed
-    else if (!kb && target && target.closest('.popup')) {
-        showKeyboard(target);
-    }
-});
 
 /* click-outside → hide keyboard */
 document.addEventListener('click', e => {
@@ -500,6 +476,7 @@ async function showWiFiPopup() {
     const overlay = document.createElement('div'); overlay.id = 'wifi-overlay'; overlay.className = 'overlay'; overlay.onclick = closeWiFiPopup;
     const popup = document.createElement('div'); popup.id = 'wifi-popup'; popup.className = 'popup';
     popup.innerHTML = `
+        <div class="popup container" id="wifi-card" >
             <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
             <p>Choose a network to connect</p>
             <div id="wifi-error" class="error" style="display:none;"></div>
@@ -509,7 +486,8 @@ async function showWiFiPopup() {
                 <button class="button" onclick="connectWiFi()">Connect</button>
                 <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
                 <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
-            </div>`;
+            </div>
+        </div>`;
     document.body.append(overlay, popup);
     await scanWiFi();
 }
