@@ -176,9 +176,6 @@ const states = {
             <!-- Filled by JS -->
         </ul>
         <div class="button-group">
-            <button class="button secondary" onclick="navigate('otp_verification')">
-                <span class="material-icons">arrow_back</span> Back
-            </button>
         </div>
     </div>
 `,
@@ -190,9 +187,6 @@ const states = {
         <div id="video-results" style="display:none;">
             <div id="video-status"></div>
             <div class="button-group">
-                <button class="button secondary" onclick="navigate('input_source_detection')">
-                    <span class="material-icons">arrow_back</span> Back
-                </button>
             </div>
         </div>`,
 
@@ -749,7 +743,7 @@ async function checkVideoDetection() {
             document.querySelector('.button-group')
                 .insertAdjacentHTML('afterbegin', `
                     <button class="button" onclick="navigate('finalize')">
-                        <span class="material-icons">send</span> Submit & Send OTP
+                        <span class="material-icons">arrow_forward</span> Next
                     </button>
             `);
         } else {
@@ -1103,7 +1097,7 @@ async function init() {
         const r = await fetch('/api/check_installation');
         const d = await r.json();
         meterId = d.meter_id;
-        currentState = d.installed ? 'display_meter' : 'welcome';
+        currentState = d.installed ? 'main' : 'welcome';
         if (d.installed) await fetchMembers();
         render();
     } catch { currentState = 'welcome'; render(); }
