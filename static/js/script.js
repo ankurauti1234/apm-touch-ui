@@ -749,7 +749,7 @@ async function checkVideoDetection() {
             document.querySelector('.button-group')
                 .insertAdjacentHTML('afterbegin', `
                     <button class="button" onclick="navigate('finalize')">
-                        <span class="material-icons">send</span> Submit & Send OTP
+                        <span class="material-icons">send</span> Next
                     </button>
             `);
         } else {
