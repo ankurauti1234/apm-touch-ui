@@ -537,6 +537,10 @@ function initWiFiLift() {
 /* --------------------------------------------------------------
    Call initWiFiLift() right after the popup is created
    -------------------------------------------------------------- */
+
+const mess = document.getElementById('fetching');
+mess.innerHTML = 'fetching wifi...';
+
 async function showWiFiPopup() {
     closeSettingsPopup();
     closeWiFiPopup();
@@ -572,14 +576,12 @@ async function showWiFiPopup() {
 
     // Optional: Auto-open dropdown for better touch UX
     setTimeout(() => {
-        const mess = document.getElementById('fetching');
-        mess.innerHTML = 'fetching wifi...';
+
         const trigger = document.getElementById('selected-network');
         const list = document.getElementById('network-list');
         if (trigger && list && list.children.length > 0) {
             list.style.display = 'block';
             trigger.classList.add('open');
-            mess.innerHTML = 'Select Network';
         }
     }, 200);
 
