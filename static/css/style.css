@@ -861,35 +861,83 @@ ul li {
 
 
 
-/* TOUCHSCREEN SELECT FIX – RASPBERRY PI SAFE */
-#ssid {
-    -webkit-appearance: none;
-    appearance: none;
-    font-size: 16px !important;
-    /* Prevents zoom */
-    padding: 12px 36px 12px 12px !important;
-    background:
-        hsl(var(--card)) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%23676778' d='M0 0l6 6 6-6z'/%3E%3C/svg%3E") no-repeat right 12px center;
-    background-size: 12px;
+/* CUSTOM TOUCH-FRIENDLY DROPDOWN */
+.custom-select {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1rem;
+    user-select: none;
+}
+
+.selected-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: hsl(var(--card));
     border: 1px solid hsl(var(--input));
     border-radius: var(--radius);
-    width: 100%;
-    box-sizing: border-box;
-    touch-action: manipulation;
+    font-size: 0.875rem;
+    color: hsl(var(--foreground));
     cursor: pointer;
-    outline: none;
     transition: all 0.15s ease;
-    z-index: 99999;
 }
 
-#ssid:focus {
+.selected-item:focus,
+.selected-item.open {
     border-color: hsl(var(--ring));
     box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
-    z-index: 99999;
+    outline: none;
 }
 
-/* Ensure dropdown is not clipped */
-#wifi-popup select {
-    position: relative;
-    z-index: 99999;
+.selected-item .arrow {
+    font-size: 1.25rem;
+    transition: transform 0.2s ease;
+}
+
+.selected-item.open .arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--input));
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 9999;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-list li {
+    padding: 12px;
+    font-size: 0.875rem;
+    color: hsl(var(--foreground));
+    border-bottom: 1px solid hsl(var(--border));
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown-list li:last-child {
+    border-bottom: none;
+}
+
+.dropdown-list li:hover,
+.dropdown-list li.selected {
+    background: hsl(var(--accent));
+}
+
+.dropdown-list li .signal {
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
 }

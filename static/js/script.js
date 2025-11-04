@@ -554,7 +554,13 @@ async function showWiFiPopup() {
         <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
         <p>Choose a network to connect</p>
         <div id="wifi-error" class="error" style="display:none;"></div>
-        <select id="ssid" onchange="togglePasswordField()" tabindex="0"><option>Select Network</option></select>
+        <div id="custom-select" class="custom-select">
+            <div id="selected-network" class="selected-item">
+                <span>Select Network</span>
+                <span class="material-icons arrow">arrow_drop_down</span>
+            </div>
+            <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
+        </div>
         <input type="password" id="password" placeholder="Password" style="display:none;" onfocus="showKeyboard(this)">
         <div class="button-group">
             <button class="button" onclick="connectWiFi()">Connect</button>
@@ -574,39 +580,89 @@ async function showWiFiPopup() {
 
     // <<< NEW >>> initialise lift behaviour
     initWiFiLift();
+
+    // Custom dropdown touch handler
+    document.getElementById('selected-network').onclick = (e) => {
+        e.stopPropagation();
+        const list = document.getElementById('network-list');
+        const isOpen = list.style.display === 'block';
+        list.style.display = isOpen ? 'none' : 'block';
+        e.target.classList.toggle('open', !isOpen);
+    };
+
+    // Close dropdown when clicking outside
+    document.getElementById('wifi-overlay').onclick = () => {
+        const list = document.getElementById('network-list');
+        const sel = document.getElementById('selected-network');
+        if (list) list.style.display = 'none';
+        if (sel) sel.classList.remove('open');
+        closeWiFiPopup();
+    };
 }
+
+let selectedSSID = '';
+
+// Store networks globally for dropdown
+let availableNetworks = [];
+
 async function scanWiFi() {
-    const sel = document.getElementById('ssid');
+    const container = document.getElementById('network-list');
+    const selectedDisplay = document.getElementById('selected-network');
     const err = document.getElementById('wifi-error');
-    if (!sel || !err) return;
+    if (!container || !selectedDisplay || !err) return;
+
     try {
         const r = await fetch('/api/wifi/networks');
         const d = await r.json();
-        if (d.success) {
-            sel.innerHTML = '<option>Select Network</option>';
+        if (d.success && d.networks.length > 0) {
+            availableNetworks = d.networks;
+            container.innerHTML = '';
             d.networks.forEach(n => {
-                const o = document.createElement('option');
-                o.value = n.ssid;
-                o.textContent = `${n.ssid} (${n.signal_strength}, ${n.security})`;
-                sel.appendChild(o);
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${n.ssid}</span>
+                    <span class="signal">${n.signal_strength} ${n.security}</span>
+                `;
+                li.onclick = (e) => {
+                    e.stopPropagation();
+                    selectedSSID = n.ssid;
+                    selectedDisplay.innerHTML = `
+                        <span>${n.ssid}</span>
+                        <span class="material-icons arrow">arrow_drop_down</span>
+                    `;
+                    container.style.display = 'none';
+                    selectedDisplay.classList.remove('open');
+                    togglePasswordField();
+                };
+                container.appendChild(li);
             });
-        } else { err.innerHTML = `<span class="material-icons">error</span> ${d.error}`; err.style.display = 'flex'; }
-    } catch { err.innerHTML = `<span class="material-icons">error</span> Scan failed`; err.style.display = 'flex'; }
+            err.style.display = 'none';
+        } else {
+            container.innerHTML = '<li style="padding:12px;text-align:center;color:hsl(var(--muted-foreground));">No networks found</li>';
+            err.innerHTML = `<span class="material-icons">error</span> ${d.error || 'No networks'}`;
+            err.style.display = 'flex';
+        }
+    } catch (e) {
+        container.innerHTML = '<li style="padding:12px;text-align:center;color:hsl(var(--destructive));">Scan failed</li>';
+        err.innerHTML = `<span class="material-icons">error</span> Scan failed`;
+        err.style.display = 'flex';
+    }
 }
+
 function togglePasswordField() {
     const pw = document.getElementById('password');
-    const ss = document.getElementById('ssid');
-    if (pw && ss) pw.style.display = ss.value ? 'block' : 'none';
+    // const ss = document.getElementById('ssid');
+    if (pw) pw.style.display = selectedSSID ? 'block' : 'none';
 }
 async function connectWiFi() {
-    const ssid = document.getElementById('ssid')?.value;
+    // const ssid = document.getElementById('ssid')?.value;
     const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
-    if (!ssid || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
+    if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
     try {
         const r = await fetch('/api/wifi/connect', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ssid, password: pass })
+            body: JSON.stringify({ ssid: selectedSSID, password: pass })
         });
         const d = await r.json();
         err.className = d.success ? 'success' : 'error';
