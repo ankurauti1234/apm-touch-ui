@@ -519,19 +519,53 @@ function lowerPopup() {
 /* --------------------------------------------------------------
    Hook the focus/blur events on the password field
    -------------------------------------------------------------- */
+/* --------------------------------------------------------------
+   IMPROVED: Prevent keyboard flicker on key press
+   -------------------------------------------------------------- */
+let isTyping = false;  // ← tracks if user is actively typing
+
 function initWiFiLift() {
     const pw = document.getElementById('password');
     if (!pw) return;
 
+    // === FOCUS: Show keyboard + lift ===
     pw.addEventListener('focus', () => {
-        // your existing keyboard-show logic
         showKeyboard(pw);
         liftPopup();
+        isTyping = true; // user is now typing
     });
 
+    // === BLUR: Only hide if NOT typing ===
     pw.addEventListener('blur', () => {
-        lowerPopup();
+        // Delay check: if we're still typing (e.g. key was just pressed), ignore blur
+        setTimeout(() => {
+            if (!isTyping) {
+                lowerPopup();
+            }
+        }, 100);
     });
+
+    // === GLOBAL: Track key presses on virtual keyboard ===
+    document.getElementById(KEYBOARD_ID)?.addEventListener('mousedown', () => {
+        isTyping = true;
+    });
+
+    document.getElementById(KEYBOARD_ID)?.addEventListener('touchstart', () => {
+        isTyping = true;
+    });
+
+    // Reset typing flag after short idle (user stopped typing)
+    let typingTimer;
+    const resetTyping = () => {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            isTyping = false;
+        }, 300);
+    };
+
+    document.getElementById(KEYBOARD_ID)?.addEventListener('mouseup', resetTyping);
+    document.getElementById(KEYBOARD_ID)?.addEventListener('touchend', resetTyping);
+    document.getElementById(KEYBOARD_ID)?.addEventListener('click', resetTyping);
 }
 
 /* --------------------------------------------------------------
@@ -561,7 +595,7 @@ async function showWiFiPopup() {
             </div>
             <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
         </div>
-        <input type="password" id="password" placeholder="Password" style="display:none;" onfocus="showKeyboard(this)">
+        <input type="password" id="password" placeholder="Password" style="display:none;">
         <div class="button-group">
             <button class="button" onclick="connectWiFi()">Connect</button>
             <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
