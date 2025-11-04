@@ -556,7 +556,7 @@ async function showWiFiPopup() {
         <div id="wifi-error" class="error" style="display:none;"></div>
         <div id="custom-select" class="custom-select">
             <div id="selected-network" class="selected-item">
-                <span>Select Network</span>
+                <span id="fetching">Select Network</span>
                 <span class="material-icons arrow">arrow_drop_down</span>
             </div>
             <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
@@ -570,13 +570,15 @@ async function showWiFiPopup() {
     document.body.append(overlay, popup);
     await scanWiFi();
 
-    // Auto-focus select for touch
+    // Optional: Auto-open dropdown for better touch UX
     setTimeout(() => {
-        const select = document.getElementById('ssid');
-        if (select && select.options.length > 1) {
-            select.focus();
+        const trigger = document.getElementById('selected-network');
+        const list = document.getElementById('network-list');
+        if (trigger && list && list.children.length > 0) {
+            list.style.display = 'block';
+            trigger.classList.add('open');
         }
-    }, 100);
+    }, 200);
 
     // <<< NEW >>> initialise lift behaviour
     initWiFiLift();
