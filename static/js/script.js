@@ -537,6 +537,9 @@ function initWiFiLift() {
 /* --------------------------------------------------------------
    Call initWiFiLift() right after the popup is created
    -------------------------------------------------------------- */
+
+const mess = document.getElementById('fetching');
+
 async function showWiFiPopup() {
     closeSettingsPopup();
     closeWiFiPopup();
@@ -568,8 +571,9 @@ async function showWiFiPopup() {
             <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
         </div>`;
     document.body.append(overlay, popup);
-    const mess = document.getElementById('fetching');
+
     mess.innerHTML = 'fetching wifi...';
+
     await scanWiFi();
 
     // Optional: Auto-open dropdown for better touch UX
@@ -641,6 +645,7 @@ async function scanWiFi() {
                 container.appendChild(li);
             });
             err.style.display = 'none';
+            mess.innerHTML = 'Select Network';
         } else {
             container.innerHTML = '<li style="padding:12px;text-align:center;color:hsl(var(--muted-foreground));">No networks found</li>';
             err.innerHTML = `<span class="material-icons">error</span> ${d.error || 'No networks'}`;
