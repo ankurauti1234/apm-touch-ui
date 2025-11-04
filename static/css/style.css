@@ -857,3 +857,38 @@ ul li {
     height: 38px;
     scale: 1.3;
 }
+
+
+
+
+/* TOUCHSCREEN SELECT FIX – RASPBERRY PI SAFE */
+#ssid {
+    -webkit-appearance: none;
+    appearance: none;
+    font-size: 16px !important;
+    /* Prevents zoom */
+    padding: 12px 36px 12px 12px !important;
+    background:
+        hsl(var(--card)) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%23676778' d='M0 0l6 6 6-6z'/%3E%3C/svg%3E") no-repeat right 12px center;
+    background-size: 12px;
+    border: 1px solid hsl(var(--input));
+    border-radius: var(--radius);
+    width: 100%;
+    box-sizing: border-box;
+    touch-action: manipulation;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+#ssid:focus {
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+    z-index: 9999;
+}
+
+/* Ensure dropdown is not clipped */
+#wifi-popup select {
+    position: relative;
+    z-index: 9999;
+}
