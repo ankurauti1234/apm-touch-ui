@@ -344,8 +344,10 @@ def wifi_connect():
         if ok:
             open(SYSTEM_FILES["wifi_up"], "a").close()
             return jsonify({"success": True, "message": "Connected"}), 200
+        print(f"[Failed to connect wifi] {out}")
         return jsonify({"success": False, "error": out, "details": "Failed to connect to Wi-Fi"}), 500
     except Exception as e:
+        print(f"[WIFI CONNECT ERROR] {str(e)}")
         return jsonify({"success": False, "error": str(e), "details": "An error occurred while connecting to Wi-Fi"}), 500
 
 
