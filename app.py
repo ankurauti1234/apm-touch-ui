@@ -344,17 +344,17 @@ def wifi_connect():
         if ok:
             open(SYSTEM_FILES["wifi_up"], "a").close()
             return jsonify({"success": True, "message": "Connected"}), 200
-        return jsonify({"success": False, "error": out}), 500
+        return jsonify({"success": False, "error": out, "details": "Failed to connect to Wi-Fi"}), 500
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"success": False, "error": str(e), "details": "An error occurred while connecting to Wi-Fi"}), 500
 
 
 @app.route("/api/wifi/disconnect", methods=["POST"])
 def wifi_disconnect():
     try:
         run_system_command(["sudo", "nmcli", "device", "disconnect", "wlan0"])
-        if os.path.exists(SYSTEM_FILES["wifi_up"]):
-            os.remove(SYSTEM_FILES["wifi_up"])
+        # if os.path.exists(SYSTEM_FILES["wifi_up"]):
+        #     os.remove(SYSTEM_FILES["wifi_up"])
         return jsonify({"success": True, "message": "Disconnected"}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500

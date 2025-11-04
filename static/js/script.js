@@ -711,7 +711,12 @@ async function connectWiFi() {
         err.className = d.success ? 'success' : 'error';
         err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Connected!' : d.error}`;
         err.style.display = 'flex';
-        if (d.success) setTimeout(async () => { closeWiFiPopup(); const cur = await fetch('/api/current_wifi'); const cd = await cur.json(); if (cd.success) navigate('connect_select', cd.ssid); }, 2000);
+        if (d.success) { 
+            setTimeout(async () => { closeWiFiPopup(); 
+                const cur = await fetch('/api/current_wifi'); 
+                const cd = await cur.json(); 
+                if (cd.success) navigate('connect_select', cd.ssid); }, 2000);
+            }
     } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; }
 }
 async function disconnectWiFi() {
