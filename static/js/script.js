@@ -568,13 +568,14 @@ async function showWiFiPopup() {
             <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
         </div>`;
     document.body.append(overlay, popup);
-    await scanWiFi();
 
-    // Optional: Auto-open dropdown for better touch UX
-
+    // fetching networks message
     const mess = document.getElementById('fetching');
     mess.innerHTML = 'fetching wifi...';
 
+    await scanWiFi();
+
+    // Optional: Auto-open dropdown for better touch UX
     setTimeout(() => {
 
         const trigger = document.getElementById('selected-network');
