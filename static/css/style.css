@@ -65,12 +65,6 @@ body {
     flex: 1;
 }
 
-#wifi-card {
-    border: 0;
-    box-shadow: none;
-    padding: 0;
-}
-
 .card {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
@@ -814,8 +808,8 @@ ul li {
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    max-width: 90%;
-    width: 320px;
+    max-width: 42rem;
+    /* width: 320px; */
     box-sizing: border-box;
 }
 
