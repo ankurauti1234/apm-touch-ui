@@ -879,16 +879,17 @@ ul li {
     cursor: pointer;
     outline: none;
     transition: all 0.15s ease;
+    z-index: 99999;
 }
 
 #ssid:focus {
     border-color: hsl(var(--ring));
     box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
-    z-index: 9999;
+    z-index: 99999;
 }
 
 /* Ensure dropdown is not clipped */
 #wifi-popup select {
     position: relative;
-    z-index: 9999;
+    z-index: 99999;
 }
