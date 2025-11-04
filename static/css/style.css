@@ -796,6 +796,36 @@ ul li {
     transform: translateY(100vh);
 }
 
+/* ==============================================================
+   WIFI POPUP LIFT ANIMATION (Isolated – no .container conflict)
+   ============================================================== */
+#wifi-popup {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateY(0);
+}
+
+#wifi-popup.lifted {
+    transform: translateY(-60px);
+    /* Adjust as needed */
+}
+
+/* Optional: Smooth virtual keyboard */
+#virtual-keyboard {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateY(100%);
+}
+
+#virtual-keyboard.showing {
+    transform: translateY(0);
+}
+
+#virtual-keyboard.hiding {
+    transform: translateY(100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SCREEN SAVER
+   ═══════════════════════════════════════════════════════════════════════ */
 /* SCREEN SAVER */
 #brightness-container {
     margin-bottom: 1rem 0;

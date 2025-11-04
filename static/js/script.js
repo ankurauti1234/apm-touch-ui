@@ -548,7 +548,7 @@ async function showWiFiPopup() {
 
     const popup = document.createElement('div');
     popup.id = 'wifi-popup';
-    popup.className = 'popup container';
+    popup.className = 'popup';
 
     popup.innerHTML = `
         <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
