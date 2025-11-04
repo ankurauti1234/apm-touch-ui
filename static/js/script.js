@@ -253,7 +253,8 @@ function showKeyboard(el) {
 
     // Lift the container card
     const containerCard = document.querySelector('.container');
-    if (containerCard) {
+    const isInWiFiPopup = el.closest('#wifi-popup');
+    if (containerCard && !isInWiFiPopup) {
         containerCard.classList.add('lifted');
     }
 
@@ -362,9 +363,14 @@ function backspace() {
 }
 function pressEnter() {
     if (!activeInput) return;
-    hideKeyboard();
-    if (activeInput.id === 'hhid') submitHHID();
-    else if (activeInput.id === 'otp') submitOTP();
+
+    // Trigger Connect button
+    const connectBtn = document.querySelector('#wifi-popup button[onclick="connectWiFi()"]');
+    if (connectBtn) {
+        connectBtn.click(); // This runs connectWiFi()
+    } else {
+        activeInput.blur();
+    }
 }
 function hideKeyboard() {
     const kb = document.getElementById('virtual-keyboard');
@@ -522,22 +528,29 @@ function lowerPopup() {
 /* --------------------------------------------------------------
    IMPROVED: Prevent keyboard flicker on key press
    -------------------------------------------------------------- */
-let isTyping = false;  // ← tracks if user is actively typing
+/* --------------------------------------------------------------
+   FINAL: Fix Enter key → popup stays lifted
+   -------------------------------------------------------------- */
+/* --------------------------------------------------------------
+   FINAL: Wi-Fi popup lift + Enter key (keeps .container separate)
+   -------------------------------------------------------------- */
+let isTyping = false;
+let typingTimer;
 
 function initWiFiLift() {
     const pw = document.getElementById('password');
+    const kb = document.getElementById(KEYBOARD_ID);
     if (!pw) return;
 
-    // === FOCUS: Show keyboard + lift ===
+    // === FOCUS: Use our Wi-Fi lift system ===
     pw.addEventListener('focus', () => {
-        showKeyboard(pw);
-        liftPopup();
-        isTyping = true; // user is now typing
+        showKeyboard(pw);  // will skip .container lift
+        liftPopup();       // uses #wifi-popup.lifted
+        isTyping = true;
     });
 
-    // === BLUR: Only hide if NOT typing ===
+    // === BLUR: Only lower if not typing ===
     pw.addEventListener('blur', () => {
-        // Delay check: if we're still typing (e.g. key was just pressed), ignore blur
         setTimeout(() => {
             if (!isTyping) {
                 lowerPopup();
@@ -545,27 +558,27 @@ function initWiFiLift() {
         }, 100);
     });
 
-    // === GLOBAL: Track key presses on virtual keyboard ===
-    document.getElementById(KEYBOARD_ID)?.addEventListener('mousedown', () => {
-        isTyping = true;
-    });
+    // === KEYBOARD: Track typing + detect Enter ===
+    if (kb) {
+        kb.addEventListener('mousedown', () => { isTyping = true; });
+        kb.addEventListener('touchstart', () => { isTyping = true; });
 
-    document.getElementById(KEYBOARD_ID)?.addEventListener('touchstart', () => {
-        isTyping = true;
-    });
+        const resetTyping = () => {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => isTyping = false, 300);
+        };
+        kb.addEventListener('mouseup', resetTyping);
+        kb.addEventListener('touchend', resetTyping);
+        kb.addEventListener('click', resetTyping);
 
-    // Reset typing flag after short idle (user stopped typing)
-    let typingTimer;
-    const resetTyping = () => {
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => {
-            isTyping = false;
-        }, 300);
-    };
-
-    document.getElementById(KEYBOARD_ID)?.addEventListener('mouseup', resetTyping);
-    document.getElementById(KEYBOARD_ID)?.addEventListener('touchend', resetTyping);
-    document.getElementById(KEYBOARD_ID)?.addEventListener('click', resetTyping);
+        // === ENTER KEY DETECTION ===
+        kb.addEventListener('click', (e) => {
+            if (e.target.closest('.key-enter')) {
+                isTyping = false;
+                lowerPopup(); // ← Force Wi-Fi popup down
+            }
+        });
+    }
 }
 
 /* --------------------------------------------------------------
