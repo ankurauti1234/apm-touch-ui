@@ -711,12 +711,14 @@ async function connectWiFi() {
         err.className = d.success ? 'success' : 'error';
         err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Connected!' : d.error}`;
         err.style.display = 'flex';
-        if (d.success) { 
-            setTimeout(async () => { closeWiFiPopup(); 
-                const cur = await fetch('/api/current_wifi'); 
-                const cd = await cur.json(); 
-                if (cd.success) navigate('connect_select', cd.ssid); }, 2000);
-            }
+        if (d.success) {
+            setTimeout(async () => {
+                closeWiFiPopup();
+                const cur = await fetch('/api/current_wifi');
+                const cd = await cur.json();
+                if (cd.success) navigate('connect_select', cd.ssid);
+            }, 2000);
+        }
     } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; }
 }
 async function disconnectWiFi() {
@@ -830,8 +832,8 @@ async function navigate(state, param = null) {
 
     /* ---------- INPUT SOURCES ---------- */
     if (state === 'input_source_detection') {
-        render();                     // show loading
-        setTimeout(fetchInputSources, 1000);
+        render(); // show loading spinner
+        setTimeout(startInputSourceRetry, 800);
         return;
     }
 
@@ -872,12 +874,18 @@ async function navigate(state, param = null) {
 /* ==============================================================
    INPUT SOURCES API
    ============================================================== */
+/* ==============================================================
+   INPUT SOURCES API (with auto-retry every 3s)
+   ============================================================== */
+let inputSourceRetryInterval = null;
+
 async function fetchInputSources() {
     const loading = document.getElementById('input-loading');
     const results = document.getElementById('input-results');
     const ul = results?.querySelector('ul');
+    const buttonGroup = document.querySelector('.button-group');
 
-    if (!loading || !results || !ul) return;
+    if (!loading || !results || !ul || !buttonGroup) return;
 
     try {
         const r = await fetch('/api/input_sources');
@@ -888,34 +896,66 @@ async function fetchInputSources() {
             ul.innerHTML = d.sources.map(s => `
                 <li><span class="material-icons">input</span> ${s}</li>
             `).join('');
-            document.querySelector('.button-group')
-                .insertAdjacentHTML('afterbegin', `
-                <button class="button" onclick="navigate('video_object_detection')">
+
+            // Replace any existing button with "Next"
+            const existingNext = buttonGroup.querySelector('button[data-action="next"]');
+            if (existingNext) existingNext.remove();
+
+            buttonGroup.insertAdjacentHTML('afterbegin', `
+                <button class="button" data-action="next" onclick="navigate('video_object_detection')">
                     <span class="material-icons">arrow_forward</span> Next
                 </button>
             `);
 
-        } else {
-            inputSources = [];
-            ul.innerHTML = '<li><span class="material-icons">info</span> No sources detected</li>';
-            document.querySelector('.button-group')
-                .insertAdjacentHTML('afterbegin', `
-                <button class="button" onclick="navigate('input_source_detection')">
-                    <span class="material-icons">refresh</span> Retry
-                </button>
-            `);
+            // SUCCESS: Stop retry loop
+            if (inputSourceRetryInterval) {
+                clearInterval(inputSourceRetryInterval);
+                inputSourceRetryInterval = null;
+            }
 
-            if (d.error) showError(d.error);
+            showError('Input sources detected!', 'success');
+        } else {
+            throw new Error(d.error || 'No sources detected');
         }
     } catch (e) {
+        // FAILURE: Keep retrying
         inputSources = [];
-        ul.innerHTML = '<li><span class="material-icons">error</span> Detection failed</li>';
-        showError('Input detection failed');
+        ul.innerHTML = '<li><span class="material-icons">hourglass_top</span> Retrying in 3s...</li>';
+
+        // Replace button with "Retry Now" (manual override)
+        const existingRetry = buttonGroup.querySelector('button[data-action="retry"]');
+        if (existingRetry) existingRetry.remove();
+
+        buttonGroup.insertAdjacentHTML('afterbegin', `
+            <button class="button" data-action="retry" onclick="fetchInputSources()">
+                <span class="material-icons">refresh</span> Retry Now
+            </button>
+        `);
+
+        if (e.message) showError(e.message);
     } finally {
-        // Hide spinner, show results – NO render()
         loading.style.display = 'none';
         results.style.display = 'block';
     }
+}
+
+// Start auto-retry when entering input_source_detection
+function startInputSourceRetry() {
+    // Clear any existing interval
+    if (inputSourceRetryInterval) clearInterval(inputSourceRetryInterval);
+
+    // Initial call
+    fetchInputSources();
+
+    // Retry every 3 seconds
+    inputSourceRetryInterval = setInterval(() => {
+        if (currentState === 'input_source_detection') {
+            fetchInputSources();
+        } else {
+            clearInterval(inputSourceRetryInterval);
+            inputSourceRetryInterval = null;
+        }
+    }, 3000);
 }
 
 /* ==============================================================
