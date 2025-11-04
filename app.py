@@ -332,23 +332,76 @@ def current_wifi():
 def wifi_connect():
     data = request.json
     ssid = data.get("ssid")
-    pwd  = data.get("password")
-    if not ssid or not pwd:
-        return jsonify({"success": False, "error": "SSID & password required"}), 400
+    pwd = data.get("password")
+
+    if not ssid:
+        return jsonify({"success": False, "error": "SSID is required"}), 400
+    if not pwd:
+        return jsonify({"success": False, "error": "Password is required"}), 400
+
+    wifi_up_file = SYSTEM_FILES["wifi_up"]
 
     try:
-        run_system_command(["sudo", "nmcli", "connection", "delete", ssid])
-        ok, out = run_system_command(
-            ["sudo", "nmcli", "device", "wifi", "connect", ssid, "password", pwd]
-        )
-        if ok:
-            open(SYSTEM_FILES["wifi_up"], "a").close()
-            return jsonify({"success": True, "message": "Connected"}), 200
-        print(f"[Failed to connect wifi] {out}")
-        return jsonify({"success": False, "error": out, "details": "Failed to connect to Wi-Fi"}), 500
+        # Step 1: Delete existing connection (ignore errors if not exists)
+        delete_cmd = ["sudo", "nmcli", "connection", "delete", ssid]
+        try:
+            run_system_command(delete_cmd)
+            print(f"[WiFi] Removed existing connection: {ssid}")
+        except subprocess.CalledProcessError as e:
+            # It's OK if connection doesn't exist
+            if "not found" not in e.stderr.lower():
+                print(f"[WiFi] Warning: Failed to delete old connection: {e.stderr}")
+        except Exception as e:
+            print(f"[WiFi] Unexpected error deleting connection: {e}")
+
+        # Step 2: Connect to Wi-Fi
+        connect_cmd = ["sudo", "nmcli", "device", "wifi", "connect", ssid, "password", pwd]
+        ok, out = run_system_command(connect_cmd)
+
+        if not ok:
+            error_msg = out.strip() or "Unknown error during nmcli connect"
+            print(f"[WiFi] Connection failed: {error_msg}")
+            return jsonify({
+                "success": False,
+                "error": "Failed to connect",
+                "details": error_msg
+            }), 500
+
+        print(f"[WiFi] Successfully connected to {ssid}")
+
+        # Step 3: Create /run/wifi_network_up file using sudo tee
+        try:
+            # Use tee to write as root
+            subprocess.run(
+                ["echo", "1", "|", "sudo", "tee", wifi_up_file],
+                shell=True,
+                check=True
+            )
+            print(f"[WiFi] Created flag: {wifi_up_file}")
+        except subprocess.CalledProcessError as e:
+            print(f"[WiFi] Failed to create wifi_up file: {e}")
+            # Don't fail the whole request — Wi-Fi is connected!
+        except Exception as e:
+            print(f"[WiFi] Unexpected error writing wifi_up: {e}")
+
+        return jsonify({"success": True, "message": "Connected", "ssid": ssid}), 200
+
+    except subprocess.CalledProcessError as e:
+        error_detail = e.stderr.strip() if e.stderr else "nmcli command failed"
+        print(f"[WIFI CONNECT ERROR] Subprocess error: {error_detail}")
+        return jsonify({
+            "success": False,
+            "error": "Wi-Fi command failed",
+            "details": error_detail
+        }), 500
+
     except Exception as e:
-        print(f"[WIFI CONNECT ERROR] {str(e)}")
-        return jsonify({"success": False, "error": str(e), "details": "An error occurred while connecting to Wi-Fi"}), 500
+        print(f"[WIFI CONNECT ERROR] Unexpected: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Internal server error",
+            "details": str(e)
+        }), 500
 
 
 @app.route("/api/wifi/disconnect", methods=["POST"])
