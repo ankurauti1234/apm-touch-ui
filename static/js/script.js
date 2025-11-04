@@ -643,6 +643,7 @@ async function scanWiFi() {
                 };
                 container.appendChild(li);
             });
+            mess.innerHTML = 'fetching wifi...';
             err.style.display = 'none';
         } else {
             container.innerHTML = '<li style="padding:12px;text-align:center;color:hsl(var(--muted-foreground));">No networks found</li>';
