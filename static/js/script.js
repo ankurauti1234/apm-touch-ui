@@ -573,17 +573,18 @@ async function showWiFiPopup() {
     // Optional: Auto-open dropdown for better touch UX
 
     const mess = document.getElementById('fetching');
+    mess.innerHTML = 'fetching wifi...';
 
     setTimeout(() => {
-        mess.innerHTML = 'fetching wifi...';
+
         const trigger = document.getElementById('selected-network');
         const list = document.getElementById('network-list');
         if (trigger && list && list.children.length > 0) {
             list.style.display = 'block';
             trigger.classList.add('open');
         }
+        mess.innerHTML = 'Select Network';
     }, 200);
-    mess.innerHTML = 'Select Network';
 
     // <<< NEW >>> initialise lift behaviour
     initWiFiLift();
