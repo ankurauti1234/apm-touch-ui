@@ -253,8 +253,7 @@ function showKeyboard(el) {
 
     // Lift the container card
     const containerCard = document.querySelector('.container');
-    const isInWiFiPopup = el.closest('#wifi-popup');
-    if (containerCard && !isInWiFiPopup) {
+    if (containerCard) {
         containerCard.classList.add('lifted');
     }
 
@@ -363,14 +362,9 @@ function backspace() {
 }
 function pressEnter() {
     if (!activeInput) return;
-
-    // Trigger Connect button
-    const connectBtn = document.querySelector('#wifi-popup button[onclick="connectWiFi()"]');
-    if (connectBtn) {
-        connectBtn.click(); // This runs connectWiFi()
-    } else {
-        activeInput.blur();
-    }
+    hideKeyboard();
+    if (activeInput.id === 'hhid') submitHHID();
+    else if (activeInput.id === 'otp') submitOTP();
 }
 function hideKeyboard() {
     const kb = document.getElementById('virtual-keyboard');
@@ -528,29 +522,22 @@ function lowerPopup() {
 /* --------------------------------------------------------------
    IMPROVED: Prevent keyboard flicker on key press
    -------------------------------------------------------------- */
-/* --------------------------------------------------------------
-   FINAL: Fix Enter key → popup stays lifted
-   -------------------------------------------------------------- */
-/* --------------------------------------------------------------
-   FINAL: Wi-Fi popup lift + Enter key (keeps .container separate)
-   -------------------------------------------------------------- */
-let isTyping = false;
-let typingTimer;
+let isTyping = false;  // ← tracks if user is actively typing
 
 function initWiFiLift() {
     const pw = document.getElementById('password');
-    const kb = document.getElementById(KEYBOARD_ID);
     if (!pw) return;
 
-    // === FOCUS: Use our Wi-Fi lift system ===
+    // === FOCUS: Show keyboard + lift ===
     pw.addEventListener('focus', () => {
-        showKeyboard(pw);  // will skip .container lift
-        liftPopup();       // uses #wifi-popup.lifted
-        isTyping = true;
+        showKeyboard(pw);
+        liftPopup();
+        isTyping = true; // user is now typing
     });
 
-    // === BLUR: Only lower if not typing ===
+    // === BLUR: Only hide if NOT typing ===
     pw.addEventListener('blur', () => {
+        // Delay check: if we're still typing (e.g. key was just pressed), ignore blur
         setTimeout(() => {
             if (!isTyping) {
                 lowerPopup();
@@ -558,27 +545,27 @@ function initWiFiLift() {
         }, 100);
     });
 
-    // === KEYBOARD: Track typing + detect Enter ===
-    if (kb) {
-        kb.addEventListener('mousedown', () => { isTyping = true; });
-        kb.addEventListener('touchstart', () => { isTyping = true; });
+    // === GLOBAL: Track key presses on virtual keyboard ===
+    document.getElementById(KEYBOARD_ID)?.addEventListener('mousedown', () => {
+        isTyping = true;
+    });
 
-        const resetTyping = () => {
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => isTyping = false, 300);
-        };
-        kb.addEventListener('mouseup', resetTyping);
-        kb.addEventListener('touchend', resetTyping);
-        kb.addEventListener('click', resetTyping);
+    document.getElementById(KEYBOARD_ID)?.addEventListener('touchstart', () => {
+        isTyping = true;
+    });
 
-        // === ENTER KEY DETECTION ===
-        kb.addEventListener('click', (e) => {
-            if (e.target.closest('.key-enter')) {
-                isTyping = false;
-                lowerPopup(); // ← Force Wi-Fi popup down
-            }
-        });
-    }
+    // Reset typing flag after short idle (user stopped typing)
+    let typingTimer;
+    const resetTyping = () => {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            isTyping = false;
+        }, 300);
+    };
+
+    document.getElementById(KEYBOARD_ID)?.addEventListener('mouseup', resetTyping);
+    document.getElementById(KEYBOARD_ID)?.addEventListener('touchend', resetTyping);
+    document.getElementById(KEYBOARD_ID)?.addEventListener('click', resetTyping);
 }
 
 /* --------------------------------------------------------------
