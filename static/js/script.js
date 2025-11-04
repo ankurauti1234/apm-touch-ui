@@ -470,11 +470,86 @@ function showError(msg, type = 'error') {
 /* ==============================================================
    WIFI POP-UP
    ============================================================== */
+
+/* --------------------------------------------------------------
+   INPUT-FOCUS LIFT (uses your existing CSS)
+   -------------------------------------------------------------- */
+let liftTimeout = null;               // debounce hide-animation
+const POPUP_ID = 'wifi-popup';      // the container that must lift
+const KEYBOARD_ID = 'virtual-keyboard'; // optional virtual keyboard
+
+function liftPopup() {
+    const popup = document.getElementById(POPUP_ID);
+    if (!popup) return;
+
+    // add the lifted class
+    popup.classList.add('lifted');
+
+    // show virtual keyboard (if you have one)
+    const kb = document.getElementById(KEYBOARD_ID);
+    if (kb) {
+        kb.classList.remove('hiding');
+        kb.classList.add('showing');
+    }
+}
+
+function lowerPopup() {
+    const popup = document.getElementById(POPUP_ID);
+    if (!popup) return;
+
+    // remove lifted class with a tiny delay so the hide-animation can play
+    clearTimeout(liftTimeout);
+    liftTimeout = setTimeout(() => {
+        popup.classList.remove('lifted');
+    }, 50);   // 50 ms is enough for the transition to start
+
+    // hide virtual keyboard
+    const kb = document.getElementById(KEYBOARD_ID);
+    if (kb) {
+        kb.classList.remove('showing');
+        kb.classList.add('hiding');
+        // clean up the hiding class when animation ends
+        kb.addEventListener('transitionend', function clean() {
+            kb.classList.remove('hiding');
+            kb.removeEventListener('transitionend', clean);
+        });
+    }
+}
+
+/* --------------------------------------------------------------
+   Hook the focus/blur events on the password field
+   -------------------------------------------------------------- */
+function initWiFiLift() {
+    const pw = document.getElementById('password');
+    if (!pw) return;
+
+    pw.addEventListener('focus', () => {
+        // your existing keyboard-show logic
+        showKeyboard(pw);
+        liftPopup();
+    });
+
+    pw.addEventListener('blur', () => {
+        lowerPopup();
+    });
+}
+
+/* --------------------------------------------------------------
+   Call initWiFiLift() right after the popup is created
+   -------------------------------------------------------------- */
 async function showWiFiPopup() {
     closeSettingsPopup();
     closeWiFiPopup();
-    const overlay = document.createElement('div'); overlay.id = 'wifi-overlay'; overlay.className = 'overlay'; overlay.onclick = closeWiFiPopup;
-    const popup = document.createElement('div'); popup.id = 'wifi-popup'; popup.className = 'popup';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'wifi-overlay';
+    overlay.className = 'overlay';
+    overlay.onclick = closeWiFiPopup;
+
+    const popup = document.createElement('div');
+    popup.id = 'wifi-popup';
+    popup.className = 'popup container';
+
     popup.innerHTML = `
         <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
         <p>Choose a network to connect</p>
@@ -488,6 +563,9 @@ async function showWiFiPopup() {
         </div>`;
     document.body.append(overlay, popup);
     await scanWiFi();
+
+    // <<< NEW >>> initialise lift behaviour
+    initWiFiLift();
 }
 async function scanWiFi() {
     const sel = document.getElementById('ssid');
@@ -542,6 +620,7 @@ async function disconnectWiFi() {
 }
 function closeWiFiPopup() {
     ['wifi-popup', 'wifi-overlay'].forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
+    clearTimeout(liftTimeout);
     render();
 }
 
