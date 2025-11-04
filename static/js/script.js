@@ -537,10 +537,6 @@ function initWiFiLift() {
 /* --------------------------------------------------------------
    Call initWiFiLift() right after the popup is created
    -------------------------------------------------------------- */
-
-const mess = document.getElementById('fetching');
-mess.innerHTML = 'fetching wifi...';
-
 async function showWiFiPopup() {
     closeSettingsPopup();
     closeWiFiPopup();
@@ -575,8 +571,11 @@ async function showWiFiPopup() {
     await scanWiFi();
 
     // Optional: Auto-open dropdown for better touch UX
-    setTimeout(() => {
 
+    const mess = document.getElementById('fetching');
+
+    setTimeout(() => {
+        mess.innerHTML = 'fetching wifi...';
         const trigger = document.getElementById('selected-network');
         const list = document.getElementById('network-list');
         if (trigger && list && list.children.length > 0) {
@@ -584,6 +583,7 @@ async function showWiFiPopup() {
             trigger.classList.add('open');
         }
     }, 200);
+    mess.innerHTML = 'Select Network';
 
     // <<< NEW >>> initialise lift behaviour
     initWiFiLift();
@@ -643,7 +643,6 @@ async function scanWiFi() {
                 };
                 container.appendChild(li);
             });
-            mess.innerHTML = 'fetching wifi...';
             err.style.display = 'none';
         } else {
             container.innerHTML = '<li style="padding:12px;text-align:center;color:hsl(var(--muted-foreground));">No networks found</li>';
