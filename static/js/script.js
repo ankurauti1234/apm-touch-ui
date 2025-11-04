@@ -577,7 +577,6 @@ async function showWiFiPopup() {
         const trigger = document.getElementById('selected-network');
         const list = document.getElementById('network-list');
         if (trigger && list && list.children.length > 0) {
-            mess.innerHTML = 'Select Network';
             list.style.display = 'block';
             trigger.classList.add('open');
         }
