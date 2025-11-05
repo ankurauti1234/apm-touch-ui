@@ -598,9 +598,9 @@ async function showWiFiPopup() {
         <input type="password" id="password" placeholder="Password" style="display:none;">
         <div style="width:100%; display:flex;justify-content:center;align-items:center;">
             <div class="loading" id="wifi-loading" style="display:none;">
-            <div class="spinner"></div>
-            <div>Connecting...</div>Connecting...
-        </div>
+                <div class="spinner" style="position:relative; left:20px;"></div>
+                <div>Connecting...</div>
+            </div>
         </div>
         <div class="button-group">
             <button class="button" onclick="connectWiFi()">Connect</button>
