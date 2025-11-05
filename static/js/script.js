@@ -712,14 +712,20 @@ async function scanWiFi() {
     try {
         const r = await fetch('/api/wifi/networks');
         const d = await r.json();
+
         if (d.success && d.networks.length > 0) {
             availableNetworks = d.networks;
             container.innerHTML = '';
+
             d.networks.forEach(n => {
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <span>${n.ssid}</span>
-                    <span class="signal">${n.signal_strength} ${n.security}</span>
+                    <span class="signal">
+                        ${n.signal_strength || 'N/A'} 
+                        ${n.saved ? '<span class="material-icons" style="color:var(--success);font-size:1.1rem;vertical-align:middle;">check_circle</span>' : ''}
+                        ${n.security}
+                    </span>
                 `;
                 li.onclick = (e) => {
                     e.stopPropagation();
@@ -730,10 +736,16 @@ async function scanWiFi() {
                     `;
                     container.style.display = 'none';
                     selectedDisplay.classList.remove('open');
-                    togglePasswordField();
+
+                    const pw = document.getElementById('password');
+                    if (pw) {
+                        pw.style.display = 'block';
+                        pw.value = n.password || '';
+                    }
                 };
                 container.appendChild(li);
             });
+
             err.style.display = 'none';
         } else {
             container.innerHTML = '<li style="padding:12px;text-align:center;color:hsl(var(--muted-foreground));">No networks found</li>';
@@ -746,6 +758,7 @@ async function scanWiFi() {
         err.style.display = 'flex';
     }
 }
+
 
 function togglePasswordField() {
     const pw = document.getElementById('password');

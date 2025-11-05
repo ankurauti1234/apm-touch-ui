@@ -417,30 +417,90 @@ def wifi_disconnect():
 
 @app.route("/api/wifi/networks", methods=["GET"])
 def list_wifi_networks():
+    """
+    Returns available + saved Wi-Fi networks merged into one list.
+    Saved networks include saved password (PSK) if readable.
+    """
+    import configparser
+    from pathlib import Path
+
     try:
+        # 1. Run a Wi-Fi scan
         run_system_command(["sudo", "nmcli", "device", "wifi", "rescan"])
         time.sleep(2)
         ok, out = run_system_command(
             ["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "device", "wifi", "list"]
         )
-        if not ok:
-            return jsonify({"success": False, "error": "scan failed"}), 500
 
-        nets = []
-        for line in out.strip().split("\n"):
-            if not line:
-                continue
-            parts = line.split(":")
-            if len(parts) >= 3 and parts[0]:
-                nets.append(
-                    {
+        available = []
+        if ok:
+            for line in out.strip().split("\n"):
+                if not line:
+                    continue
+                parts = line.split(":")
+                if len(parts) >= 3 and parts[0]:
+                    available.append({
                         "ssid": parts[0],
                         "signal_strength": f"{parts[1]}%",
-                        "security": parts[2] if parts[2] else "Open",
+                        "security": parts[2] or "Open",
+                        "saved": False,
+                        "password": None
+                    })
+
+        # 2. Load saved networks from NetworkManager
+        nm_dir = Path("/etc/NetworkManager/system-connections")
+        saved = {}
+
+        if nm_dir.exists():
+            for f in nm_dir.glob("*"):
+                if not f.is_file():
+                    continue
+                parser = configparser.RawConfigParser()
+                try:
+                    with open(f, "r", encoding="utf-8", errors="ignore") as file:
+                        parser.read_file(file)
+                except Exception:
+                    continue
+
+                def safe(section, key):
+                    try:
+                        return parser.get(section, key)
+                    except Exception:
+                        return None
+
+                ssid = safe("wifi", "ssid") or safe("802-11-wireless", "ssid")
+                psk = safe("wifi-security", "psk") or safe("802-11-wireless-security", "psk")
+
+                if ssid:
+                    saved[ssid] = {
+                        "ssid": ssid,
+                        "signal_strength": "N/A",
+                        "security": safe("wifi-security", "key-mgmt") or "Unknown",
+                        "saved": True,
+                        "password": psk
                     }
-                )
-        return jsonify({"success": True, "networks": nets}), 200
+
+        # 3. Merge lists
+        merged = []
+        seen = set()
+
+        for net in available:
+            ssid = net["ssid"]
+            if ssid in saved:
+                net["saved"] = True
+                net["password"] = saved[ssid]["password"]
+                saved.pop(ssid)
+            merged.append(net)
+            seen.add(ssid)
+
+        for ssid, entry in saved.items():
+            if ssid not in seen:
+                merged.append(entry)
+
+        return jsonify({"success": True, "networks": merged}), 200
+
     except Exception as e:
+        print(f"[WiFi] Error listing networks: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
