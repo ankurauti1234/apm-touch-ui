@@ -112,7 +112,7 @@ const states = {
                 <span class="material-icons">error</span> Network test failed.
             </div>
             <div class="button-group">
-                <button class="button" onclick="navigate('network_test','${connectivityMode}')">
+                <button class="button" onclick="navigate('network_test','$\{connectivityMode}')">
                     <span class="material-icons">refresh</span> Retry
                 </button>
                 <button class="button secondary" onclick="navigate('connect_select')">
