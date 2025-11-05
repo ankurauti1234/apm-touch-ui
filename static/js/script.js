@@ -714,6 +714,9 @@ async function scanWiFi() {
         const d = await r.json();
 
         if (d.success && d.networks.length > 0) {
+            // sort saved networks to top
+            d.networks.sort((a, b) => (b.saved === true) - (a.saved === true));
+
             availableNetworks = d.networks;
             container.innerHTML = '';
 
@@ -727,9 +730,13 @@ async function scanWiFi() {
                         ${n.security}
                     </span>
                 `;
+
+                // --- when user clicks a network ---
                 li.onclick = (e) => {
                     e.stopPropagation();
                     selectedSSID = n.ssid;
+
+                    // update selected network text
                     selectedDisplay.innerHTML = `
                         <span>${n.ssid}</span>
                         <span class="material-icons arrow">arrow_drop_down</span>
@@ -737,12 +744,23 @@ async function scanWiFi() {
                     container.style.display = 'none';
                     selectedDisplay.classList.remove('open');
 
+                    // handle password autofill
                     const pw = document.getElementById('password');
                     if (pw) {
                         pw.style.display = 'block';
-                        pw.value = n.password || '';
+                        if (n.saved && n.password) {
+                            // auto-fill password from saved network
+                            pw.value = n.password;
+                            pw.disabled = true; // optional: prevent editing
+                            pw.style.opacity = '0.7';
+                        } else {
+                            pw.value = '';
+                            pw.disabled = false;
+                            pw.style.opacity = '1';
+                        }
                     }
                 };
+
                 container.appendChild(li);
             });
 
@@ -753,11 +771,13 @@ async function scanWiFi() {
             err.style.display = 'flex';
         }
     } catch (e) {
+        console.error("Wi-Fi scan error:", e);
         container.innerHTML = '<li style="padding:12px;text-align:center;color:hsl(var(--destructive));">Scan failed</li>';
         err.innerHTML = `<span class="material-icons">error</span> Scan failed`;
         err.style.display = 'flex';
     }
 }
+
 
 
 function togglePasswordField() {
