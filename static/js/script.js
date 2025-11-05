@@ -597,7 +597,10 @@ async function showWiFiPopup() {
         </div>
         <input type="password" id="password" placeholder="Password" style="display:none;">
         <div style="width:100%; display:flex;justify-content:center;align-items:center;">
-            <div class="loading" id="wifi-loading" style="display:none;"><div class="spinner"></div><p>Connecting...</p></div>
+            <div class="loading" id="wifi-loading" style="display:none;">
+            <div class="spinner"></div>
+            <div>Connecting...</div>Connecting...
+        </div>
         </div>
         <div class="button-group">
             <button class="button" onclick="connectWiFi()">Connect</button>
@@ -702,13 +705,11 @@ function togglePasswordField() {
 }
 async function connectWiFi() {
     const loading = document.getElementById('wifi-loading');
-    const wifiList = document.getElementById('custom-select');
     // const ssid = document.getElementById('ssid')?.value;
     const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
 
     loading.style.display = 'block';
-
     if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
     try {
         const r = await fetch('/api/wifi/connect', {
@@ -719,8 +720,6 @@ async function connectWiFi() {
         err.className = d.success ? 'success' : 'error';
         err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Connected!' : d.error}`;
         err.style.display = 'flex';
-        wifiList.style.display = 'none';
-        pass.style.display = 'none';
         if (d.success) {
             setTimeout(async () => {
                 closeWiFiPopup();
@@ -730,7 +729,7 @@ async function connectWiFi() {
             }, 2000);
             loading.style.display = 'none';
         }
-    } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; }
+    } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; loading.style.display = 'none'; }
 }
 async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
