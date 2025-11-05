@@ -726,6 +726,7 @@ async function connectWiFi() {
                 closeWiFiPopup();
                 const cur = await fetch('/api/current_wifi');
                 const cd = await cur.json();
+                if (currentState == 'main') return; // already in main state
                 if (cd.success) navigate('connect_select', cd.ssid);
             }, 2000);
             loading.style.display = 'none';
