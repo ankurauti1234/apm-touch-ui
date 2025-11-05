@@ -949,7 +949,7 @@ ul li {
 .key.pressed,
 .key-special.pressed {
     background: var(--primary) !important;
-    color: white !important;
+    color: gray !important;
     transform: scale(0.92);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: none;
