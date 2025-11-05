@@ -470,63 +470,255 @@ function showError(msg, type = 'error') {
 /* ==============================================================
    WIFI POP-UP
    ============================================================== */
+
+/* --------------------------------------------------------------
+   INPUT-FOCUS LIFT (uses your existing CSS)
+   -------------------------------------------------------------- */
+let liftTimeout = null;               // debounce hide-animation
+const POPUP_ID = 'wifi-popup';      // the container that must lift
+const KEYBOARD_ID = 'virtual-keyboard'; // optional virtual keyboard
+
+function liftPopup() {
+    const popup = document.getElementById(POPUP_ID);
+    if (!popup) return;
+
+    // add the lifted class
+    popup.classList.add('lifted');
+
+    // show virtual keyboard (if you have one)
+    const kb = document.getElementById(KEYBOARD_ID);
+    if (kb) {
+        kb.classList.remove('hiding');
+        kb.classList.add('showing');
+    }
+}
+
+function lowerPopup() {
+    const popup = document.getElementById(POPUP_ID);
+    if (!popup) return;
+
+    // remove lifted class with a tiny delay so the hide-animation can play
+    clearTimeout(liftTimeout);
+    liftTimeout = setTimeout(() => {
+        popup.classList.remove('lifted');
+    }, 50);   // 50 ms is enough for the transition to start
+
+    // hide virtual keyboard
+    const kb = document.getElementById(KEYBOARD_ID);
+    if (kb) {
+        kb.classList.remove('showing');
+        kb.classList.add('hiding');
+        // clean up the hiding class when animation ends
+        kb.addEventListener('transitionend', function clean() {
+            kb.classList.remove('hiding');
+            kb.removeEventListener('transitionend', clean);
+        });
+    }
+}
+
+/* --------------------------------------------------------------
+   Hook the focus/blur events on the password field
+   -------------------------------------------------------------- */
+/* --------------------------------------------------------------
+   IMPROVED: Prevent keyboard flicker on key press
+   -------------------------------------------------------------- */
+let isTyping = false;  // ← tracks if user is actively typing
+
+function initWiFiLift() {
+    const pw = document.getElementById('password');
+    if (!pw) return;
+
+    // === FOCUS: Show keyboard + lift ===
+    pw.addEventListener('focus', () => {
+        showKeyboard(pw);
+        liftPopup();
+        isTyping = true; // user is now typing
+    });
+
+    // === BLUR: Only hide if NOT typing ===
+    pw.addEventListener('blur', () => {
+        // Delay check: if we're still typing (e.g. key was just pressed), ignore blur
+        setTimeout(() => {
+            if (!isTyping) {
+                lowerPopup();
+            }
+        }, 100);
+    });
+
+    // === GLOBAL: Track key presses on virtual keyboard ===
+    document.getElementById(KEYBOARD_ID)?.addEventListener('mousedown', () => {
+        isTyping = true;
+    });
+
+    document.getElementById(KEYBOARD_ID)?.addEventListener('touchstart', () => {
+        isTyping = true;
+    });
+
+    // Reset typing flag after short idle (user stopped typing)
+    let typingTimer;
+    const resetTyping = () => {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            isTyping = false;
+        }, 300);
+    };
+
+    document.getElementById(KEYBOARD_ID)?.addEventListener('mouseup', resetTyping);
+    document.getElementById(KEYBOARD_ID)?.addEventListener('touchend', resetTyping);
+    document.getElementById(KEYBOARD_ID)?.addEventListener('click', resetTyping);
+}
+
+/* --------------------------------------------------------------
+   Call initWiFiLift() right after the popup is created
+   -------------------------------------------------------------- */
 async function showWiFiPopup() {
     closeSettingsPopup();
     closeWiFiPopup();
-    const overlay = document.createElement('div'); overlay.id = 'wifi-overlay'; overlay.className = 'overlay'; overlay.onclick = closeWiFiPopup;
-    const popup = document.createElement('div'); popup.id = 'wifi-popup'; popup.className = 'popup';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'wifi-overlay';
+    overlay.className = 'overlay';
+    overlay.onclick = closeWiFiPopup;
+
+    const popup = document.createElement('div');
+    popup.id = 'wifi-popup';
+    popup.className = 'popup';
+
     popup.innerHTML = `
         <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
         <p>Choose a network to connect</p>
         <div id="wifi-error" class="error" style="display:none;"></div>
-        <select id="ssid" onchange="togglePasswordField()"><option>Select Network</option></select>
-        <input type="password" id="password" placeholder="Password" style="display:none;" onfocus="showKeyboard(this)">
+        <div id="custom-select" class="custom-select">
+            <div id="selected-network" class="selected-item">
+                <span id="fetching">Select Network</span>
+                <span class="material-icons arrow">arrow_drop_down</span>
+            </div>
+            <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
+        </div>
+        <input type="password" id="password" placeholder="Password" style="display:none;">
         <div class="button-group">
             <button class="button" onclick="connectWiFi()">Connect</button>
             <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
             <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
         </div>`;
     document.body.append(overlay, popup);
+
+    // fetching networks message
+    const mess = document.getElementById('fetching');
+    mess.innerHTML = 'fetching wifi...';
+
     await scanWiFi();
+
+    // Optional: Auto-open dropdown for better touch UX
+    setTimeout(() => {
+
+        const trigger = document.getElementById('selected-network');
+        const list = document.getElementById('network-list');
+        if (trigger && list && list.children.length > 0) {
+            list.style.display = 'block';
+            trigger.classList.add('open');
+        }
+        mess.innerHTML = 'Select Network';
+    }, 200);
+
+    // <<< NEW >>> initialise lift behaviour
+    initWiFiLift();
+
+    // Custom dropdown touch handler
+    document.getElementById('selected-network').onclick = (e) => {
+        e.stopPropagation();
+        const list = document.getElementById('network-list');
+        const isOpen = list.style.display === 'block';
+        list.style.display = isOpen ? 'none' : 'block';
+        e.target.classList.toggle('open', !isOpen);
+    };
+
+    // Close dropdown when clicking outside
+    document.getElementById('wifi-overlay').onclick = () => {
+        const list = document.getElementById('network-list');
+        const sel = document.getElementById('selected-network');
+        if (list) list.style.display = 'none';
+        if (sel) sel.classList.remove('open');
+        closeWiFiPopup();
+    };
 }
+
+let selectedSSID = '';
+
+// Store networks globally for dropdown
+let availableNetworks = [];
+
 async function scanWiFi() {
-    const sel = document.getElementById('ssid');
+    const container = document.getElementById('network-list');
+    const selectedDisplay = document.getElementById('selected-network');
     const err = document.getElementById('wifi-error');
-    if (!sel || !err) return;
+    if (!container || !selectedDisplay || !err) return;
+
     try {
         const r = await fetch('/api/wifi/networks');
         const d = await r.json();
-        if (d.success) {
-            sel.innerHTML = '<option>Select Network</option>';
+        if (d.success && d.networks.length > 0) {
+            availableNetworks = d.networks;
+            container.innerHTML = '';
             d.networks.forEach(n => {
-                const o = document.createElement('option');
-                o.value = n.ssid;
-                o.textContent = `${n.ssid} (${n.signal_strength}, ${n.security})`;
-                sel.appendChild(o);
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${n.ssid}</span>
+                    <span class="signal">${n.signal_strength} ${n.security}</span>
+                `;
+                li.onclick = (e) => {
+                    e.stopPropagation();
+                    selectedSSID = n.ssid;
+                    selectedDisplay.innerHTML = `
+                        <span>${n.ssid}</span>
+                        <span class="material-icons arrow">arrow_drop_down</span>
+                    `;
+                    container.style.display = 'none';
+                    selectedDisplay.classList.remove('open');
+                    togglePasswordField();
+                };
+                container.appendChild(li);
             });
-        } else { err.innerHTML = `<span class="material-icons">error</span> ${d.error}`; err.style.display = 'flex'; }
-    } catch { err.innerHTML = `<span class="material-icons">error</span> Scan failed`; err.style.display = 'flex'; }
+            err.style.display = 'none';
+        } else {
+            container.innerHTML = '<li style="padding:12px;text-align:center;color:hsl(var(--muted-foreground));">No networks found</li>';
+            err.innerHTML = `<span class="material-icons">error</span> ${d.error || 'No networks'}`;
+            err.style.display = 'flex';
+        }
+    } catch (e) {
+        container.innerHTML = '<li style="padding:12px;text-align:center;color:hsl(var(--destructive));">Scan failed</li>';
+        err.innerHTML = `<span class="material-icons">error</span> Scan failed`;
+        err.style.display = 'flex';
+    }
 }
+
 function togglePasswordField() {
     const pw = document.getElementById('password');
-    const ss = document.getElementById('ssid');
-    if (pw && ss) pw.style.display = ss.value ? 'block' : 'none';
+    // const ss = document.getElementById('ssid');
+    if (pw) pw.style.display = selectedSSID ? 'block' : 'none';
 }
 async function connectWiFi() {
-    const ssid = document.getElementById('ssid')?.value;
+    // const ssid = document.getElementById('ssid')?.value;
     const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
-    if (!ssid || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
+    if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
     try {
         const r = await fetch('/api/wifi/connect', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ssid, password: pass })
+            body: JSON.stringify({ ssid: selectedSSID, password: pass })
         });
         const d = await r.json();
         err.className = d.success ? 'success' : 'error';
         err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Connected!' : d.error}`;
         err.style.display = 'flex';
-        if (d.success) setTimeout(async () => { closeWiFiPopup(); const cur = await fetch('/api/current_wifi'); const cd = await cur.json(); if (cd.success) navigate('connect_select', cd.ssid); }, 2000);
+        if (d.success) {
+            setTimeout(async () => {
+                closeWiFiPopup();
+                const cur = await fetch('/api/current_wifi');
+                const cd = await cur.json();
+                if (cd.success) navigate('connect_select', cd.ssid);
+            }, 2000);
+        }
     } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; }
 }
 async function disconnectWiFi() {
@@ -542,6 +734,7 @@ async function disconnectWiFi() {
 }
 function closeWiFiPopup() {
     ['wifi-popup', 'wifi-overlay'].forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
+    clearTimeout(liftTimeout);
     render();
 }
 
@@ -639,8 +832,8 @@ async function navigate(state, param = null) {
 
     /* ---------- INPUT SOURCES ---------- */
     if (state === 'input_source_detection') {
-        render();                     // show loading
-        setTimeout(fetchInputSources, 1000);
+        render(); // show loading spinner
+        setTimeout(startInputSourceRetry, 800);
         return;
     }
 
@@ -681,12 +874,18 @@ async function navigate(state, param = null) {
 /* ==============================================================
    INPUT SOURCES API
    ============================================================== */
+/* ==============================================================
+   INPUT SOURCES API (with auto-retry every 3s)
+   ============================================================== */
+let inputSourceRetryInterval = null;
+
 async function fetchInputSources() {
     const loading = document.getElementById('input-loading');
     const results = document.getElementById('input-results');
     const ul = results?.querySelector('ul');
+    const buttonGroup = document.querySelector('.button-group');
 
-    if (!loading || !results || !ul) return;
+    if (!loading || !results || !ul || !buttonGroup) return;
 
     try {
         const r = await fetch('/api/input_sources');
@@ -697,34 +896,66 @@ async function fetchInputSources() {
             ul.innerHTML = d.sources.map(s => `
                 <li><span class="material-icons">input</span> ${s}</li>
             `).join('');
-            document.querySelector('.button-group')
-                .insertAdjacentHTML('afterbegin', `
-                <button class="button" onclick="navigate('video_object_detection')">
+
+            // Replace any existing button with "Next"
+            const existingNext = buttonGroup.querySelector('button[data-action="next"]');
+            if (existingNext) existingNext.remove();
+
+            buttonGroup.insertAdjacentHTML('afterbegin', `
+                <button class="button" data-action="next" onclick="navigate('video_object_detection')">
                     <span class="material-icons">arrow_forward</span> Next
                 </button>
             `);
 
-        } else {
-            inputSources = [];
-            ul.innerHTML = '<li><span class="material-icons">info</span> No sources detected</li>';
-            document.querySelector('.button-group')
-                .insertAdjacentHTML('afterbegin', `
-                <button class="button" onclick="navigate('input_source_detection')">
-                    <span class="material-icons">refresh</span> Retry
-                </button>
-            `);
+            // SUCCESS: Stop retry loop
+            if (inputSourceRetryInterval) {
+                clearInterval(inputSourceRetryInterval);
+                inputSourceRetryInterval = null;
+            }
 
-            if (d.error) showError(d.error);
+            showError('Input sources detected!', 'success');
+        } else {
+            throw new Error(d.error || 'No sources detected');
         }
     } catch (e) {
+        // FAILURE: Keep retrying
         inputSources = [];
-        ul.innerHTML = '<li><span class="material-icons">error</span> Detection failed</li>';
-        showError('Input detection failed');
+        ul.innerHTML = '<li><span class="material-icons">hourglass_top</span> Retrying in 3s...</li>';
+
+        // Replace button with "Retry Now" (manual override)
+        const existingRetry = buttonGroup.querySelector('button[data-action="retry"]');
+        if (existingRetry) existingRetry.remove();
+
+        buttonGroup.insertAdjacentHTML('afterbegin', `
+            <button class="button" data-action="retry" onclick="fetchInputSources()">
+                <span class="material-icons">refresh</span> Retry Now
+            </button>
+        `);
+
+        if (e.message) showError(e.message);
     } finally {
-        // Hide spinner, show results – NO render()
         loading.style.display = 'none';
         results.style.display = 'block';
     }
+}
+
+// Start auto-retry when entering input_source_detection
+function startInputSourceRetry() {
+    // Clear any existing interval
+    if (inputSourceRetryInterval) clearInterval(inputSourceRetryInterval);
+
+    // Initial call
+    fetchInputSources();
+
+    // Retry every 3 seconds
+    inputSourceRetryInterval = setInterval(() => {
+        if (currentState === 'input_source_detection') {
+            fetchInputSources();
+        } else {
+            clearInterval(inputSourceRetryInterval);
+            inputSourceRetryInterval = null;
+        }
+    }, 3000);
 }
 
 /* ==============================================================
