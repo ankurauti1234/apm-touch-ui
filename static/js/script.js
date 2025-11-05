@@ -596,7 +596,9 @@ async function showWiFiPopup() {
             <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
         </div>
         <input type="password" id="password" placeholder="Password" style="display:none;">
-        <div class="loading" id="wifi-loading" style="display:none;"><div class="spinner"></div><p>Detecting inputs...</p></div>
+        <div style="width:100%; display:flex;justify-content:center;align-items:center;">
+            <div class="loading" id="wifi-loading" style="display:none;"><div class="spinner"></div><p>Connecting...</p></div>
+        </div>
         <div class="button-group">
             <button class="button" onclick="connectWiFi()">Connect</button>
             <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
@@ -700,6 +702,7 @@ function togglePasswordField() {
 }
 async function connectWiFi() {
     const loading = document.getElementById('wifi-loading');
+    const wifiList = document.getElementById('custom-select');
     // const ssid = document.getElementById('ssid')?.value;
     const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
@@ -722,6 +725,8 @@ async function connectWiFi() {
                 const cd = await cur.json();
                 if (cd.success) navigate('connect_select', cd.ssid);
             }, 2000);
+            wifiList.style.display = 'none';
+            pass.style.display = 'none';
             loading.style.display = 'none';
         }
     } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; }
