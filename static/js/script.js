@@ -707,7 +707,10 @@ async function connectWiFi() {
     const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
 
+    wifiList.style.display = 'none';
+    pass.style.display = 'none';
     loading.style.display = 'block';
+    
     if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
     try {
         const r = await fetch('/api/wifi/connect', {
@@ -725,8 +728,6 @@ async function connectWiFi() {
                 const cd = await cur.json();
                 if (cd.success) navigate('connect_select', cd.ssid);
             }, 2000);
-            wifiList.style.display = 'none';
-            pass.style.display = 'none';
             loading.style.display = 'none';
         }
     } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; }
