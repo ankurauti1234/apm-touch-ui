@@ -920,7 +920,7 @@ async function fetchInputSources() {
     } catch (e) {
         // FAILURE: Keep retrying
         inputSources = [];
-        ul.innerHTML = '<li><span class="material-icons">hourglass_top</span> Retrying in 3s...</li>';
+        ul.innerHTML = '<li><span class="material-icons">hourglass_top</span> Waiting for input sources...</li>';
 
         // Replace button with "Retry Now" (manual override)
         const existingRetry = buttonGroup.querySelector('button[data-action="retry"]');
