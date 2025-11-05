@@ -1254,46 +1254,39 @@ function hideScreensaver() {
     } catch (e) { }
 }
 
-// --- Pre-dim brightness logic (independent of UI) ---
+// --- Pre-dim brightness logic (relative and UI-independent) ---
 async function preDimBrightness() {
-    // Use stored brightness or default
     const current = originalBrightness ?? 153;
-    let dimmedValue;
+    if (isDimmed) return; // already dimmed
 
-    // Only dim if brightness is above 51
-    if (current > 51) {
-        if (current === 102) {
-            dimmedValue = 60;
-        } else if (current > 102) {
-            dimmedValue = 127;
-        } else {
-            return; // Already low enough
-        }
+    // Reduce brightness by 30%, but not below 30
+    const dimmedValue = Math.max(Math.round(current * 0.7), 30);
 
+    if (dimmedValue < current) {
         isDimmed = true;
         try {
             await updateBrightnessAPI(dimmedValue);
-            console.log(`[PRE - DIM] ${current} → ${dimmedValue}`);
+            console.log(`[PRE-DIM] ${current} → ${dimmedValue}`);
         } catch (err) {
             console.error("Pre-dim brightness update failed:", err);
         }
     }
 }
 
-
-// --- Restore brightness (independent of UI) ---
+// --- Restore brightness (back to original) ---
 async function restoreBrightness() {
     if (!isDimmed) return;
-
     const restoreValue = originalBrightness ?? 153;
+
     isDimmed = false;
     try {
         await updateBrightnessAPI(restoreValue);
-        console.log(`[RESTORE] Brightness restored to ${restoreValue}`);
+        console.log(`[RESTORE] ${restoreValue}`);
     } catch (err) {
         console.error("Restore brightness update failed:", err);
     }
 }
+
 
 
 async function updateBrightnessAPI(value) {
