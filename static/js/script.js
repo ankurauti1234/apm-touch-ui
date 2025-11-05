@@ -101,10 +101,10 @@ const states = {
         <p>Verifying ${connectivityMode.toUpperCase()} connection</p>
         <div id="error" class="error" style="display:none;"></div>
         ${status === 'success' ? `
-            <div class="success"><span class="material-icons">check_circle</span> Network test successful!</div>
+            <div class="success" style="display:block;"><span class="material-icons">check_circle</span> Network test successful!</div>
             <div class="button-group">
                 <button class="button" onclick="navigate('display_meter')">
-                    <span class="material-icons">arrow_forward</span> Nexxt
+                    <span class="material-icons">arrow_forward</span> Next
                 </button>
             </div>
         ` : status === 'error' ? `
