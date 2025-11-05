@@ -273,14 +273,46 @@ function showKeyboard(el) {
         <div class="keyboard-body">
             <div class="keyboard-keys" id="keyboard-keys"></div>
             <div class="keyboard-bottom-row">
-                <button class="key-special key-shift" onclick="toggleShift()">
-                    <span class="material-icons">arrow_upward</span><span class="key-label">Shift</span>
+                <button
+                    class="key-special key-shift"
+                    onclick="toggleShift()"
+                    onmousedown="handleKeyDown(event)"
+                    onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)"
+                    ontouchend="handleKeyUp(event)"
+                >
+                    <span class="material-icons">arrow_upward</span>
+                    <span class="key-label">Shift</span>
                 </button>
-                <button class="key key-space" onclick="handleSpecialKey(' ', event)">Space</button>
-                <button class="key-special key-backspace" onclick="handleSpecialKey('backspace', event)">
+
+                <button
+                    class="key key-space"
+                    onclick="insertChar(' ')"
+                    onmousedown="handleKeyDown(event)"
+                    onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)"
+                    ontouchend="handleKeyUp(event)"
+                >Space</button>
+
+                <button
+                    class="key-special key-backspace"
+                    onclick="backspace()"
+                    onmousedown="handleKeyDown(event)"
+                    onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)"
+                    ontouchend="handleKeyUp(event)"
+                >
                     <span class="material-icons">backspace</span>
                 </button>
-                <button class="key-special key-enter" onclick="handleSpecialKey('enter', event)">
+
+                <button
+                    class="key-special key-enter"
+                    onclick="pressEnter()"
+                    onmousedown="handleKeyDown(event)"
+                    onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)"
+                    ontouchend="handleKeyUp(event)"
+                >
                     <span class="material-icons">keyboard_return</span>
                     <span class="key-label">Enter</span>
                 </button>
@@ -302,9 +334,14 @@ function renderKeys() {
     container.innerHTML = layout.map((row, i) => `
         <div class="keyboard-row keyboard-row-${i}">
             ${row.map(k => `
-                <button class="key" onclick="handleKeyClick('${k}', event)">
-                    ${k}
-                </button>
+                <button 
+                    class="key" 
+                    onclick="insertChar('${k}')"
+                    onmousedown="handleKeyDown(event)"
+                    onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)"
+                    ontouchend="handleKeyUp(event)"
+                >${k}</button>
             `).join('')}
         </div>
     `).join('');
@@ -335,12 +372,6 @@ function insertChar(ch) {
 
     scrollInputIntoView();
 
-    // SHOW POP-UP FEEDBACK
-    const clickedButton = event?.target?.closest('button');
-    if (clickedButton) {
-        showKeyFeedback(ch, clickedButton);
-    }
-
     // Auto-reset Shift after typing an uppercase letter
     if (shiftActive && /[A-Z]/.test(ch)) {
         setTimeout(() => {
@@ -355,55 +386,34 @@ function insertChar(ch) {
 /* --------------------------------------------------------------
    BACKSPACE (cursor moves correctly)
    -------------------------------------------------------------- */
-// function backspace() {
-//     if (!activeInput) return;
-
-//     const start = activeInput.selectionStart ?? 0;
-//     const end = activeInput.selectionEnd ?? 0;
-//     const text = activeInput.value;
-
-//     if (start !== end) {
-//         // Delete selected text
-//         activeInput.value = text.slice(0, start) + text.slice(end);
-//         activeInput.setSelectionRange(start, start);
-//     } else if (start > 0) {
-//         // Delete one character before the cursor
-//         activeInput.value = text.slice(0, start - 1) + text.slice(start);
-//         activeInput.setSelectionRange(start - 1, start - 1);
-//     } else {
-//         return; // nothing to delete
-//     }
-
-//     activeInput.focus();
-//     scrollInputIntoView();
-// }
-// function pressEnter() {
-//     if (!activeInput) return;
-//     hideKeyboard();
-//     if (activeInput.id === 'hhid') submitHHID();
-//     else if (activeInput.id === 'otp') submitOTP();
-// }
-
 function backspace() {
     if (!activeInput) return;
+
     const start = activeInput.selectionStart ?? 0;
-    if (start === 0) return;
-    activeInput.value = activeInput.value.slice(0, start - 1) + activeInput.value.slice(activeInput.selectionEnd);
-    activeInput.setSelectionRange(start - 1, start - 1);
+    const end = activeInput.selectionEnd ?? 0;
+    const text = activeInput.value;
+
+    if (start !== end) {
+        // Delete selected text
+        activeInput.value = text.slice(0, start) + text.slice(end);
+        activeInput.setSelectionRange(start, start);
+    } else if (start > 0) {
+        // Delete one character before the cursor
+        activeInput.value = text.slice(0, start - 1) + text.slice(start);
+        activeInput.setSelectionRange(start - 1, start - 1);
+    } else {
+        return; // nothing to delete
+    }
+
     activeInput.focus();
     scrollInputIntoView();
 }
-
 function pressEnter() {
     if (!activeInput) return;
-    const connectBtn = document.querySelector('#wifi-popup button[onclick="connectWiFi()"]');
-    if (connectBtn) {
-        connectBtn.click();
-    } else {
-        activeInput.blur();
-    }
+    hideKeyboard();
+    if (activeInput.id === 'hhid') submitHHID();
+    else if (activeInput.id === 'otp') submitOTP();
 }
-
 function hideKeyboard() {
     const kb = document.getElementById('virtual-keyboard');
     if (kb) {
@@ -1381,45 +1391,16 @@ function initBrightnessControl() {
    Key-press feedback
    ============================================================== */
 
-function showKeyFeedback(char, button) {
-    // Remove any existing... wait, no — we want one per press
-    const rect = button.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-
-    const popup = document.createElement('div');
-    popup.className = 'key-popup';
-    popup.textContent = char;
-    popup.style.left = x + 'px';
-    popup.style.top = y + 'px';
-
-    document.body.appendChild(popup);
-
-    // Auto-remove after animation
-    popup.addEventListener('animationend', () => {
-        popup.remove();
-    });
+function handleKeyDown(event) {
+    const btn = event.currentTarget;
+    btn.classList.add('pressed');
 }
 
-function handleKeyClick(char, event) {
-    insertChar(char);
-    showKeyFeedback(char, event.currentTarget);
+function handleKeyUp(event) {
+    const btn = event.currentTarget;
+    btn.classList.remove('pressed');
 }
 
-function handleSpecialKey(action, event) {
-    const button = event.currentTarget;
-
-    if (action === ' ') {
-        insertChar(' ');
-        showKeyFeedback('␣', button); // space symbol
-    } else if (action === 'backspace') {
-        backspace();
-        showKeyFeedback('⌫', button);
-    } else if (action === 'enter') {
-        pressEnter();
-        showKeyFeedback('↵', button);
-    }
-}
 
 /* ==============================================================
    INITIALISATION
