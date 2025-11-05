@@ -182,7 +182,8 @@ const states = {
 
     video_object_detection: () => `
         <h1>Video Detection</h1>
-        <p>Checking video object detection capabilities</p>
+        <p id="checking-video" >Checking video object detection capabilities</p>
+        <div class="success" id="video-success" style="display:none;"><span class="material-icons">check_circle</span> Video object detection successful!</div>
         <div class="loading" id="video-loading"><div class="spinner"></div><p>Running detection test...</p></div>
         <div id="video-results" style="display:none;">
             <div id="video-status"></div>
@@ -977,12 +978,19 @@ async function checkVideoDetection() {
     const results = document.getElementById('video-results');
     const status = document.getElementById('video-status');
 
+    const checkMessage = document.getElementById('checking-video');
+    const successMessage = document.getElementById('video-success');
+
     try {
         const r = await fetch('/api/video_detection');
         const d = await r.json();
         if (d.success && d.detected) {
             status.innerHTML = `<div class="success"><span class="material-icons">check_circle</span> Video detection active: ${d.status}</div>`;
             status.dataset.detected = 'true';
+
+            checkMessage.style.display = 'none';
+            successMessage.style.display = 'block';
+
             document.querySelector('.button-group')
                 .insertAdjacentHTML('afterbegin', `
                     <button class="button" onclick="navigate('finalize')">
