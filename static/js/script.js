@@ -707,10 +707,8 @@ async function connectWiFi() {
     const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
 
-    wifiList.style.display = 'none';
-    pass.style.display = 'none';
     loading.style.display = 'block';
-    
+
     if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
     try {
         const r = await fetch('/api/wifi/connect', {
@@ -721,6 +719,8 @@ async function connectWiFi() {
         err.className = d.success ? 'success' : 'error';
         err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Connected!' : d.error}`;
         err.style.display = 'flex';
+        wifiList.style.display = 'none';
+        pass.style.display = 'none';
         if (d.success) {
             setTimeout(async () => {
                 closeWiFiPopup();
