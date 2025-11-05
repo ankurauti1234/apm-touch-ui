@@ -951,7 +951,7 @@ ul li {
     background: var(--primary) !important;
     color: rgb(0, 0, 0) !important;
     transform: scale(0.92);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
     transition: none;
     /* Instant */
 }
