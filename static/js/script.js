@@ -104,7 +104,7 @@ const states = {
             <div class="success"><span class="material-icons">check_circle</span> Network test successful!</div>
             <div class="button-group">
                 <button class="button" onclick="navigate('display_meter')">
-                    <span class="material-icons">arrow_forward</span> Next
+                    <span class="material-icons">arrow_forward</span> Nexxt
                 </button>
             </div>
         ` : status === 'error' ? `
@@ -112,7 +112,7 @@ const states = {
                 <span class="material-icons">error</span> Network test failed.
             </div>
             <div class="button-group">
-                <button class="button" onclick="navigate('network_test','$\{connectivityMode}')">
+                <button class="button" onclick="navigate('network_test','${connectivityMode}')">
                     <span class="material-icons">refresh</span> Retry
                 </button>
                 <button class="button secondary" onclick="navigate('connect_select')">
@@ -833,6 +833,7 @@ async function navigate(state, param = null) {
             try {
                 const r = await fetch(api);
                 const d = await r.json();
+                console.log("Network test result:", d.success);
                 render(d.success ? 'success' : 'error');
                 if (!d.success) showError(`${connectivityMode.toUpperCase()} not ready`);
             } catch { render('error'); showError('Network test failed'); }
