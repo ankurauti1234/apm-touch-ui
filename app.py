@@ -421,13 +421,36 @@ def list_wifi_networks():
     Returns available + saved Wi-Fi networks merged into one list.
     Saved networks include saved password (PSK) if readable.
     """
+
     import configparser
     from pathlib import Path
+    import subprocess
+    import os
+    import time
+
+    def run_system_command(cmd):
+        """Executes a system command safely and returns (ok, output)."""
+        try:
+            res = subprocess.run(
+                cmd, check=True, capture_output=True, text=True
+            )
+            return True, res.stdout
+        except subprocess.CalledProcessError as e:
+            return False, e.stderr
 
     try:
-        # 1. Run a Wi-Fi scan
-        run_system_command(["sudo", "nmcli", "device", "wifi", "rescan"])
+        # ----------------------------------------------------------
+        # 1. Rescan available networks (no sudo needed if running as root)
+        # ----------------------------------------------------------
+        ok_rescan, rescan_out = run_system_command(["nmcli", "device", "wifi", "rescan"])
+        if not ok_rescan:
+            print("[WiFi] Rescan warning:", rescan_out)
+
         time.sleep(2)
+
+        # ----------------------------------------------------------
+        # 2. List all available Wi-Fi networks
+        # ----------------------------------------------------------
         ok, out = run_system_command(
             ["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "device", "wifi", "list"]
         )
@@ -446,8 +469,12 @@ def list_wifi_networks():
                         "saved": False,
                         "password": None
                     })
+        else:
+            print("[WiFi] Scan failed:", out)
 
-        # 2. Load saved networks from NetworkManager
+        # ----------------------------------------------------------
+        # 3. Load saved connections from /etc/NetworkManager/system-connections/
+        # ----------------------------------------------------------
         nm_dir = Path("/etc/NetworkManager/system-connections")
         saved = {}
 
@@ -455,11 +482,13 @@ def list_wifi_networks():
             for f in nm_dir.glob("*"):
                 if not f.is_file():
                     continue
+
                 parser = configparser.RawConfigParser()
                 try:
                     with open(f, "r", encoding="utf-8", errors="ignore") as file:
                         parser.read_file(file)
-                except Exception:
+                except Exception as e:
+                    print(f"[WiFi] Skipped {f.name}: {e}")
                     continue
 
                 def safe(section, key):
@@ -470,17 +499,20 @@ def list_wifi_networks():
 
                 ssid = safe("wifi", "ssid") or safe("802-11-wireless", "ssid")
                 psk = safe("wifi-security", "psk") or safe("802-11-wireless-security", "psk")
+                keymgmt = safe("wifi-security", "key-mgmt") or safe("802-11-wireless-security", "key-mgmt")
 
                 if ssid:
                     saved[ssid] = {
                         "ssid": ssid,
                         "signal_strength": "N/A",
-                        "security": safe("wifi-security", "key-mgmt") or "Unknown",
+                        "security": keymgmt or "Unknown",
                         "saved": True,
-                        "password": psk
+                        "password": psk or None
                     }
 
-        # 3. Merge lists
+        # ----------------------------------------------------------
+        # 4. Merge available and saved lists (avoid duplicates)
+        # ----------------------------------------------------------
         merged = []
         seen = set()
 
@@ -493,9 +525,13 @@ def list_wifi_networks():
             merged.append(net)
             seen.add(ssid)
 
+        # Add saved-only networks not currently visible
         for ssid, entry in saved.items():
             if ssid not in seen:
                 merged.append(entry)
+
+        # Sort saved ones first
+        merged.sort(key=lambda n: (not n.get("saved", False), n["ssid"].lower()))
 
         return jsonify({"success": True, "networks": merged}), 200
 
