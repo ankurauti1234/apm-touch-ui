@@ -596,6 +596,7 @@ async function showWiFiPopup() {
             <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
         </div>
         <input type="password" id="password" placeholder="Password" style="display:none;">
+        <div class="loading" id="wifi-loading" style="display:none;"><div class="spinner"></div><p>Detecting inputs...</p></div>
         <div class="button-group">
             <button class="button" onclick="connectWiFi()">Connect</button>
             <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
@@ -698,9 +699,12 @@ function togglePasswordField() {
     if (pw) pw.style.display = selectedSSID ? 'block' : 'none';
 }
 async function connectWiFi() {
+    const loading = document.getElementById('wifi-loading');
     // const ssid = document.getElementById('ssid')?.value;
     const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
+
+    loading.style.display = 'block';
     if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
     try {
         const r = await fetch('/api/wifi/connect', {
@@ -718,6 +722,7 @@ async function connectWiFi() {
                 const cd = await cur.json();
                 if (cd.success) navigate('connect_select', cd.ssid);
             }, 2000);
+            loading.style.display = 'none';
         }
     } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; }
 }
