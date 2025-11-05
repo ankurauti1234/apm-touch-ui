@@ -652,6 +652,21 @@ def set_brightness():
         print(f"[BRIGHTNESS] Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/api/current_brightness")
+def get_current_brightness():
+    """
+    Returns current brightness from /sys/class/backlight/1-0045/brightness
+    """
+    try:
+        path = "/sys/class/backlight/1-0045"
+        with open(f"{path}/brightness") as f:
+            brightness = int(f.read().strip())
+        return jsonify({"success": True, "brightness": brightness}), 200
+    except Exception as e:
+        print(f"[BRIGHTNESS-GET] Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 
 # ----------------------------------------------------------------------
 # 8. Flask runner

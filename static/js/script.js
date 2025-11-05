@@ -1352,32 +1352,29 @@ function blockEventIfActive(e) {
     }, { passive: true });
 });
 
-function initBrightnessControl() {
+async function initBrightnessControl() {
     const slider = document.getElementById('brightness-slider');
-    // const valueLabel = document.getElementById('brightness-value');
-
     if (!slider) return;
 
-    slider.addEventListener("input", async e => {
-        const currentBrightness = parseInt(e.target.value);
-        // valueLabel.textContent = `${currentBrightness}/255`;
-        await updateBrightness(currentBrightness);
-    });
-
-    async function updateBrightness(value) {
-        try {
-            const res = await fetch('/api/brightness', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ brightness: value })
-            });
-            const data = await res.json();
-            if (!data.success) console.warn('Brightness update failed:', data.error);
-            else console.log(`Brightness set to ${value}`);
-        } catch (err) {
-            console.error('Brightness update error:', err);
+    // --- Fetch actual current brightness from backend ---
+    try {
+        const res = await fetch('/api/current_brightness');
+        const data = await res.json();
+        if (data.success && typeof data.brightness === 'number') {
+            slider.value = data.brightness;
+            originalBrightness = data.brightness; // keep global in sync
+            console.log(`[INIT] Brightness synced: ${data.brightness}`);
         }
+    } catch (err) {
+        console.warn('Could not fetch current brightness:', err);
     }
+
+    // --- Listen for manual user changes ---
+    slider.addEventListener('input', async e => {
+        const currentBrightness = parseInt(e.target.value);
+        originalBrightness = currentBrightness; // update global baseline
+        await updateBrightnessAPI(currentBrightness);
+    });
 }
 
 /* ==============================================================
