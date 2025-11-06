@@ -718,12 +718,14 @@ async function scanWiFi() {
             d.networks.forEach(n => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-        <div style="display:flex;justify-content:flex-end;align-items:center;width:100%;">
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
             <div>
                 <span>${n.ssid}</span>
-                ${n.saved ? `<span class="badge-saved">Saved</span>` : ''}
             </div>
-            <span class="signal">${n.signal_strength || ''} ${n.security || ''}</span>
+            <div>
+                ${n.saved ? '<span class="badge-saved">Saved</span>' : ''}
+                <span class="signal-icon">${n.signal >= 75 ? '📶📶📶' : n.signal >= 50 ? '📶📶' : n.signal >= 25 ? '📶' : '📡'}</span>
+            </div>
         </div>
     `;
                 li.onclick = (e) => {
