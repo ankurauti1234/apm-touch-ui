@@ -1273,26 +1273,28 @@ function hideScreensaver() {
     } catch (e) { }
 }
 
-// --- Pre-dim brightness logic (go straight to minimum) ---
+// --- Pre-dim brightness logic (go straight to mapped minimum) ---
 async function preDimBrightness() {
     if (isDimmed) return; // already dimmed
 
-    // Remember whatever brightness was last set (default mid if missing)
     const current = originalBrightness ?? 153;
     originalBrightness = current;
 
-    const minBrightness = 51; // your backend’s lower hardware limit
+    // Match backend-safe lower limit
+    const minBrightness = 51;
 
-    if (current > minBrightness) {
-        try {
-            await updateBrightnessAPI(minBrightness);
-            isDimmed = true;
-            console.log(`[PRE-DIM] ${current} → ${minBrightness}`);
-        } catch (err) {
-            console.error("Pre-dim brightness update failed:", err);
-        }
+    // If brightness is already near the minimum, skip dimming
+    if (current <= minBrightness + 5) return;
+
+    try {
+        await updateBrightnessAPI(minBrightness);
+        isDimmed = true;
+        console.log(`[PRE-DIM] ${current} → ${minBrightness}`);
+    } catch (err) {
+        console.error("Pre-dim brightness update failed:", err);
     }
 }
+
 
 // --- Restore brightness to original level ---
 async function restoreBrightness() {
