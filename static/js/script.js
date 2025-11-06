@@ -718,19 +718,37 @@ async function scanWiFi() {
             d.networks.forEach(n => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <span>${n.ssid}</span>
-                    <span class="signal">${n.signal_strength} ${n.security}</span>
-                `;
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+            <div>
+                <span>${n.ssid}</span>
+                ${n.saved ? `<span class="badge-saved">Saved</span>` : ''}
+            </div>
+            <span class="signal">${n.signal_strength || ''} ${n.security || ''}</span>
+        </div>
+    `;
                 li.onclick = (e) => {
                     e.stopPropagation();
                     selectedSSID = n.ssid;
+
+                    // update selected display
                     selectedDisplay.innerHTML = `
-                        <span>${n.ssid}</span>
-                        <span class="material-icons arrow">arrow_drop_down</span>
-                    `;
+            <span>${n.ssid} ${n.saved ? '<span class="badge-saved">Saved</span>' : ''}</span>
+            <span class="material-icons arrow">arrow_drop_down</span>
+        `;
                     container.style.display = 'none';
                     selectedDisplay.classList.remove('open');
+
                     togglePasswordField();
+
+                    // Auto-fill password if saved
+                    const pw = document.getElementById('password');
+                    if (n.saved && n.password) {
+                        pw.value = n.password;
+                        pw.placeholder = '(Saved password)';
+                    } else {
+                        pw.value = '';
+                        pw.placeholder = 'Password';
+                    }
                 };
                 container.appendChild(li);
             });

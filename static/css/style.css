@@ -962,3 +962,17 @@ ul li {
     -webkit-user-select: none;
     touch-action: manipulation;
 }
+
+
+
+
+.badge-saved {
+    background: hsl(var(--primary));
+    color: white;
+    border-radius: 0.4rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
