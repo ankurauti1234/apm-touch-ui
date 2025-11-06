@@ -718,7 +718,7 @@ async function scanWiFi() {
             d.networks.forEach(n => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+        <div style="display:flex;align-items:center;width:100%;">
             <div>
                 <span>${n.ssid}</span>
                 ${n.saved ? `<span class="badge-saved">Saved</span>` : ''}
