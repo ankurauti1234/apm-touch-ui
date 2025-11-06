@@ -502,7 +502,7 @@ ul li {
     color: hsl(var(--foreground));
     font-size: 0.75rem;
     cursor: pointer;
-    padding: 1rem;
+    padding: 1.25rem;
     border-radius: var(--radius);
     transition: background 0.2s ease;
 }
