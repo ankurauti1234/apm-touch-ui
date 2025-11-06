@@ -798,6 +798,7 @@ async function connectWiFi() {
             loading.style.display = 'none';
         }
     } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; loading.style.display = 'none'; }
+    loading.style.display = 'none';
 }
 async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
