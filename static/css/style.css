@@ -320,7 +320,9 @@ ul li {
 .settings-icon {
     font-size: 1.5rem;
     vertical-align: middle;
-    height: 20px;
+    position: relative;
+    bottom: 10px;
+
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
