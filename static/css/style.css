@@ -859,6 +859,34 @@ ul li {
 }
 
 
+#brightness-slider {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+}
+
+#brightness-slider::-webkit-slider-runnable-track {
+    background: hsl(var(--muted));
+    height: 6px;
+    border-radius: 3px;
+}
+
+#brightness-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: hsl(var(--primary));
+    border-radius: 50%;
+    margin-top: -7px;
+    /* centers the thumb vertically */
+    box-shadow: 0 0 0 2px white;
+}
+
+#brightness-slider:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 2px hsl(var(--primary));
+}
+
 
 
 
