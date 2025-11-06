@@ -860,33 +860,20 @@ ul li {
 
 
 #brightness-slider {
-    appearance: none;
-    -webkit-appearance: none;
+    appearance: auto;
+    /* restores native style */
+    -webkit-appearance: slider-horizontal;
     width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
-#brightness-slider::-webkit-slider-runnable-track {
-    background: hsl(var(--muted));
-    height: 6px;
-    border-radius: 3px;
+/* This just removes the weird internal padding that keeps the thumb off the edges */
+#brightness-slider::-webkit-slider-container,
+#brightness-slider::-moz-range-track {
+    margin: 0;
+    padding: 0;
 }
-
-#brightness-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    background: hsl(var(--primary));
-    border-radius: 50%;
-    margin-top: -7px;
-    /* centers the thumb vertically */
-    box-shadow: 0 0 0 2px #007aff;
-}
-
-#brightness-slider:focus::-webkit-slider-thumb {
-    box-shadow: 0 0 0 2px hsl(var(--primary));
-}
-
 
 
 
