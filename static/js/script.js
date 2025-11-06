@@ -851,7 +851,7 @@ function showSettingsPopup() {
       </button>
     </div>
 
-    <button class="button secondary" style="position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem;" onclick="closeSettingsPopup()">✖</button>
+    <button class="button secondary" style="position: absolute; top: 1rem; right: 1rem;" onclick="closeSettingsPopup()"><span style="font-size: 1.2rem;">✖</span></button>
   `;
 
     document.body.append(overlay, popup);
