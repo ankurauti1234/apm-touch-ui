@@ -1312,16 +1312,20 @@ async function restoreBrightness() {
 
 
 async function updateBrightnessAPI(value) {
+    // Map 0–255 → 51–255
+    const mapped = Math.round(51 + (value / 255) * (255 - 51));
+
     try {
         await fetch("/api/brightness", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ brightness: value }),
+            body: JSON.stringify({ brightness: mapped }),
         });
     } catch (err) {
         console.error("Brightness update error:", err);
     }
 }
+
 
 // --- Screensaver with pre-dim at 20s (30s - 10s) ---
 
