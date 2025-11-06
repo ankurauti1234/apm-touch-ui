@@ -832,7 +832,7 @@ function showSettingsPopup() {
     popup.id = 'settings-popup';
     popup.className = 'popup';
     popup.innerHTML = `
-    <h2 style="margin-top: 0;">Settings</h2>
+    <h2 style="margin-top: 0;"><span class="material-icons">settings</span>Settings</h2>
 
     <div id="brightness-container">
       <label for="brightness-slider" id="brightness-logo">☀</label>
