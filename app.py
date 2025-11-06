@@ -566,7 +566,7 @@ def list_wifi_networks():
         for net in available:
             merged[net["ssid"]] = net.copy()
 
-        for s in saved:
+                for s in saved:
             if s["ssid"] in merged:
                 merged[s["ssid"]]["saved"] = True
                 if s["password"]:
