@@ -238,7 +238,7 @@ const states = {
                     `).join('')}
                 </div>
                 <div class="bottom-bar">
-                    <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons">settings</span></button>
+                    <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons settings-icon">settings</span></button>
                 </div>
             </div> 
         </div>
@@ -798,6 +798,7 @@ async function connectWiFi() {
             loading.style.display = 'none';
         }
     } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; loading.style.display = 'none'; }
+    loading.style.display = 'none';
 }
 async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
@@ -831,11 +832,11 @@ function showSettingsPopup() {
     popup.id = 'settings-popup';
     popup.className = 'popup';
     popup.innerHTML = `
-    <h2 style="margin-top: 0;">Settings</h2>
+    <h2 style="margin-top: 0;"><span class="material-icons settings-icon" >settings</span> Settings</h2>
 
     <div id="brightness-container">
       <label for="brightness-slider" id="brightness-logo">☀</label>
-      <input type="range" id="brightness-slider" min="0" max="255" step="51" value="153" style="width:300px;">
+      <input type="range" id="brightness-slider" min="0" max="255" step="1" value="153" style="width:300px;">
     </div>
 
     <div id="settings-content">
@@ -1272,26 +1273,28 @@ function hideScreensaver() {
     } catch (e) { }
 }
 
-// --- Pre-dim brightness logic (go straight to minimum) ---
+// --- Pre-dim brightness logic (go straight to mapped minimum) ---
 async function preDimBrightness() {
     if (isDimmed) return; // already dimmed
 
-    // Remember whatever brightness was last set (default mid if missing)
     const current = originalBrightness ?? 153;
     originalBrightness = current;
 
-    const minBrightness = 51; // your backend’s lower hardware limit
+    // Match backend-safe lower limit
+    const minBrightness = 51;
 
-    if (current > minBrightness) {
-        try {
-            await updateBrightnessAPI(minBrightness);
-            isDimmed = true;
-            console.log(`[PRE-DIM] ${current} → ${minBrightness}`);
-        } catch (err) {
-            console.error("Pre-dim brightness update failed:", err);
-        }
+    // If brightness is already near the minimum, skip dimming
+    if (current <= minBrightness + 5) return;
+
+    try {
+        await updateBrightnessAPI(minBrightness);
+        isDimmed = true;
+        console.log(`[PRE-DIM] ${current} → ${minBrightness}`);
+    } catch (err) {
+        console.error("Pre-dim brightness update failed:", err);
     }
 }
+
 
 // --- Restore brightness to original level ---
 async function restoreBrightness() {
@@ -1311,16 +1314,20 @@ async function restoreBrightness() {
 
 
 async function updateBrightnessAPI(value) {
+    // Map 0–255 → 51–255
+    const mapped = Math.round(51 + (value / 255) * (255 - 51));
+
     try {
         await fetch("/api/brightness", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ brightness: value }),
+            body: JSON.stringify({ brightness: mapped }),
         });
     } catch (err) {
         console.error("Brightness update error:", err);
     }
 }
+
 
 // --- Screensaver with pre-dim at 20s (30s - 10s) ---
 
@@ -1379,7 +1386,7 @@ async function initBrightnessControl() {
         const res = await fetch('/api/current_brightness');
         const data = await res.json();
         if (data.success && typeof data.brightness === 'number') {
-            slider.value = data.brightness;
+            slider.value = Math.round(((data.brightness - 51) / (255 - 51)) * 255);
             originalBrightness = data.brightness; // keep global in sync
             console.log(`[INIT] Brightness synced: ${data.brightness}`);
         }

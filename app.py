@@ -830,6 +830,7 @@ def get_current_brightness():
 
 
 
+
 # ----------------------------------------------------------------------
 # 8. Flask runner
 # ----------------------------------------------------------------------
@@ -847,6 +848,10 @@ class BrowserWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.browser)
         self.setCursor(Qt.BlankCursor)
         self.showFullScreen()
+
+        # ---------- NEW: BLOCK CONTEXT MENU ----------
+        self.browser.setContextMenuPolicy(Qt.NoContextMenu)   # disables right-click menu
+        # ----------------------------------------------
 
         self.browser.setZoomFactor(1.0)
         settings = self.browser.settings()

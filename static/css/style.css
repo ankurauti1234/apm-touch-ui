@@ -317,6 +317,15 @@ ul li {
     vertical-align: middle;
 }
 
+.settings-icon {
+    font-size: 1.5rem;
+    vertical-align: middle;
+    scale: 1.2;
+    position: relative;
+    bottom: 2px;
+
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    POPUP
    ═══════════════════════════════════════════════════════════════════════ */
@@ -479,8 +488,8 @@ ul li {
     justify-content: center;
     gap: 2rem;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    height: 3rem;
+    z-index: 998;
+    height: 3.3rem;
 }
 
 .bar-btn {
@@ -493,7 +502,7 @@ ul li {
     color: hsl(var(--foreground));
     font-size: 0.75rem;
     cursor: pointer;
-    padding: 1rem;
+    padding: 1.25rem;
     border-radius: var(--radius);
     transition: background 0.2s ease;
 }
@@ -853,9 +862,26 @@ ul li {
 }
 
 #brightness-logo {
-    font-size: 1.2rem;
-    height: 38px;
-    scale: 1.3;
+    font-size: 2rem;
+    height: 48px;
+    /* scale: 1.3; */
+}
+
+
+#brightness-slider {
+    appearance: auto;
+    /* restores native style */
+    -webkit-appearance: slider-horizontal;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* This just removes the weird internal padding that keeps the thumb off the edges */
+#brightness-slider::-webkit-slider-container,
+#brightness-slider::-moz-range-track {
+    margin: 0;
+    padding: 0;
 }
 
 
@@ -975,4 +1001,12 @@ ul li {
     margin-left: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+}
+
+
+
+
+button:focus {
+    outline: none !important;
+    box-shadow: none !important;
 }
