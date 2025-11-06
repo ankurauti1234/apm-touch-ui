@@ -997,7 +997,11 @@ ul li {
 
 
 
+button:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+}
+
 button:focus {
-    outline: none !important;
-    box-shadow: none !important;
+    outline: none;
 }
