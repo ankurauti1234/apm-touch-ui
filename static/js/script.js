@@ -721,11 +721,9 @@ async function scanWiFi() {
         <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
             <div>
                 <span>${n.ssid}</span>
-            </div>
-            <div>
                 ${n.saved ? `<span class="badge-saved">Saved</span>` : ''}
-                <span class="signal">${n.signal_strength || ''} ${n.security || ''}</span>
             </div>
+            <span class="signal">${n.signal_strength || ''} ${n.security || ''}</span>
         </div>
     `;
                 li.onclick = (e) => {
