@@ -723,8 +723,8 @@ async function scanWiFi() {
                 <span>${n.ssid}</span>
             </div>
             <div>
-                ${n.saved ? '<span class="badge-saved">Saved</span>' : ''}
-                <span class="signal-icon">${n.signal >= 75 ? '📶📶📶' : n.signal >= 50 ? '📶📶' : n.signal >= 25 ? '📶' : '📡'}</span>
+                ${n.saved ? `<span class="badge-saved">Saved</span>` : ''}
+                <span class="signal">${n.signal_strength || ''} ${n.security || ''}</span>
             </div>
         </div>
     `;
