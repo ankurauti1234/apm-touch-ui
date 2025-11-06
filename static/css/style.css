@@ -320,8 +320,9 @@ ul li {
 .settings-icon {
     font-size: 1.5rem;
     vertical-align: middle;
+    scale: 1.2;
     position: relative;
-    bottom: 10px;
+    bottom: 2px;
 
 }
 
