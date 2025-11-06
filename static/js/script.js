@@ -836,7 +836,7 @@ function showSettingsPopup() {
 
     <div id="brightness-container">
       <label for="brightness-slider" id="brightness-logo">☀</label>
-      <input type="range" id="brightness-slider" min="0" max="255" step="51" value="153" style="width:300px;">
+      <input type="range" id="brightness-slider" min="0" max="255" step="1" value="153" style="width:300px;">
     </div>
 
     <div id="settings-content">
