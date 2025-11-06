@@ -777,7 +777,7 @@ async function connectWiFi() {
     const err = document.getElementById('wifi-error');
 
     loading.style.display = 'block';
-    if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
+    if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; loading.style.display = 'none'; return; }
     try {
         const r = await fetch('/api/wifi/connect', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
