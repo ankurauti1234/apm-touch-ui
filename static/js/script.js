@@ -1386,7 +1386,7 @@ async function initBrightnessControl() {
         const res = await fetch('/api/current_brightness');
         const data = await res.json();
         if (data.success && typeof data.brightness === 'number') {
-            slider.value = data.brightness;
+            slider.value = Math.round(((data.brightness - 51) / (255 - 51)) * 255);
             originalBrightness = data.brightness; // keep global in sync
             console.log(`[INIT] Brightness synced: ${data.brightness}`);
         }
