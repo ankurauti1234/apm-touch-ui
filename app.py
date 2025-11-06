@@ -418,125 +418,96 @@ def wifi_disconnect():
 @app.route("/api/wifi/networks", methods=["GET"])
 def list_wifi_networks():
     """
-    Returns available + saved Wi-Fi networks merged into one list.
-    Saved networks include saved password (PSK) if readable.
+    Returns both available and saved Wi-Fi networks (merged without duplicates).
+    Each network includes:
+      - ssid
+      - signal_strength
+      - security
+      - saved (True if stored in NetworkManager)
     """
-
     import configparser
     from pathlib import Path
-    import subprocess
-    import os
-    import time
-
-    def run_system_command(cmd):
-        """Executes a system command safely and returns (ok, output)."""
-        try:
-            res = subprocess.run(
-                cmd, check=True, capture_output=True, text=True
-            )
-            return True, res.stdout
-        except subprocess.CalledProcessError as e:
-            return False, e.stderr
 
     try:
-        # ----------------------------------------------------------
-        # 1. Rescan available networks (no sudo needed if running as root)
-        # ----------------------------------------------------------
-        ok_rescan, rescan_out = run_system_command(["nmcli", "device", "wifi", "rescan"])
-        if not ok_rescan:
-            print("[WiFi] Rescan warning:", rescan_out)
-
+        # 1. Scan available Wi-Fi networks
+        run_system_command(["sudo", "nmcli", "device", "wifi", "rescan"])
         time.sleep(2)
-
-        # ----------------------------------------------------------
-        # 2. List all available Wi-Fi networks
-        # ----------------------------------------------------------
         ok, out = run_system_command(
             ["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "device", "wifi", "list"]
         )
+        if not ok:
+            return jsonify({"success": False, "error": "scan failed"}), 500
 
         available = []
-        if ok:
-            for line in out.strip().split("\n"):
-                if not line:
-                    continue
-                parts = line.split(":")
-                if len(parts) >= 3 and parts[0]:
-                    available.append({
-                        "ssid": parts[0],
-                        "signal_strength": f"{parts[1]}%",
-                        "security": parts[2] or "Open",
-                        "saved": False,
-                        "password": None
-                    })
-        else:
-            print("[WiFi] Scan failed:", out)
+        for line in out.strip().split("\n"):
+            if not line:
+                continue
+            parts = line.split(":")
+            if len(parts) >= 3 and parts[0]:
+                ssid = parts[0].strip()
+                available.append({
+                    "ssid": ssid,
+                    "signal_strength": f"{parts[1]}%",
+                    "security": parts[2] if parts[2] else "Open",
+                    "saved": False
+                })
 
-        # ----------------------------------------------------------
-        # 3. Load saved connections from /etc/NetworkManager/system-connections/
-        # ----------------------------------------------------------
+        # 2. Fetch saved Wi-Fi connections
         nm_dir = Path("/etc/NetworkManager/system-connections")
-        saved = {}
-
+        saved = []
         if nm_dir.exists():
-            for f in nm_dir.glob("*"):
-                if not f.is_file():
+            for file in nm_dir.glob("*"):
+                if not file.is_file():
                     continue
 
                 parser = configparser.RawConfigParser()
                 try:
-                    with open(f, "r", encoding="utf-8", errors="ignore") as file:
-                        parser.read_file(file)
-                except Exception as e:
-                    print(f"[WiFi] Skipped {f.name}: {e}")
+                    with open(file, "r", encoding="utf-8", errors="ignore") as f:
+                        parser.read_file(f)
+                except Exception:
                     continue
 
-                def safe(section, key):
+                def safe_get(section, key):
                     try:
                         return parser.get(section, key)
                     except Exception:
                         return None
 
-                ssid = safe("wifi", "ssid") or safe("802-11-wireless", "ssid")
-                psk = safe("wifi-security", "psk") or safe("802-11-wireless-security", "psk")
-                keymgmt = safe("wifi-security", "key-mgmt") or safe("802-11-wireless-security", "key-mgmt")
-
+                ssid = safe_get("wifi", "ssid") or safe_get("802-11-wireless", "ssid")
                 if ssid:
-                    saved[ssid] = {
-                        "ssid": ssid,
-                        "signal_strength": "N/A",
-                        "security": keymgmt or "Unknown",
-                        "saved": True,
-                        "password": psk or None
-                    }
+                    saved.append({
+                        "ssid": ssid.strip('"'),
+                        "signal_strength": None,
+                        "security": safe_get("wifi-security", "key-mgmt") or safe_get("802-11-wireless-security", "key-mgmt") or "Unknown",
+                        "saved": True
+                    })
 
-        # ----------------------------------------------------------
-        # 4. Merge available and saved lists (avoid duplicates)
-        # ----------------------------------------------------------
-        merged = []
-        seen = set()
+        # 3. Merge saved + available (no duplicates)
+        merged = {net["ssid"]: net for net in available if net["ssid"]}
+        for s in saved:
+            ssid = s["ssid"]
+            if ssid in merged:
+                merged[ssid]["saved"] = True  # mark as saved if already present
+            else:
+                merged[ssid] = s  # add saved-only networks not currently visible
 
-        for net in available:
-            ssid = net["ssid"]
-            if ssid in saved:
-                net["saved"] = True
-                net["password"] = saved[ssid]["password"]
-                saved.pop(ssid)
-            merged.append(net)
-            seen.add(ssid)
+        # 4. Sort by saved first, then signal strength (if available)
+        result = sorted(
+            merged.values(),
+            key=lambda x: (not x["saved"], -(int(x["signal_strength"].replace("%", "")) if x["signal_strength"] else 0))
+        )
 
-        # Add saved-only networks not currently visible
-        for ssid, entry in saved.items():
-            if ssid not in seen:
-                merged.append(entry)
+        response = {"success": True, "networks": result}
 
-        # Sort saved ones first
-        merged.sort(key=lambda n: (not n.get("saved", False), n["ssid"].lower()))
+        # 5. Print response in console for debugging
+        print("\n[WiFi API RESPONSE] ========================")
+        print(json.dumps(response, indent=2))
+        print("============================================\n")
 
-        return jsonify({"success": True, "networks": merged}), 200
+        return jsonify(response), 200
 
     except Exception as e:
-        print(f"[WiFi] Error listing networks: {e}")
+        print(f"[WiFi ERROR] {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
