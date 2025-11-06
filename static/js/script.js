@@ -238,7 +238,7 @@ const states = {
                     `).join('')}
                 </div>
                 <div class="bottom-bar">
-                    <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons">settings</span></button>
+                    <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons settings-icon">settings</span></button>
                 </div>
             </div> 
         </div>
@@ -832,7 +832,7 @@ function showSettingsPopup() {
     popup.id = 'settings-popup';
     popup.className = 'popup';
     popup.innerHTML = `
-    <h2 style="margin-top: 0;"><span class="material-icons">settings</span> Settings</h2>
+    <h2 style="margin-top: 0;"><span class="material-icons settings-icon" >settings</span> Settings</h2>
 
     <div id="brightness-container">
       <label for="brightness-slider" id="brightness-logo">☀</label>
