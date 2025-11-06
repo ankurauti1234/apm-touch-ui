@@ -419,11 +419,7 @@ def wifi_disconnect():
 def list_wifi_networks():
     """
     Returns both available and saved Wi-Fi networks (merged without duplicates).
-    Each network includes:
-      - ssid
-      - signal_strength
-      - security
-      - saved (True if stored in NetworkManager)
+    Logs both saved network data and final response to console.
     """
     import configparser
     from pathlib import Path
@@ -464,7 +460,8 @@ def list_wifi_networks():
                 try:
                     with open(file, "r", encoding="utf-8", errors="ignore") as f:
                         parser.read_file(f)
-                except Exception:
+                except Exception as e:
+                    print(f"[WiFi] Failed to read {file.name}: {e}")
                     continue
 
                 def safe_get(section, key):
@@ -475,32 +472,43 @@ def list_wifi_networks():
 
                 ssid = safe_get("wifi", "ssid") or safe_get("802-11-wireless", "ssid")
                 if ssid:
+                    ssid = ssid.strip('"').strip("'")
                     saved.append({
-                        "ssid": ssid.strip('"'),
+                        "ssid": ssid,
                         "signal_strength": None,
-                        "security": safe_get("wifi-security", "key-mgmt") or safe_get("802-11-wireless-security", "key-mgmt") or "Unknown",
+                        "security": safe_get("wifi-security", "key-mgmt") or
+                                    safe_get("802-11-wireless-security", "key-mgmt") or "Unknown",
                         "saved": True
                     })
+
+        # Print saved network data for debugging
+        print("\n[WiFi SAVED NETWORKS] ======================")
+        if saved:
+            print(json.dumps(saved, indent=2))
+        else:
+            print("(none found in /etc/NetworkManager/system-connections/)")
+        print("===========================================\n")
 
         # 3. Merge saved + available (no duplicates)
         merged = {net["ssid"]: net for net in available if net["ssid"]}
         for s in saved:
             ssid = s["ssid"]
             if ssid in merged:
-                merged[ssid]["saved"] = True  # mark as saved if already present
+                merged[ssid]["saved"] = True
             else:
-                merged[ssid] = s  # add saved-only networks not currently visible
+                merged[ssid] = s  # saved but not visible now
 
-        # 4. Sort by saved first, then signal strength (if available)
+        # 4. Sort by saved first, then signal strength
         result = sorted(
             merged.values(),
-            key=lambda x: (not x["saved"], -(int(x["signal_strength"].replace("%", "")) if x["signal_strength"] else 0))
+            key=lambda x: (not x["saved"],
+                           -(int(x["signal_strength"].replace("%", "")) if x["signal_strength"] else 0))
         )
 
         response = {"success": True, "networks": result}
 
-        # 5. Print response in console for debugging
-        print("\n[WiFi API RESPONSE] ========================")
+        # 5. Print final response in console
+        print("[WiFi API RESPONSE] ========================")
         print(json.dumps(response, indent=2))
         print("============================================\n")
 
