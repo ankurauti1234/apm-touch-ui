@@ -25,10 +25,10 @@ import ssl
 # ----------------------------------------------------------------------
 # 1. Qt / Chromium sandbox settings (uncomment if needed on restricted env)
 # ----------------------------------------------------------------------
-# os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
-# os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
-# os.makedirs("/tmp/runtime-root", exist_ok=True)
-# os.chmod("/tmp/runtime-root", 700)
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
+os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
+os.makedirs("/tmp/runtime-root", exist_ok=True)
+os.chmod("/tmp/runtime-root", 700)
 
 # ----------------------------------------------------------------------
 # 2. Flask application
@@ -415,32 +415,194 @@ def wifi_disconnect():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+import json
+import time
+import configparser
+from pathlib import Path
+from flask import jsonify
+import subprocess
+
+def run_system_command(cmd):
+    """Helper to run system commands safely."""
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return True, result.stdout
+    except subprocess.CalledProcessError as e:
+        return False, e.stderr
+    except Exception as e:
+        return False, str(e)
+
+
 @app.route("/api/wifi/networks", methods=["GET"])
 def list_wifi_networks():
+    """
+    Returns available + saved Wi-Fi networks (merged, no duplicates).
+    Includes passwords for saved networks (requires sudo).
+    Logs everything to console.
+    """
     try:
+        # === 1. Rescan and list available networks ===
+        print("[WiFi] Rescanning networks...")
         run_system_command(["sudo", "nmcli", "device", "wifi", "rescan"])
-        time.sleep(2)
-        ok, out = run_system_command(
-            ["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "device", "wifi", "list"]
-        )
-        if not ok:
-            return jsonify({"success": False, "error": "scan failed"}), 500
+        time.sleep(2.5)  # Give time for scan
 
-        nets = []
+        ok, out = run_system_command([
+            "nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "device", "wifi", "list"
+        ])
+        if not ok:
+            return jsonify({"success": False, "error": "Failed to scan networks"}), 500
+
+        available = []
+        seen_ssids = set()
         for line in out.strip().split("\n"):
-            if not line:
+            if not line.strip():
                 continue
-            parts = line.split(":")
-            if len(parts) >= 3 and parts[0]:
-                nets.append(
-                    {
-                        "ssid": parts[0],
-                        "signal_strength": f"{parts[1]}%",
-                        "security": parts[2] if parts[2] else "Open",
-                    }
-                )
-        return jsonify({"success": True, "networks": nets}), 200
+            parts = line.split(":", 2)  # Only split on first two colons
+            if len(parts) < 3 or not parts[0].strip():
+                continue
+
+            ssid = parts[0].strip()
+            if ssid in seen_ssids:
+                continue  # Avoid duplicates from nmcli
+            seen_ssids.add(ssid)
+
+            signal = parts[1].strip()
+            security = parts[2].strip() if parts[2].strip() else "Open"
+
+            available.append({
+                "ssid": ssid,
+                "signal_strength": f"{signal}%",
+                "security": security,
+                "saved": False,
+                "password": None
+            })
+
+        # === 2. Fetch saved connections WITH password (requires sudo) ===
+        nm_dir = Path("/etc/NetworkManager/system-connections")
+        saved = []
+
+        if not nm_dir.exists():
+            print("[WiFi] /etc/NetworkManager/system-connections/ not found.")
+        else:
+            # Use sudo to read files
+            try:
+                ok, file_list = run_system_command(["sudo", "ls", str(nm_dir)])
+                if not ok:
+                    print("[WiFi] Failed to list system-connections (ls failed)")
+                else:
+                    for filename in file_list.strip().split("\n"):
+                        if not filename.strip():
+                            continue
+                        file_path = nm_dir / filename
+
+                        # Read file with sudo
+                        ok, content = run_system_command(["sudo", "cat", str(file_path)])
+                        if not ok:
+                            print(f"[WiFi] Failed to read {filename}: {content}")
+                            continue
+
+                        parser = configparser.RawConfigParser()
+                        try:
+                            # Parse INI content from string
+                            from io import StringIO
+                            parser.read_string(content, source=filename)
+                        except Exception as e:
+                            print(f"[WiFi] Failed to parse {filename}: {e}")
+                            continue
+
+                        def safe_get(section, key):
+                            try:
+                                return parser.get(section, key)
+                            except:
+                                return None
+
+                        ssid = (
+                            safe_get("wifi", "ssid") or
+                            safe_get("802-11-wireless", "ssid") or
+                            safe_get("connection", "id")
+                        )
+                        if not ssid:
+                            continue
+                        ssid = ssid.strip().strip('"').strip("'")
+
+                        key_mgmt = (
+                            safe_get("wifi-security", "key-mgmt") or
+                            safe_get("802-11-wireless-security", "key-mgmt") or
+                            "none"
+                        ).lower()
+
+                        password = None
+                        if key_mgmt in ["wpa-psk", "wpa-eap"]:
+                            password = safe_get("wifi-security", "psk")
+                        elif key_mgmt == "none":
+                            password = ""  # Open or WEP might use different keys
+
+                        saved.append({
+                            "ssid": ssid,
+                            "signal_strength": None,
+                            "security": key_mgmt.title().replace("Psk", "PSK").replace("Eap", "EAP"),
+                            "saved": True,
+                            "password": password
+                        })
+
+            except Exception as e:
+                print(f"[WiFi] Error accessing system-connections: {e}")
+
+        # === Debug: Print saved networks ===
+        print("\n[WiFi SAVED NETWORKS] ======================")
+        if saved:
+            print(json.dumps([{
+                "ssid": s["ssid"],
+                "security": s["security"],
+                "saved": s["saved"],
+                "password": "*****" if s["password"] else None
+            } for s in saved], indent=2))
+        else:
+            print("(none found)")
+        print("===========================================\n")
+
+        # === 3. Merge: available + saved (prefer available signal, keep password) ===
+        merged = {}
+        for net in available:
+            merged[net["ssid"]] = net.copy()
+
+        for s in saved:
+            if s["ssid"] in merged:
+                merged[s["ssid"]]["saved"] = True
+                if s["password"]:
+                    merged[s["ssid"]]["password"] = s["password"]
+            else:
+                merged[s["ssid"]] = {
+                    "ssid": s["ssid"],
+                    "signal_strength": None,
+                    "security": s["security"],
+                    "saved": True,
+                    "password": s["password"]
+                }
+
+        # === 4. Sort: saved first, then by signal strength ===
+        def sort_key(x):
+            signal_val = int(x["signal_strength"].replace("%", "")) if x["signal_strength"] else 0
+            return (not x["saved"], -signal_val)
+
+        result = sorted(merged.values(), key=sort_key)
+
+        # === 5. Final response (mask password in logs for safety) ===
+        response = {"success": True, "networks": result}
+
+        print("[WiFi API RESPONSE] ========================")
+        log_response = {"success": True, "networks": [
+            {k: ("*****" if k == "password" and v else v) for k, v in net.items()}
+            for net in result
+        ]}
+        print(json.dumps(log_response, indent=2))
+        print("============================================\n")
+
+        return jsonify(response), 200
+
     except Exception as e:
+        import traceback
+        print(f"[WiFi ERROR] {e}\n{traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -651,6 +813,21 @@ def set_brightness():
     except Exception as e:
         print(f"[BRIGHTNESS] Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/current_brightness")
+def get_current_brightness():
+    """
+    Returns current brightness from /sys/class/backlight/1-0045/brightness
+    """
+    try:
+        path = "/sys/class/backlight/1-0045"
+        with open(f"{path}/brightness") as f:
+            brightness = int(f.read().strip())
+        return jsonify({"success": True, "brightness": brightness}), 200
+    except Exception as e:
+        print(f"[BRIGHTNESS-GET] Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 
 # ----------------------------------------------------------------------

@@ -101,7 +101,7 @@ const states = {
         <p>Verifying ${connectivityMode.toUpperCase()} connection</p>
         <div id="error" class="error" style="display:none;"></div>
         ${status === 'success' ? `
-            <div class="success"><span class="material-icons">check_circle</span> Network test successful!</div>
+            <div class="success" style="display:block;"><span class="material-icons">check_circle</span> Network test successful!</div>
             <div class="button-group">
                 <button class="button" onclick="navigate('display_meter')">
                     <span class="material-icons">arrow_forward</span> Next
@@ -182,7 +182,8 @@ const states = {
 
     video_object_detection: () => `
         <h1>Video Detection</h1>
-        <p>Checking video object detection capabilities</p>
+        <p id="checking-video" >Checking video object detection capabilities</p>
+        <div class="success" id="video-success" style="display:none;"><span class="material-icons">check_circle</span> Video object detection successful!</div>
         <div class="loading" id="video-loading"><div class="spinner"></div><p>Running detection test...</p></div>
         <div id="video-results" style="display:none;">
             <div id="video-status"></div>
@@ -272,13 +273,48 @@ function showKeyboard(el) {
         <div class="keyboard-body">
             <div class="keyboard-keys" id="keyboard-keys"></div>
             <div class="keyboard-bottom-row">
-                <button class="key-special key-shift" onclick="toggleShift()">
-                    <span class="material-icons">arrow_upward</span><span class="key-label">Shift</span>
+                <button
+                    class="key-special key-shift"
+                    onclick="toggleShift()"
+                    onmousedown="handleKeyDown(event)"
+                    onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)"
+                    ontouchend="handleKeyUp(event)"
+                >
+                    <span class="material-icons">arrow_upward</span>
+                    <span class="key-label">Shift</span>
                 </button>
-                <button class="key key-space" onclick="insertChar(' ')">Space</button>
-                <button class="key-special key-backspace" onclick="backspace()"><span class="material-icons">backspace</span></button>
-                <button class="key-special key-enter" onclick="pressEnter()">
-                    <span class="material-icons">keyboard_return</span><span class="key-label">Enter</span>
+
+                <button
+                    class="key key-space"
+                    onclick="insertChar(' ')"
+                    onmousedown="handleKeyDown(event)"
+                    onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)"
+                    ontouchend="handleKeyUp(event)"
+                >Space</button>
+
+                <button
+                    class="key-special key-backspace"
+                    onclick="backspace()"
+                    onmousedown="handleKeyDown(event)"
+                    onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)"
+                    ontouchend="handleKeyUp(event)"
+                >
+                    <span class="material-icons">backspace</span>
+                </button>
+
+                <button
+                    class="key-special key-enter"
+                    onclick="pressEnter()"
+                    onmousedown="handleKeyDown(event)"
+                    onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)"
+                    ontouchend="handleKeyUp(event)"
+                >
+                    <span class="material-icons">keyboard_return</span>
+                    <span class="key-label">Enter</span>
                 </button>
             </div>
         </div>`;
@@ -292,11 +328,23 @@ function showKeyboard(el) {
 function renderKeys() {
     const container = document.getElementById('keyboard-keys');
     if (!container) return;
+
     const layout = shiftActive ? keyboardLayouts.shift : keyboardLayouts.normal;
+
     container.innerHTML = layout.map((row, i) => `
         <div class="keyboard-row keyboard-row-${i}">
-            ${row.map(k => `<button class="key" onclick="insertChar('${k}')">${k}</button>`).join('')}
-        </div>`).join('');
+            ${row.map(k => `
+                <button 
+                    class="key" 
+                    onclick="insertChar('${k}')"
+                    onmousedown="handleKeyDown(event)"
+                    onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)"
+                    ontouchend="handleKeyUp(event)"
+                >${k}</button>
+            `).join('')}
+        </div>
+    `).join('');
 }
 function toggleShift() {
     shiftActive = !shiftActive;
@@ -425,6 +473,7 @@ document.addEventListener('click', e => {
 function render(details = null) {
     const html = states[currentState](details);
     if (currentState === 'main') {
+        resetScreensaverTimer();
         container.innerHTML = html;
         progressBar.style.display = 'none';
 
@@ -596,6 +645,12 @@ async function showWiFiPopup() {
             <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
         </div>
         <input type="password" id="password" placeholder="Password" style="display:none;">
+        <div style="width:100%; display:flex;justify-content:center;align-items:center;">
+            <div class="loading" id="wifi-loading" style="display:none;">
+                <div class="spinner" style="position:relative; left:35px;"></div>
+                <div>Connecting...</div>
+            </div>
+        </div>
         <div class="button-group">
             <button class="button" onclick="connectWiFi()">Connect</button>
             <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
@@ -663,19 +718,37 @@ async function scanWiFi() {
             d.networks.forEach(n => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <span>${n.ssid}</span>
-                    <span class="signal">${n.signal_strength} ${n.security}</span>
-                `;
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+            <div>
+                <span>${n.ssid}</span>
+                ${n.saved ? `<span class="badge-saved">Saved</span>` : ''}
+            </div>
+            <span class="signal">${n.signal_strength || ''} ${n.security || ''}</span>
+        </div>
+    `;
                 li.onclick = (e) => {
                     e.stopPropagation();
                     selectedSSID = n.ssid;
+
+                    // update selected display
                     selectedDisplay.innerHTML = `
-                        <span>${n.ssid}</span>
-                        <span class="material-icons arrow">arrow_drop_down</span>
-                    `;
+            <span>${n.ssid} ${n.saved ? '<span class="badge-saved">Saved</span>' : ''}</span>
+            <span class="material-icons arrow">arrow_drop_down</span>
+        `;
                     container.style.display = 'none';
                     selectedDisplay.classList.remove('open');
+
                     togglePasswordField();
+
+                    // Auto-fill password if saved
+                    const pw = document.getElementById('password');
+                    if (n.saved && n.password) {
+                        pw.value = n.password;
+                        pw.placeholder = '(Saved password)';
+                    } else {
+                        pw.value = '';
+                        pw.placeholder = 'Password';
+                    }
                 };
                 container.appendChild(li);
             });
@@ -698,9 +771,12 @@ function togglePasswordField() {
     if (pw) pw.style.display = selectedSSID ? 'block' : 'none';
 }
 async function connectWiFi() {
+    const loading = document.getElementById('wifi-loading');
     // const ssid = document.getElementById('ssid')?.value;
     const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
+
+    loading.style.display = 'block';
     if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
     try {
         const r = await fetch('/api/wifi/connect', {
@@ -716,10 +792,12 @@ async function connectWiFi() {
                 closeWiFiPopup();
                 const cur = await fetch('/api/current_wifi');
                 const cd = await cur.json();
+                if (currentState == 'main') return; // already in main state
                 if (cd.success) navigate('connect_select', cd.ssid);
             }, 2000);
+            loading.style.display = 'none';
         }
-    } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; }
+    } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; loading.style.display = 'none'; }
 }
 async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
@@ -823,6 +901,7 @@ async function navigate(state, param = null) {
             try {
                 const r = await fetch(api);
                 const d = await r.json();
+                console.log("Network test result:", d.success);
                 render(d.success ? 'success' : 'error');
                 if (!d.success) showError(`${connectivityMode.toUpperCase()} not ready`);
             } catch { render('error'); showError('Network test failed'); }
@@ -966,12 +1045,19 @@ async function checkVideoDetection() {
     const results = document.getElementById('video-results');
     const status = document.getElementById('video-status');
 
+    const checkMessage = document.getElementById('checking-video');
+    const successMessage = document.getElementById('video-success');
+
     try {
         const r = await fetch('/api/video_detection');
         const d = await r.json();
         if (d.success && d.detected) {
             status.innerHTML = `<div class="success"><span class="material-icons">check_circle</span> Video detection active: ${d.status}</div>`;
             status.dataset.detected = 'true';
+
+            checkMessage.style.display = 'none';
+            successMessage.style.display = 'block';
+
             document.querySelector('.button-group')
                 .insertAdjacentHTML('afterbegin', `
                     <button class="button" onclick="navigate('finalize')">
@@ -1186,51 +1272,43 @@ function hideScreensaver() {
     } catch (e) { }
 }
 
-// --- Pre-dim brightness logic ---
+// --- Pre-dim brightness logic (go straight to minimum) ---
 async function preDimBrightness() {
-    const slider = document.getElementById("brightness-slider");
-    if (!slider) return;
+    if (isDimmed) return; // already dimmed
 
-    originalBrightness = parseInt(slider.value);
+    // Remember whatever brightness was last set (default mid if missing)
+    const current = originalBrightness ?? 153;
+    originalBrightness = current;
 
-    // Only dim if brightness is above 51
-    if (originalBrightness > 51) {
-        let dimmedValue;
+    const minBrightness = 51; // your backend’s lower hardware limit
 
-        if (originalBrightness === 102) {
-            dimmedValue = 60;
-        } else if (originalBrightness > 102) {
-            dimmedValue = 127;
-        } else {
-            return; // No dimming needed for 51
+    if (current > minBrightness) {
+        try {
+            await updateBrightnessAPI(minBrightness);
+            isDimmed = true;
+            console.log(`[PRE-DIM] ${current} → ${minBrightness}`);
+        } catch (err) {
+            console.error("Pre-dim brightness update failed:", err);
         }
-
-        isDimmed = true;
-        slider.value = dimmedValue;
-        const valueLabel = document.getElementById("brightness-value");
-        if (valueLabel) valueLabel.textContent = `${dimmedValue}/255`;
-
-        // Send to backend
-        await updateBrightnessAPI(dimmedValue);
-        console.log(`[PRE - DIM] ${originalBrightness} → ${dimmedValue}`);
     }
 }
 
+// --- Restore brightness to original level ---
 async function restoreBrightness() {
     if (!isDimmed) return;
 
-    const slider = document.getElementById("brightness-slider");
-    if (!slider) return;
-
+    const restoreValue = originalBrightness ?? 153;
     isDimmed = false;
-    slider.value = originalBrightness;
-    const valueLabel = document.getElementById("brightness-value");
-    if (valueLabel) valueLabel.textContent = `${originalBrightness}/255`;
 
-    // Send to backend
-    await updateBrightnessAPI(originalBrightness);
-    console.log(`[RESTORE] ${originalBrightness}`);
+    try {
+        await updateBrightnessAPI(restoreValue);
+        console.log(`[RESTORE] ${restoreValue}`);
+    } catch (err) {
+        console.error("Restore brightness update failed:", err);
+    }
 }
+
+
 
 async function updateBrightnessAPI(value) {
     try {
@@ -1292,32 +1370,43 @@ function blockEventIfActive(e) {
     }, { passive: true });
 });
 
-function initBrightnessControl() {
+async function initBrightnessControl() {
     const slider = document.getElementById('brightness-slider');
-    // const valueLabel = document.getElementById('brightness-value');
-
     if (!slider) return;
 
-    slider.addEventListener("input", async e => {
-        const currentBrightness = parseInt(e.target.value);
-        // valueLabel.textContent = `${currentBrightness}/255`;
-        await updateBrightness(currentBrightness);
-    });
-
-    async function updateBrightness(value) {
-        try {
-            const res = await fetch('/api/brightness', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ brightness: value })
-            });
-            const data = await res.json();
-            if (!data.success) console.warn('Brightness update failed:', data.error);
-            else console.log(`Brightness set to ${value}`);
-        } catch (err) {
-            console.error('Brightness update error:', err);
+    // --- Fetch actual current brightness from backend ---
+    try {
+        const res = await fetch('/api/current_brightness');
+        const data = await res.json();
+        if (data.success && typeof data.brightness === 'number') {
+            slider.value = data.brightness;
+            originalBrightness = data.brightness; // keep global in sync
+            console.log(`[INIT] Brightness synced: ${data.brightness}`);
         }
+    } catch (err) {
+        console.warn('Could not fetch current brightness:', err);
     }
+
+    // --- Listen for manual user changes ---
+    slider.addEventListener('input', async e => {
+        const currentBrightness = parseInt(e.target.value);
+        originalBrightness = currentBrightness; // update global baseline
+        await updateBrightnessAPI(currentBrightness);
+    });
+}
+
+/* ==============================================================
+   Key-press feedback
+   ============================================================== */
+
+function handleKeyDown(event) {
+    const btn = event.currentTarget;
+    btn.classList.add('pressed');
+}
+
+function handleKeyUp(event) {
+    const btn = event.currentTarget;
+    btn.classList.remove('pressed');
 }
 
 
