@@ -220,28 +220,19 @@ const states = {
         return `
     <div class="layout-reset">
         <div class="main-dashboard fixed-layout">
-            <div class="members-grid" id="members-grid">
+            <div class="members-grid">
                 ${shown.map((m, i) => `
                     <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
-                         data-index="${i}"
+                         onclick="toggleMember(${i})"
                          style="--bg-image:url('${avatar(m.gender, m.dob)}')">
-                        <div class="name-tag" id="tag-${i}">
-                            <span class="code-display">${m.member_code || '??'}</span>
-                            <input type="text" class="code-edit" id="edit-${i}"
-                                   style="display:none;" maxlength="5"
-                                   placeholder="M1A"
-                                   onblur="saveMemberCode(${i})"
-                                   onkeydown="if(event.key==='Enter') this.blur()">
-                        </div>
+                        <div class="name-tag">${m.member_code || '??'}</div>
                     </div>`).join('')}
                 ${Array(empty).fill().map(() => `
                     <div class="member-card-grid empty"><div class="name-tag">—</div></div>
                 `).join('')}
             </div>
             <div class="bottom-bar">
-                <button class="bar-btn" onclick="showSettingsPopup()">
-                    <span class="material-icons settings-icon">settings</span>
-                </button>
+                <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons settings-icon">settings</span></button>
             </div>
         </div> 
     </div>
@@ -506,87 +497,6 @@ function updateProgressBar() {
     const idx = steps.findIndex(s => s.id === currentState);
     progressBar.innerHTML = steps.map((_, i) => `<div class="progress-step ${i <= idx ? 'active' : ''}"></div>`).join('');
 }
-
-/* ==============================================================
-   TOUCH: TAP = TOGGLE | LONG-PRESS = EDIT
-   ============================================================== */
-let longPressTimer = null;
-let isLongPress = false;
-
-function initTouchCards() {
-    const grid = document.getElementById('members-grid');
-    if (!grid) return;
-
-    // Clone every card to wipe old listeners
-    grid.querySelectorAll('.member-card-grid[data-index]').forEach(card => {
-        const clone = card.cloneNode(true);
-        card.parentNode.replaceChild(clone, card);
-    });
-
-    // Attach fresh listeners
-    document.querySelectorAll('.member-card-grid[data-index]').forEach(card => {
-        const idx = +card.dataset.index;
-
-        card.addEventListener('touchstart', e => {
-            e.preventDefault();               // stop scroll
-            isLongPress = false;
-            longPressTimer = setTimeout(() => {
-                isLongPress = true;
-                startEdit(idx);
-                if (navigator.vibrate) navigator.vibrate(50);
-            }, 800);
-        }, { passive: false });
-
-        card.addEventListener('touchend', () => {
-            clearTimeout(longPressTimer);
-            if (!isLongPress) toggleMember(idx);
-        });
-    });
-}
-
-function startEdit(idx) {
-    const disp = document.querySelector(`#tag-${idx} .code-display`);
-    const inp = document.getElementById(`edit-${idx}`);
-    if (!disp || !inp) return;
-    disp.style.display = 'none';
-    inp.style.display = 'inline-block';
-    inp.value = membersData.members[idx].member_code || '';
-    inp.focus();
-    inp.select();
-}
-
-async function saveMemberCode(idx) {
-    const inp = document.getElementById(`edit-${idx}`);
-    const disp = document.querySelector(`#tag-${idx} .code-display`);
-    if (!inp || !disp) return;
-
-    let code = inp.value.trim().toUpperCase();
-    if (!/^[A-Z0-9]{1,5}$/.test(code)) code = membersData.members[idx].member_code || '??';
-
-    try {
-        const r = await fetch('/api/edit_member_code', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ index: idx, member_code: code })
-        });
-        const d = await r.json();
-        if (d.success) {
-            membersData.members[idx] = d.member;
-            disp.textContent = d.member.member_code;
-        }
-    } catch { }
-    inp.style.display = 'none';
-    disp.style.display = 'inline';
-}
-
-/* Call after every render of main */
-function reinitTouch() {
-    requestAnimationFrame(initTouchCards);
-}
-
-
-
-
 
 /* ==============================================================
    ERROR / SUCCESS MESSAGES
@@ -1026,7 +936,6 @@ async function navigate(state, param = null) {
     if (state === 'main') {
         await fetchMembers();
         render();
-        reinitTouch();                 // <-- RE-INITIALISE CARDS
         // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
         setTimeout(() => {
             if (currentState === 'main') resetScreensaverTimer();
