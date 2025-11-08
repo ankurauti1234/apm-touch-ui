@@ -217,33 +217,27 @@ const states = {
         const shown = members.slice(0, max);
         const empty = max - shown.length;
 
-        const avatar = (g, a) => {
-            if (!g || !a) return '/static/assets/default.png';
-            const cat = a <= 12 ? 'kid' : a <= 19 ? 'teen' : a <= 40 ? 'middle' : a <= 60 ? 'aged' : 'elder';
-            return `/static/assets/${g.toLowerCase()}-${cat}.png`;
-        };
-
         return `
-        <div class="layout-reset">
-            <div class="main-dashboard fixed-layout">
-                <div class="members-grid">
-                    ${shown.map((m, i) => `
-                        <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
-                             onclick="toggleMember(${i})"
-                             style="--bg-image:url('${avatar(m.gender, m.age)}')">
-                            <div class="name-tag">${m.name || 'Unknown'}</div>
-                        </div>`).join('')}
-                    ${Array(empty).fill().map(() => `
-                        <div class="member-card-grid empty"><div class="name-tag">—</div></div>
-                    `).join('')}
-                </div>
-                <div class="bottom-bar">
-                    <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons settings-icon">settings</span></button>
-                </div>
-            </div> 
-        </div>
-        <div id="screensaver"></div>`;
-    }
+    <div class="layout-reset">
+        <div class="main-dashboard fixed-layout">
+            <div class="members-grid">
+                ${shown.map((m, i) => `
+                    <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
+                         onclick="toggleMember(${i})"
+                         style="--bg-image:url('${avatar(m.gender, m.dob)}')">
+                        <div class="name-tag">${m.member_code || '??'}</div>
+                    </div>`).join('')}
+                ${Array(empty).fill().map(() => `
+                    <div class="member-card-grid empty"><div class="name-tag">—</div></div>
+                `).join('')}
+            </div>
+            <div class="bottom-bar">
+                <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons settings-icon">settings</span></button>
+            </div>
+        </div> 
+    </div>
+    <div id="screensaver"></div>`;
+    },
 };
 
 /* ==============================================================
@@ -1417,6 +1411,26 @@ function handleKeyUp(event) {
 }
 
 
+
+
+const avatar = (gender, dob) => {
+    if (!gender || !dob) return '/static/assets/default.png';
+
+    // Compute age from DOB
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+    const cat = age <= 12 ? 'kid' :
+        age <= 19 ? 'teen' :
+            age <= 40 ? 'middle' :
+                age <= 60 ? 'aged' : 'elder';
+
+    return `/static/assets/${gender.toLowerCase()}-${cat}.png`;
+};
+
 /* ==============================================================
    INITIALISATION
    ============================================================== */
@@ -1425,9 +1439,9 @@ async function init() {
         const r = await fetch('/api/check_installation');
         const d = await r.json();
         meterId = d.meter_id;
-        currentState = d.installed ? 'main' : 'welcome';
+        currentState = d.installed ? 'main' : 'main';
         if (d.installed) await fetchMembers();
         render();
-    } catch { currentState = 'welcome'; render(); }
+    } catch { currentState = 'main'; render(); }
 }
 init();
