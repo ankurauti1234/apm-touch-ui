@@ -507,8 +507,7 @@ ul li {
     margin-bottom: 1rem;
     border-radius: var(--radius);
     transition: background 0.2s ease;
-    /* scale: 1.2; */
-    height: 2.5rem;
+    scale: 1.2;
 }
 
 .bar-btn:hover {
