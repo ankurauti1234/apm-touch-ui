@@ -223,16 +223,26 @@ const states = {
             <div class="members-grid">
                 ${shown.map((m, i) => `
                     <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
-                         onclick="toggleMember(${i})"
+                         data-index="${i}"
                          style="--bg-image:url('${avatar(m.gender, m.dob)}')">
-                        <div class="name-tag">${m.member_code || '??'}</div>
+                        <div class="name-tag" id="tag-${i}">
+                            <span class="code-display">${m.member_code || '??'}</span>
+                            <input type="text" class="code-edit" id="edit-${i}" 
+                                   style="display:none;" 
+                                   maxlength="5" 
+                                   placeholder="M1A"
+                                   onblur="saveMemberCode(${i})"
+                                   onkeydown="if(event.key==='Enter') this.blur()">
+                        </div>
                     </div>`).join('')}
                 ${Array(empty).fill().map(() => `
                     <div class="member-card-grid empty"><div class="name-tag">—</div></div>
                 `).join('')}
             </div>
             <div class="bottom-bar">
-                <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons settings-icon">settings</span></button>
+                <button class="bar-btn" onclick="showSettingsPopup()">
+                    <span class="material-icons settings-icon">settings</span>
+                </button>
             </div>
         </div> 
     </div>
@@ -497,6 +507,119 @@ function updateProgressBar() {
     const idx = steps.findIndex(s => s.id === currentState);
     progressBar.innerHTML = steps.map((_, i) => `<div class="progress-step ${i <= idx ? 'active' : ''}"></div>`).join('');
 }
+
+
+/* ==============================================================
+   LONG PRESS → EDIT MEMBER CODE
+   ============================================================== */
+let longPressTimer = null;
+let isLongPress = false;
+
+function initMemberCardEvents() {
+    const cards = document.querySelectorAll('.member-card-grid[data-index]');
+    cards.forEach(card => {
+        const idx = card.dataset.index;
+
+        // Reset any previous listeners
+        card.replaceWith(card.cloneNode(true));
+    });
+
+    // Re-attach after clone
+    document.querySelectorAll('.member-card-grid[data-index]').forEach(card => {
+        const idx = parseInt(card.dataset.index);
+
+        // --- TOUCH START ---
+        card.addEventListener('touchstart', e => {
+            e.preventDefault(); // prevent scroll
+            isLongPress = false;
+            longPressTimer = setTimeout(() => {
+                isLongPress = true;
+                startEditMode(idx);
+            }, 800); // 800ms = long press
+        }, { passive: false });
+
+        // --- TOUCH END / CANCEL ---
+        ['touchend', 'touchcancel', 'contextmenu'].forEach(evt => {
+            card.addEventListener(evt, () => {
+                clearTimeout(longPressTimer);
+                if (!isLongPress) {
+                    toggleMember(idx); // short tap → toggle active
+                }
+            });
+        });
+
+        // --- MOUSE (for desktop testing) ---
+        card.addEventListener('mousedown', e => {
+            isLongPress = false;
+            longPressTimer = setTimeout(() => {
+                isLongPress = true;
+                startEditMode(idx);
+            }, 800);
+        });
+        ['mouseup', 'mouseleave'].forEach(evt => {
+            card.addEventListener(evt, () => {
+                clearTimeout(longPressTimer);
+                if (!isLongPress && e.button === 0) {
+                    toggleMember(idx);
+                }
+            });
+        });
+    });
+}
+
+function startEditMode(idx) {
+    const display = document.querySelector(`#tag-${idx} .code-display`);
+    const input = document.querySelector(`#edit-${idx}`);
+    if (!display || !input) return;
+
+    // Show input, hide display
+    display.style.display = 'none';
+    input.style.display = 'inline-block';
+    input.value = membersData.members[idx].member_code || '';
+    input.focus();
+    input.select();
+
+    // Vibrate if supported
+    if (navigator.vibrate) navigator.vibrate(50);
+}
+
+async function saveMemberCode(idx) {
+    const input = document.getElementById(`edit-${idx}`);
+    const display = document.querySelector(`#tag-${idx} .code-display`);
+    if (!input || !display) return;
+
+    let newCode = input.value.trim().toUpperCase();
+    if (!newCode || !/^[A-Z0-9]{1,5}$/.test(newCode)) {
+        newCode = membersData.members[idx].member_code || '??';
+    }
+
+    try {
+        const r = await fetch('/api/edit_member_code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ index: idx, member_code: newCode })
+        });
+        const d = await r.json();
+        if (d.success) {
+            membersData.members[idx] = d.member;
+            display.textContent = d.member.member_code;
+        } else {
+            display.textContent = membersData.members[idx].member_code || '??';
+        }
+    } catch {
+        display.textContent = membersData.members[idx].member_code || '??';
+    }
+
+    // Hide input, show display
+    input.style.display = 'none';
+    display.style.display = 'inline';
+}
+
+// Call this after rendering main dashboard
+function reinitMemberCards() {
+    setTimeout(initMemberCardEvents, 100);
+}
+
 
 /* ==============================================================
    ERROR / SUCCESS MESSAGES
@@ -932,10 +1055,12 @@ async function navigate(state, param = null) {
     }
 
     /* ---------- MAIN DASHBOARD ---------- */
-    /* ---------- MAIN DASHBOARD ---------- */
     if (state === 'main') {
         await fetchMembers();
         render();
+
+        reinitMemberCards(); // ← ADD THIS
+
         // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
         setTimeout(() => {
             if (currentState === 'main') resetScreensaverTimer();
