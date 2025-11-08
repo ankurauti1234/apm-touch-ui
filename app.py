@@ -133,7 +133,7 @@ def load_members_data() -> dict:
 # ----------------------------------------------------------------------
 # 6. MQTT Setup – ULTRA ROBUST: logs missing certs, auto-retry, instant publish
 # ----------------------------------------------------------------------
-MQTT_TOPIC          = "apm/ar/events"
+MQTT_TOPIC          = "indi/AM/meter"
 AWS_IOT_ENDPOINT    = "a3uoz4wfsx2nz3-ats.iot.ap-south-1.amazonaws.com"
 RECONNECT_DELAY     = 5
 MAX_RECONNECT_DELAY = 60
