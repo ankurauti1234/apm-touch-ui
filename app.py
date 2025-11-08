@@ -22,6 +22,8 @@ from PyQt5.QtWidgets import QShortcut
 import paho.mqtt.client as mqtt
 import ssl
 
+from datetime import datetime
+
 # ----------------------------------------------------------------------
 # 1. Qt / Chromium sandbox settings (uncomment if needed on restricted env)
 # ----------------------------------------------------------------------
@@ -249,23 +251,30 @@ def init_mqtt() -> bool:
     time.sleep(1)
     return True
 
+import time
+
 def publish_member_event():
     data = load_members_data()
+    members = [
+        {
+            "age": calculate_age(m["dob"]),  # Convert DOB to age
+            "gender": m["gender"],
+            "active": m.get("active", False)
+        }
+        for m in data.get("members", [])
+        if all(k in m for k in ["dob", "gender"])
+    ]
+
     payload = {
-        "meter_id": data["meter_id"],
-        "members": [
-            {
-                "member_code": m["member_code"],
-                "dob": m["dob"],
-                "gender": m["gender"],
-                "active": m.get("active", False)
-            }
-            for m in data.get("members", [])
-            if all(k in m for k in ["member_code", "dob", "gender"])
-        ]
+        "DEVICE_ID": METER_ID,
+        "TS": str(int(time.time())),   # Unix timestamp as string
+        "Type": 3,                     # Hardcoded as per new spec
+        "Details": {
+            "members": members
+        }
     }
 
-    if payload["members"]:
+    if members:
         if client and client.is_connected():
             try:
                 _mqtt_log(f"PUBLISHING: {payload}")
@@ -277,6 +286,15 @@ def publish_member_event():
             _enqueue(payload)
     else:
         _mqtt_log("No valid members to publish")
+
+
+def calculate_age(dob_str):
+    try:
+        dob = datetime.strptime(dob_str, "%Y-%m-%d")
+        today = datetime.today()
+        return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    except Exception:
+        return None
 
 
 # ----------------------------------------------------------------------
