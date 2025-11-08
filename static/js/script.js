@@ -1451,7 +1451,7 @@ function showEditMemberPopup() {
     popup.id = 'edit-member-popup';
     popup.className = 'popup';
     popup.innerHTML = `
-        <h2><span class="material-icons">edit</span> Edit Member Code</h2>
+        <h2 style="margin-top: 0;"><span class="material-icons">edit</span> Edit Member Code</h2>
         <div id="edit-error" class="error" style="display:none;"></div>
         <div class="custom-select" style="margin:1rem 0;">
             <div id="edit-selected" class="selected-item">
@@ -1461,7 +1461,7 @@ function showEditMemberPopup() {
             <ul id="edit-member-list" class="dropdown-list" style="display:none;"></ul>
         </div>
         <input type="text" id="new-code" placeholder="New Code (e.g. M1A)" maxlength="15" onfocus="showKeyboard(this)">
-        <div class="button-group">
+        <div class="button-group" style="margin-top: 2rem;">
             <button class="button" onclick="saveMemberCode()">Save</button>
             <button class="button secondary" onclick="closeEditMemberPopup()">Cancel</button>
         </div>
