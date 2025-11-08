@@ -484,9 +484,9 @@ ul li {
     background: hsl(var(--card));
     border-top: 1px solid hsl(var(--border));
     padding: 0.75rem;
+    gap: 1rem;
     display: flex;
-    justify-content: center;
-    gap: 2rem;
+    justify-content: flex-end;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     z-index: 998;
     height: 3.3rem;
@@ -497,18 +497,22 @@ ul li {
     /* flex-direction: column; */
     align-items: center;
     gap: 0.25rem;
-    background: none;
-    border: none;
+    background: hsl(var(--accent));
     color: hsl(var(--foreground));
+    border: none;
     font-size: 0.75rem;
     cursor: pointer;
-    padding: 1.25rem;
+    padding: 1rem;
+    margin-right: 0.25rem;
+    margin-bottom: 1rem;
     border-radius: var(--radius);
     transition: background 0.2s ease;
+    scale: 1.2;
 }
 
 .bar-btn:hover {
-    background: hsl(var(--accent));
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
 }
 
 .bar-btn .material-icons {
@@ -989,9 +993,9 @@ ul li {
     touch-action: manipulation;
 }
 
-
-
-
+/* ==============================================================
+   Saved Network Badge
+   ============================================================== */
 .badge-saved {
     background: hsl(var(--primary));
     color: white;
@@ -1002,7 +1006,6 @@ ul li {
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
-
 
 
 

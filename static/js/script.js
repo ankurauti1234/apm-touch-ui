@@ -217,33 +217,32 @@ const states = {
         const shown = members.slice(0, max);
         const empty = max - shown.length;
 
-        const avatar = (g, a) => {
-            if (!g || !a) return '/static/assets/default.png';
-            const cat = a <= 12 ? 'kid' : a <= 19 ? 'teen' : a <= 40 ? 'middle' : a <= 60 ? 'aged' : 'elder';
-            return `/static/assets/${g.toLowerCase()}-${cat}.png`;
-        };
-
         return `
-        <div class="layout-reset">
-            <div class="main-dashboard fixed-layout">
-                <div class="members-grid">
-                    ${shown.map((m, i) => `
-                        <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
-                             onclick="toggleMember(${i})"
-                             style="--bg-image:url('${avatar(m.gender, m.age)}')">
-                            <div class="name-tag">${m.name || 'Unknown'}</div>
-                        </div>`).join('')}
-                    ${Array(empty).fill().map(() => `
-                        <div class="member-card-grid empty"><div class="name-tag">—</div></div>
-                    `).join('')}
-                </div>
-                <div class="bottom-bar">
-                    <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons settings-icon">settings</span></button>
-                </div>
-            </div> 
-        </div>
-        <div id="screensaver"></div>`;
-    }
+    <div class="layout-reset">
+        <div class="main-dashboard fixed-layout">
+            <div class="members-grid">
+                ${shown.map((m, i) => `
+                    <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
+                         onclick="toggleMember(${i})"
+                         style="--bg-image:url('${avatar(m.gender, m.dob)}')">
+                        <div class="name-tag">${m.member_code || '??'}</div>
+                    </div>`).join('')}
+                ${Array(empty).fill().map(() => `
+                    <div class="member-card-grid empty"><div class="name-tag">—</div></div>
+                `).join('')}
+            </div>
+            <div class="bottom-bar">
+                <button class="bar-btn"  onclick="showEditMemberPopup()">
+                    <span class="material-icons">edit</span>
+                </button>
+                <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+            </div>
+            <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+            </div>
+        </div> 
+    </div>
+    <div id="screensaver"></div>`;
+    },
 };
 
 /* ==============================================================
@@ -777,7 +776,7 @@ async function connectWiFi() {
     const err = document.getElementById('wifi-error');
 
     loading.style.display = 'block';
-    if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; return; }
+    if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; loading.style.display = 'none'; return; }
     try {
         const r = await fetch('/api/wifi/connect', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1417,6 +1416,135 @@ function handleKeyUp(event) {
 }
 
 
+
+
+const avatar = (gender, dob) => {
+    if (!gender || !dob) return '/static/assets/default.png';
+
+    // Compute age from DOB
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+    const cat = age <= 12 ? 'kid' :
+        age <= 19 ? 'teen' :
+            age <= 40 ? 'middle' :
+                age <= 60 ? 'aged' : 'elder';
+
+    return `/static/assets/${gender.toLowerCase()}-${cat}.png`;
+};
+
+
+
+
+function showEditMemberPopup() {
+    if (document.getElementById('edit-member-popup')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'edit-member-overlay';
+    overlay.className = 'overlay';
+    overlay.onclick = closeEditMemberPopup;
+
+    const popup = document.createElement('div');
+    popup.id = 'edit-member-popup';
+    popup.className = 'popup';
+    popup.innerHTML = `
+        <h2 style="margin-top: 0;"><span class="material-icons">edit</span> Edit Member Code</h2>
+        <div id="edit-error" class="error" style="display:none;"></div>
+        <div class="custom-select" style="margin:1rem 0;">
+            <div id="edit-selected" class="selected-item">
+                <span>Select Member</span>
+                <span class="material-icons arrow">arrow_drop_down</span>
+            </div>
+            <ul id="edit-member-list" class="dropdown-list" style="display:none;"></ul>
+        </div>
+        <input type="text" id="new-code" placeholder="New Code (e.g. M1A)" maxlength="15" onfocus="showKeyboard(this)">
+        <div class="button-group" style="margin-top: 2rem;">
+            <button class="button" onclick="saveMemberCode()">Save</button>
+            <button class="button secondary" onclick="closeEditMemberPopup()">Cancel</button>
+        </div>
+    `;
+
+    document.body.append(overlay, popup);
+
+    // Populate member list
+    const list = document.getElementById('edit-member-list');
+    const selected = document.getElementById('edit-selected');
+    membersData?.members.forEach((m, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${m.member_code} • ${m.gender}, DOB: ${m.dob}</span>`;
+        li.onclick = (e) => {
+            e.stopPropagation();
+            selectedMemberIndex = i;
+            selected.innerHTML = `<span>${m.member_code}</span><span class="material-icons arrow">arrow_drop_down</span>`;
+            list.style.display = 'none';
+            selected.classList.remove('open');
+            document.getElementById('new-code').focus();
+        };
+        list.appendChild(li);
+    });
+
+    // Dropdown toggle
+    selected.onclick = (e) => {
+        e.stopPropagation();
+        const open = list.style.display === 'block';
+        list.style.display = open ? 'none' : 'block';
+        selected.classList.toggle('open', !open);
+    };
+
+    overlay.onclick = () => {
+        list.style.display = 'none';
+        selected.classList.remove('open');
+        closeEditMemberPopup();
+    };
+}
+
+let selectedMemberIndex = -1;
+
+function closeEditMemberPopup() {
+    ['edit-member-popup', 'edit-member-overlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
+    selectedMemberIndex = -1;
+}
+
+async function saveMemberCode() {
+    const codeInput = document.getElementById('new-code');
+    const code = codeInput?.value.trim().toUpperCase();
+    const err = document.getElementById('edit-error');
+
+    if (selectedMemberIndex < 0) return showErrorInPopup('Select a member', err);
+    if (!code || !/^[A-Za-z0-9]{1,15}$/.test(code)) {
+        return showErrorInPopup('Invalid code (1–15 chars, letters & numbers only)', err);
+    }
+
+    try {
+        const r = await fetch('/api/edit_member_code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ index: selectedMemberIndex, member_code: code })
+        });
+        const d = await r.json();
+        if (d.success) {
+            membersData.members[selectedMemberIndex] = d.member;
+            render();
+            closeEditMemberPopup();
+        } else {
+            showErrorInPopup(d.error || 'Failed', err);
+        }
+    } catch {
+        showErrorInPopup('Network error', err);
+    }
+}
+
+function showErrorInPopup(msg, el) {
+    el.innerHTML = `<span class="material-icons">error</span> ${msg}`;
+    el.style.display = 'flex';
+}
+
 /* ==============================================================
    INITIALISATION
    ============================================================== */
@@ -1425,7 +1553,7 @@ async function init() {
         const r = await fetch('/api/check_installation');
         const d = await r.json();
         meterId = d.meter_id;
-        currentState = d.installed ? 'main' : 'welcome';
+        currentState = d.installed ? 'main' : 'welcom';
         if (d.installed) await fetchMembers();
         render();
     } catch { currentState = 'welcome'; render(); }

@@ -22,6 +22,8 @@ from PyQt5.QtWidgets import QShortcut
 import paho.mqtt.client as mqtt
 import ssl
 
+from datetime import datetime
+
 # ----------------------------------------------------------------------
 # 1. Qt / Chromium sandbox settings (uncomment if needed on restricted env)
 # ----------------------------------------------------------------------
@@ -110,7 +112,22 @@ def save_members_data(data: dict):
 def load_members_data() -> dict:
     try:
         with open(DEVICE_CONFIG["members_file"], "r") as f:
-            return json.load(f)
+            data = json.load(f)
+        # Strip any old/unexpected fields
+        clean_members = []
+        for m in data.get("members", []):
+            clean = {
+                "member_code": m.get("member_code"),
+                "dob": m.get("dob"),
+                "gender": m.get("gender"),
+                "created_at": m.get("created_at"),
+                "active": m.get("active", False)  # preserve local state
+            }
+            # Remove None values to keep JSON clean
+            clean = {k: v for k, v in clean.items() if v is not None}
+            clean_members.append(clean)
+        data["members"] = clean_members
+        return data
     except FileNotFoundError:
         return {"meter_id": METER_ID, "hhid": load_hhid(), "members": []}
 
@@ -118,7 +135,7 @@ def load_members_data() -> dict:
 # ----------------------------------------------------------------------
 # 6. MQTT Setup – ULTRA ROBUST: logs missing certs, auto-retry, instant publish
 # ----------------------------------------------------------------------
-MQTT_TOPIC          = "apm/ar/events"
+MQTT_TOPIC          = "indi/AM/meter"
 AWS_IOT_ENDPOINT    = "a3uoz4wfsx2nz3-ats.iot.ap-south-1.amazonaws.com"
 RECONNECT_DELAY     = 5
 MAX_RECONNECT_DELAY = 60
@@ -134,7 +151,9 @@ def _mqtt_log(msg: str):
 # Cert validation with detailed logging
 # ----------------------------------------------------------------------
 def get_cert_paths():
+
     certs_dir = DEVICE_CONFIG["certs_dir"]
+
     keyfile   = os.path.join(certs_dir, f"{METER_ID}.key")
     certfile  = os.path.join(certs_dir, f"{METER_ID}Chain.crt")
     cafile    = os.path.join(certs_dir, "AmazonRootCA1.pem")
@@ -232,21 +251,33 @@ def init_mqtt() -> bool:
     time.sleep(1)
     return True
 
+import time
+
 def publish_member_event():
     data = load_members_data()
+    members = [
+        {
+            "age": calculate_age(m["dob"]),  # Convert DOB to age
+            "gender": m["gender"],
+            "active": m.get("active", False)
+        }
+        for m in data.get("members", [])
+        if all(k in m for k in ["dob", "gender"])
+    ]
+
     payload = {
-        "meter_id": data["meter_id"],
-        "members": [
-            {"age": m.get("age"), "gender": m.get("gender"), "active": m.get("active", True)}
-            for m in data.get("members", [])
-            if m.get("age") and m.get("gender")
-        ]
+        "DEVICE_ID": METER_ID,
+        "TS": str(int(time.time())),   # Unix timestamp as string
+        "Type": 3,                     # Hardcoded as per new spec
+        "Details": {
+            "members": members
+        }
     }
 
-    if payload["members"]:  # only send if has members
+    if members:
         if client and client.is_connected():
             try:
-                _mqtt_log(f"PUBLISHING NOW: {payload}")
+                _mqtt_log(f"PUBLISHING: {payload}")
                 client.publish(MQTT_TOPIC, json.dumps(payload))
             except Exception as e:
                 _mqtt_log(f"Publish failed: {e}")
@@ -255,6 +286,15 @@ def publish_member_event():
             _enqueue(payload)
     else:
         _mqtt_log("No valid members to publish")
+
+
+def calculate_age(dob_str):
+    try:
+        dob = datetime.strptime(dob_str, "%Y-%m-%d")
+        today = datetime.today()
+        return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    except Exception:
+        return None
 
 
 # ----------------------------------------------------------------------
@@ -736,24 +776,47 @@ def get_members():
 @app.route("/api/toggle_member_status", methods=["POST"])
 def toggle_member_status():
     index = request.json.get("index")
-    if index is None or not isinstance(index, int):
+    if not isinstance(index, int):
         return jsonify({"success": False, "error": "Invalid index"}), 400
 
     try:
         data = load_members_data()
         members = data.get("members", [])
-
         if 0 <= index < len(members):
-            member = members[index]
-            member["active"] = not member.get("active", False)
+            members[index]["active"] = not members[index].get("active", False)
             save_members_data(data)
             publish_member_event()
-            return jsonify({"success": True, "member": member}), 200
+            return jsonify({"success": True, "member": members[index]}), 200
         else:
             return jsonify({"success": False, "error": "Index out of range"}), 400
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
+@app.route("/api/edit_member_code", methods=["POST"])
+def edit_member_code():
+    """
+    Request:
+      { "index": 0, "member_code": "M1A" }
+    """
+    idx = request.json.get("index")
+    code = request.json.get("member_code")
+    if not isinstance(idx, int) or not code:
+        return jsonify({"success": False, "error": "index and member_code required"}), 400
+
+    try:
+        data = load_members_data()
+        members = data.get("members", [])
+        if 0 <= idx < len(members):
+            members[idx]["member_code"] = code.strip().upper()
+            save_members_data(data)
+            publish_member_event()
+            return jsonify({"success": True, "member": members[idx]}), 200
+        else:
+            return jsonify({"success": False, "error": "Index out of range"}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+        
 
 @app.route("/api/finalize", methods=["POST"])
 def finalize():
@@ -764,17 +827,31 @@ def finalize():
     try:
         url = f"{MEMBERS_URL}?meterid={METER_ID}&hhid={hhid}"
         resp = requests.get(url, timeout=30)
-        data = resp.json()
+        server_data = resp.json()
 
-        if data.get("success"):
-            for member in data.get("members", []):
-                member.setdefault("active", False)
-            save_members_data(data)
+        if server_data.get("success"):
+            members = [
+                {
+                    "member_code": m["member_code"],
+                    "dob": m["dob"],
+                    "gender": m["gender"],
+                    "created_at": m.get("created_at"),
+                    "active": False  # default off
+                }
+                for m in server_data.get("members", [])
+                if all(k in m for k in ["member_code", "dob", "gender"])
+            ]
+            save_data = {
+                "meter_id": METER_ID,
+                "hhid": hhid,
+                "members": members
+            }
+            save_members_data(save_data)
             set_installation_done()
-            return jsonify({"success": True, "data": data}), 200
+            return jsonify({"success": True, "data": server_data}), 200
         else:
             set_installation_done()
-            return jsonify({"success": False, "error": data.get("message", "Failed")}), 400
+            return jsonify({"success": False, "error": server_data.get("message", "Failed")}), 400
     except requests.exceptions.Timeout:
         set_installation_done()
         return jsonify({"success": False, "error": "Timeout"}), 504
