@@ -227,9 +227,8 @@ const states = {
                          style="--bg-image:url('${avatar(m.gender, m.dob)}')">
                         <div class="name-tag" id="tag-${i}">
                             <span class="code-display">${m.member_code || '??'}</span>
-                            <input type="text" class="code-edit" id="edit-${i}" 
-                                   style="display:none;" 
-                                   maxlength="5" 
+                            <input type="text" class="code-edit" id="edit-${i}"
+                                   style="display:none;" maxlength="5"
                                    placeholder="M1A"
                                    onblur="saveMemberCode(${i})"
                                    onkeydown="if(event.key==='Enter') this.blur()">
@@ -508,96 +507,89 @@ function updateProgressBar() {
     progressBar.innerHTML = steps.map((_, i) => `<div class="progress-step ${i <= idx ? 'active' : ''}"></div>`).join('');
 }
 
-
 /* ==============================================================
-   LONG PRESS → EDIT MEMBER CODE
+   MEMBER CARD INTERACTIONS – TAP & LONG-PRESS
    ============================================================== */
 let longPressTimer = null;
 let isLongPress = false;
 
-function initMemberCardEvents() {
-    const cards = document.querySelectorAll('.member-card-grid[data-index]');
-    cards.forEach(card => {
-        const idx = card.dataset.index;
-
-        // Reset any previous listeners
-        card.replaceWith(card.cloneNode(true));
+function initMemberCards() {
+    // Remove any old listeners by cloning the nodes
+    document.querySelectorAll('.member-card-grid[data-index]').forEach(card => {
+        const newCard = card.cloneNode(true);
+        card.parentNode.replaceChild(newCard, card);
     });
 
-    // Re-attach after clone
+    // Re-attach fresh listeners
     document.querySelectorAll('.member-card-grid[data-index]').forEach(card => {
-        const idx = parseInt(card.dataset.index);
+        const idx = parseInt(card.dataset.index, 10);
 
-        // --- TOUCH START ---
+        /* ---------- TOUCH ---------- */
         card.addEventListener('touchstart', e => {
-            e.preventDefault(); // prevent scroll
+            e.preventDefault();                 // stop page scroll
             isLongPress = false;
             longPressTimer = setTimeout(() => {
                 isLongPress = true;
                 startEditMode(idx);
-            }, 800); // 800ms = long press
+                if (navigator.vibrate) navigator.vibrate(50);
+            }, 800);
         }, { passive: false });
 
-        // --- TOUCH END / CANCEL ---
-        ['touchend', 'touchcancel', 'contextmenu'].forEach(evt => {
-            card.addEventListener(evt, () => {
-                clearTimeout(longPressTimer);
-                if (!isLongPress) {
-                    toggleMember(idx); // short tap → toggle active
-                }
-            });
+        card.addEventListener('touchend', () => {
+            clearTimeout(longPressTimer);
+            if (!isLongPress) toggleMember(idx);
         });
 
-        // --- MOUSE (for desktop testing) ---
+        card.addEventListener('touchcancel', () => clearTimeout(longPressTimer));
+
+        /* ---------- MOUSE (for desktop testing) ---------- */
         card.addEventListener('mousedown', e => {
+            if (e.button !== 0) return;        // only left click
             isLongPress = false;
             longPressTimer = setTimeout(() => {
                 isLongPress = true;
                 startEditMode(idx);
             }, 800);
         });
-        ['mouseup', 'mouseleave'].forEach(evt => {
-            card.addEventListener(evt, () => {
-                clearTimeout(longPressTimer);
-                if (!isLongPress && e.button === 0) {
-                    toggleMember(idx);
-                }
-            });
+
+        card.addEventListener('mouseup', e => {
+            clearTimeout(longPressTimer);
+            if (!isLongPress && e.button === 0) toggleMember(idx);
         });
+
+        card.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
     });
 }
 
+/* ----- start inline edit ----- */
 function startEditMode(idx) {
     const display = document.querySelector(`#tag-${idx} .code-display`);
-    const input = document.querySelector(`#edit-${idx}`);
+    const input = document.getElementById(`edit-${idx}`);
     if (!display || !input) return;
 
-    // Show input, hide display
     display.style.display = 'none';
     input.style.display = 'inline-block';
     input.value = membersData.members[idx].member_code || '';
     input.focus();
     input.select();
-
-    // Vibrate if supported
-    if (navigator.vibrate) navigator.vibrate(50);
 }
 
+/* ----- save edited code ----- */
 async function saveMemberCode(idx) {
     const input = document.getElementById(`edit-${idx}`);
     const display = document.querySelector(`#tag-${idx} .code-display`);
     if (!input || !display) return;
 
-    let newCode = input.value.trim().toUpperCase();
-    if (!newCode || !/^[A-Z0-9]{1,5}$/.test(newCode)) {
-        newCode = membersData.members[idx].member_code || '??';
+    let code = input.value.trim().toUpperCase();
+    if (!code || !/^[A-Z0-9]{1,5}$/.test(code)) {
+        code = membersData.members[idx].member_code || '??';
     }
 
     try {
         const r = await fetch('/api/edit_member_code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ index: idx, member_code: newCode })
+            body: JSON.stringify({ index: idx, member_code: code })
         });
         const d = await r.json();
         if (d.success) {
@@ -610,16 +602,14 @@ async function saveMemberCode(idx) {
         display.textContent = membersData.members[idx].member_code || '??';
     }
 
-    // Hide input, show display
     input.style.display = 'none';
     display.style.display = 'inline';
 }
 
-// Call this after rendering main dashboard
+/* ----- call after every render of main ----- */
 function reinitMemberCards() {
-    setTimeout(initMemberCardEvents, 100);
+    setTimeout(initMemberCards, 50);   // tiny delay → DOM ready
 }
-
 
 /* ==============================================================
    ERROR / SUCCESS MESSAGES
@@ -1055,12 +1045,11 @@ async function navigate(state, param = null) {
     }
 
     /* ---------- MAIN DASHBOARD ---------- */
+    /* ---------- MAIN DASHBOARD ---------- */
     if (state === 'main') {
         await fetchMembers();
         render();
-
-        reinitMemberCards(); // ← ADD THIS
-
+        reinitMemberCards();                 // <-- RE-INITIALISE CARDS
         // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
         setTimeout(() => {
             if (currentState === 'main') resetScreensaverTimer();
