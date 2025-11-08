@@ -220,7 +220,7 @@ const states = {
         return `
     <div class="layout-reset">
         <div class="main-dashboard fixed-layout">
-            <div class="members-grid">
+            <div class="members-grid" id="members-grid">
                 ${shown.map((m, i) => `
                     <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
                          data-index="${i}"
@@ -508,25 +508,29 @@ function updateProgressBar() {
 }
 
 /* ==============================================================
-   MEMBER CARD INTERACTIONS – TAP & LONG-PRESS
+   MEMBER CARD – TAP & LONG-PRESS (WORKS AFTER EVERY RENDER)
    ============================================================== */
 let longPressTimer = null;
 let isLongPress = false;
 
 function initMemberCards() {
-    // Remove any old listeners by cloning the nodes
-    document.querySelectorAll('.member-card-grid[data-index]').forEach(card => {
-        const newCard = card.cloneNode(true);
-        card.parentNode.replaceChild(newCard, card);
+    const grid = document.getElementById('members-grid');
+    if (!grid) return;
+
+    // 1. Remove old listeners by cloning every card
+    const cards = grid.querySelectorAll('.member-card-grid[data-index]');
+    cards.forEach(card => {
+        const clone = card.cloneNode(true);
+        card.parentNode.replaceChild(clone, card);
     });
 
-    // Re-attach fresh listeners
+    // 2. Re-attach fresh listeners to the *new* DOM nodes
     document.querySelectorAll('.member-card-grid[data-index]').forEach(card => {
         const idx = parseInt(card.dataset.index, 10);
 
-        /* ---------- TOUCH ---------- */
+        // ---- TOUCH ----
         card.addEventListener('touchstart', e => {
-            e.preventDefault();                 // stop page scroll
+            e.preventDefault();               // stop scroll
             isLongPress = false;
             longPressTimer = setTimeout(() => {
                 isLongPress = true;
@@ -542,9 +546,9 @@ function initMemberCards() {
 
         card.addEventListener('touchcancel', () => clearTimeout(longPressTimer));
 
-        /* ---------- MOUSE (for desktop testing) ---------- */
+        // ---- MOUSE (desktop) ----
         card.addEventListener('mousedown', e => {
-            if (e.button !== 0) return;        // only left click
+            if (e.button !== 0) return;
             isLongPress = false;
             longPressTimer = setTimeout(() => {
                 isLongPress = true;
@@ -561,7 +565,7 @@ function initMemberCards() {
     });
 }
 
-/* ----- start inline edit ----- */
+/* ----- inline edit ----- */
 function startEditMode(idx) {
     const display = document.querySelector(`#tag-${idx} .code-display`);
     const input = document.getElementById(`edit-${idx}`);
@@ -574,7 +578,7 @@ function startEditMode(idx) {
     input.select();
 }
 
-/* ----- save edited code ----- */
+/* ----- save code ----- */
 async function saveMemberCode(idx) {
     const input = document.getElementById(`edit-${idx}`);
     const display = document.querySelector(`#tag-${idx} .code-display`);
@@ -608,8 +612,13 @@ async function saveMemberCode(idx) {
 
 /* ----- call after every render of main ----- */
 function reinitMemberCards() {
-    setTimeout(initMemberCards, 50);   // tiny delay → DOM ready
+    requestAnimationFrame(() => initMemberCards());
 }
+
+
+
+
+
 
 /* ==============================================================
    ERROR / SUCCESS MESSAGES
