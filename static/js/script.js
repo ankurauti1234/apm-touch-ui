@@ -508,33 +508,31 @@ function updateProgressBar() {
 }
 
 /* ==============================================================
-   MEMBER CARD – TAP & LONG-PRESS (WORKS AFTER EVERY RENDER)
+   TOUCH: TAP = TOGGLE | LONG-PRESS = EDIT
    ============================================================== */
 let longPressTimer = null;
 let isLongPress = false;
 
-function initMemberCards() {
+function initTouchCards() {
     const grid = document.getElementById('members-grid');
     if (!grid) return;
 
-    // 1. Remove old listeners by cloning every card
-    const cards = grid.querySelectorAll('.member-card-grid[data-index]');
-    cards.forEach(card => {
+    // Clone every card to wipe old listeners
+    grid.querySelectorAll('.member-card-grid[data-index]').forEach(card => {
         const clone = card.cloneNode(true);
         card.parentNode.replaceChild(clone, card);
     });
 
-    // 2. Re-attach fresh listeners to the *new* DOM nodes
+    // Attach fresh listeners
     document.querySelectorAll('.member-card-grid[data-index]').forEach(card => {
-        const idx = parseInt(card.dataset.index, 10);
+        const idx = +card.dataset.index;
 
-        // ---- TOUCH ----
         card.addEventListener('touchstart', e => {
             e.preventDefault();               // stop scroll
             isLongPress = false;
             longPressTimer = setTimeout(() => {
                 isLongPress = true;
-                startEditMode(idx);
+                startEdit(idx);
                 if (navigator.vibrate) navigator.vibrate(50);
             }, 800);
         }, { passive: false });
@@ -543,51 +541,27 @@ function initMemberCards() {
             clearTimeout(longPressTimer);
             if (!isLongPress) toggleMember(idx);
         });
-
-        card.addEventListener('touchcancel', () => clearTimeout(longPressTimer));
-
-        // ---- MOUSE (desktop) ----
-        card.addEventListener('mousedown', e => {
-            if (e.button !== 0) return;
-            isLongPress = false;
-            longPressTimer = setTimeout(() => {
-                isLongPress = true;
-                startEditMode(idx);
-            }, 800);
-        });
-
-        card.addEventListener('mouseup', e => {
-            clearTimeout(longPressTimer);
-            if (!isLongPress && e.button === 0) toggleMember(idx);
-        });
-
-        card.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
     });
 }
 
-/* ----- inline edit ----- */
-function startEditMode(idx) {
-    const display = document.querySelector(`#tag-${idx} .code-display`);
-    const input = document.getElementById(`edit-${idx}`);
-    if (!display || !input) return;
-
-    display.style.display = 'none';
-    input.style.display = 'inline-block';
-    input.value = membersData.members[idx].member_code || '';
-    input.focus();
-    input.select();
+function startEdit(idx) {
+    const disp = document.querySelector(`#tag-${idx} .code-display`);
+    const inp = document.getElementById(`edit-${idx}`);
+    if (!disp || !inp) return;
+    disp.style.display = 'none';
+    inp.style.display = 'inline-block';
+    inp.value = membersData.members[idx].member_code || '';
+    inp.focus();
+    inp.select();
 }
 
-/* ----- save code ----- */
 async function saveMemberCode(idx) {
-    const input = document.getElementById(`edit-${idx}`);
-    const display = document.querySelector(`#tag-${idx} .code-display`);
-    if (!input || !display) return;
+    const inp = document.getElementById(`edit-${idx}`);
+    const disp = document.querySelector(`#tag-${idx} .code-display`);
+    if (!inp || !disp) return;
 
-    let code = input.value.trim().toUpperCase();
-    if (!code || !/^[A-Z0-9]{1,5}$/.test(code)) {
-        code = membersData.members[idx].member_code || '??';
-    }
+    let code = inp.value.trim().toUpperCase();
+    if (!/^[A-Z0-9]{1,5}$/.test(code)) code = membersData.members[idx].member_code || '??';
 
     try {
         const r = await fetch('/api/edit_member_code', {
@@ -598,23 +572,17 @@ async function saveMemberCode(idx) {
         const d = await r.json();
         if (d.success) {
             membersData.members[idx] = d.member;
-            display.textContent = d.member.member_code;
-        } else {
-            display.textContent = membersData.members[idx].member_code || '??';
+            disp.textContent = d.member.member_code;
         }
-    } catch {
-        display.textContent = membersData.members[idx].member_code || '??';
-    }
-
-    input.style.display = 'none';
-    display.style.display = 'inline';
+    } catch { }
+    inp.style.display = 'none';
+    disp.style.display = 'inline';
 }
 
-/* ----- call after every render of main ----- */
-function reinitMemberCards() {
-    requestAnimationFrame(() => initMemberCards());
+/* Call after every render of main */
+function reinitTouch() {
+    requestAnimationFrame(initTouchCards);
 }
-
 
 
 
@@ -1058,7 +1026,7 @@ async function navigate(state, param = null) {
     if (state === 'main') {
         await fetchMembers();
         render();
-        reinitMemberCards();                 // <-- RE-INITIALISE CARDS
+        reinitTouch();                 // <-- RE-INITIALISE CARDS
         // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
         setTimeout(() => {
             if (currentState === 'main') resetScreensaverTimer();
