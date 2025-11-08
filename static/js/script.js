@@ -232,7 +232,12 @@ const states = {
                 `).join('')}
             </div>
             <div class="bottom-bar">
-                <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons settings-icon">settings</span></button>
+                <button class="button" style="background: hsl(var(--card)); color: hsl(var(--foreground)); scale: 1.4; font-size: 1.5rem;" onclick="showEditMemberPopup()">
+                    <span class="material-icons">edit</span>
+                </button>
+                <button class="bar-btn" style="scale: 1.2;" onclick="showSettingsPopup()"><span class="material-icons settings-icon">settings</span></button>
+            </div>
+            <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
             </div>
         </div> 
     </div>
@@ -842,12 +847,6 @@ function showSettingsPopup() {
       </button>
       <button class="button" onclick="shutdown()">
         <span class="material-icons">power_settings_new</span><span>Shutdown</span>
-      </button>
-    </div>
-    
-    <div>
-      <button class="button" onclick="showEditMemberPopup()">
-        <span class="material-icons">edit</span><span>Edit Member Codes</span>
       </button>
     </div>
 

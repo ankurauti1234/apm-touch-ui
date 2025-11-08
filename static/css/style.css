@@ -485,8 +485,7 @@ ul li {
     border-top: 1px solid hsl(var(--border));
     padding: 0.75rem;
     display: flex;
-    justify-content: center;
-    gap: 2rem;
+    justify-content: flex-end;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     z-index: 998;
     height: 3.3rem;
@@ -1010,24 +1009,3 @@ button:focus {
     outline: none !important;
     box-shadow: none !important;
 }
-
-
-
-/* 
-.member-card-grid .name-tag {
-    position: relative;
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.member-card-grid .code-edit {
-    width: 60px;
-    text-align: center;
-    font-weight: 600;
-    font-size: 1.1rem;
-    padding: 4px 6px;
-    border: 2px solid hsl(var(--primary));
-    border-radius: 6px;
-    background: hsl(var(--background));
-    color: hsl(var(--foreground));
-} */
