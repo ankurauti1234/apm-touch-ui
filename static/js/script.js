@@ -218,7 +218,7 @@ const states = {
         const empty = max - shown.length;
 
         return `
-    <43> <div class="layout-reset">
+    <div class="layout-reset">
         <div class="main-dashboard fixed-layout">
             <div class="members-grid">
                 ${shown.map((m, i) => `
@@ -843,6 +843,9 @@ function showSettingsPopup() {
       <button class="button" onclick="shutdown()">
         <span class="material-icons">power_settings_new</span><span>Shutdown</span>
       </button>
+    </div>
+    
+    <div>
       <button class="button" onclick="showEditMemberPopup()">
         <span class="material-icons">edit</span><span>Edit Member Codes</span>
       </button>
