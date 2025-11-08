@@ -502,12 +502,12 @@ ul li {
     border: none;
     font-size: 0.75rem;
     cursor: pointer;
-    padding: 1rem;
+    padding: 1.25rem;
     margin-right: 0.25rem;
     margin-bottom: 1rem;
     border-radius: var(--radius);
     transition: background 0.2s ease;
-    scale: 1.2;
+    scale: 1.4;
 }
 
 .bar-btn:hover {
