@@ -218,7 +218,7 @@ const states = {
         const empty = max - shown.length;
 
         return `
-    <div class="layout-reset">
+    <43> <div class="layout-reset">
         <div class="main-dashboard fixed-layout">
             <div class="members-grid">
                 ${shown.map((m, i) => `
@@ -843,6 +843,9 @@ function showSettingsPopup() {
       <button class="button" onclick="shutdown()">
         <span class="material-icons">power_settings_new</span><span>Shutdown</span>
       </button>
+      <button class="button" onclick="showEditMemberPopup()">
+        <span class="material-icons">edit</span><span>Edit Member Codes</span>
+      </button>
     </div>
 
     <button class="button secondary" style="position: absolute; top: 1rem; right: 1rem;" onclick="closeSettingsPopup()">✖</button>
@@ -1430,6 +1433,115 @@ const avatar = (gender, dob) => {
 
     return `/static/assets/${gender.toLowerCase()}-${cat}.png`;
 };
+
+
+
+
+function showEditMemberPopup() {
+    if (document.getElementById('edit-member-popup')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'edit-member-overlay';
+    overlay.className = 'overlay';
+    overlay.onclick = closeEditMemberPopup;
+
+    const popup = document.createElement('div');
+    popup.id = 'edit-member-popup';
+    popup.className = 'popup';
+    popup.innerHTML = `
+        <h2><span class="material-icons">edit</span> Edit Member Code</h2>
+        <div id="edit-error" class="error" style="display:none;"></div>
+        <div class="custom-select" style="margin:1rem 0;">
+            <div id="edit-selected" class="selected-item">
+                <span>Select Member</span>
+                <span class="material-icons arrow">arrow_drop_down</span>
+            </div>
+            <ul id="edit-member-list" class="dropdown-list" style="display:none;"></ul>
+        </div>
+        <input type="text" id="new-code" placeholder="New Code (e.g. M1A)" maxlength="15" onfocus="showKeyboard(this)">
+        <div class="button-group">
+            <button class="button" onclick="saveMemberCode()">Save</button>
+            <button class="button secondary" onclick="closeEditMemberPopup()">Cancel</button>
+        </div>
+    `;
+
+    document.body.append(overlay, popup);
+
+    // Populate member list
+    const list = document.getElementById('edit-member-list');
+    const selected = document.getElementById('edit-selected');
+    membersData?.members.forEach((m, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${m.member_code} • ${m.gender}, DOB: ${m.dob}</span>`;
+        li.onclick = (e) => {
+            e.stopPropagation();
+            selectedMemberIndex = i;
+            selected.innerHTML = `<span>${m.member_code}</span><span class="material-icons arrow">arrow_drop_down</span>`;
+            list.style.display = 'none';
+            selected.classList.remove('open');
+            document.getElementById('new-code').focus();
+        };
+        list.appendChild(li);
+    });
+
+    // Dropdown toggle
+    selected.onclick = (e) => {
+        e.stopPropagation();
+        const open = list.style.display === 'block';
+        list.style.display = open ? 'none' : 'block';
+        selected.classList.toggle('open', !open);
+    };
+
+    overlay.onclick = () => {
+        list.style.display = 'none';
+        selected.classList.remove('open');
+        closeEditMemberPopup();
+    };
+}
+
+let selectedMemberIndex = -1;
+
+function closeEditMemberPopup() {
+    ['edit-member-popup', 'edit-member-overlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
+    selectedMemberIndex = -1;
+}
+
+async function saveMemberCode() {
+    const codeInput = document.getElementById('new-code');
+    const code = codeInput?.value.trim().toUpperCase();
+    const err = document.getElementById('edit-error');
+
+    if (selectedMemberIndex < 0) return showErrorInPopup('Select a member', err);
+    if (!code || !/^[A-Za-z0-9]{1,15}$/.test(code)) {
+        return showErrorInPopup('Invalid code (1–15 chars, letters & numbers only)', err);
+    }
+
+    try {
+        const r = await fetch('/api/edit_member_code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ index: selectedMemberIndex, member_code: code })
+        });
+        const d = await r.json();
+        if (d.success) {
+            membersData.members[selectedMemberIndex] = d.member;
+            render();
+            closeEditMemberPopup();
+        } else {
+            showErrorInPopup(d.error || 'Failed', err);
+        }
+    } catch {
+        showErrorInPopup('Network error', err);
+    }
+}
+
+function showErrorInPopup(msg, el) {
+    el.innerHTML = `<span class="material-icons">error</span> ${msg}`;
+    el.style.display = 'flex';
+}
 
 /* ==============================================================
    INITIALISATION
