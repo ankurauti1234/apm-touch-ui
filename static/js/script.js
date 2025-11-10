@@ -142,7 +142,7 @@ const states = {
         <h1>Enter Household ID</h1>
         <p>Please provide your household identification number</p>
         <div id="error" class="error" style="display:none;"></div>
-        <input type="text" id="hhid" value="HH" placeholder="Enter HHID (e.g. HH1002)" onfocus="showKeyboard(this)">
+        <input type="text" id="hhid" value="HH" placeholder="Enter HHID (e.g. HH1002)" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()" onfocus="showKeyboard(this)">
         <div class="button-group">
             <button class="button" onclick="submitHHID()">
                 <span class="material-icons">send</span> Submit & Send OTP
@@ -1102,6 +1102,15 @@ async function checkWiFi() {
 async function submitHHID() {
     hhid = document.getElementById('hhid')?.value.trim();
     if (!hhid) return showError('Enter HHID');
+
+    // --- VALIDATION RULES ---
+    if (!hhid) return showError('Enter HHID');
+    if (!/^[A-Za-z0-9]+$/.test(hhid)) return showError('HHID must be alphanumeric only');
+    if (hhid.length !== 6) return showError('HHID must be exactly 6 characters long');
+
+    // --- Normalizing (optional but cleaner) ---
+    hhid = hhid.toUpperCase();
+
     const btn = event?.target;
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...'; }
     try {
