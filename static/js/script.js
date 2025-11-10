@@ -142,7 +142,7 @@ const states = {
         <h1>Enter Household ID</h1>
         <p>Please provide your household identification number</p>
         <div id="error" class="error" style="display:none;"></div>
-        <input type="text" id="hhid" placeholder="Enter HHID (e.g. HH1002)" onfocus="showKeyboard(this)">
+        <input type="text" id="hhid" value="HH" placeholder="Enter HHID (e.g. HH1002)" onfocus="showKeyboard(this)">
         <div class="button-group">
             <button class="button" onclick="submitHHID()">
                 <span class="material-icons">send</span> Submit & Send OTP
