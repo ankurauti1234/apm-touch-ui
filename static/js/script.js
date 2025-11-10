@@ -357,21 +357,31 @@ function toggleShift() {
 function insertChar(ch) {
     if (!activeInput) return;
 
+    // Only apply special filtering if this is the HHID input
+    if (activeInput.id === 'hhid') {
+        // Block non-alphanumeric input
+        if (!/^[A-Za-z0-9]$/.test(ch)) return;
+
+        // Prevent exceeding 6 characters total
+        if (activeInput.value.length >= 6) return;
+
+        // Force uppercase
+        ch = ch.toUpperCase();
+    }
+
     const start = activeInput.selectionStart ?? 0;
     const end = activeInput.selectionEnd ?? 0;
     const text = activeInput.value;
 
-    // Replace selected text (if any) with the new character
     activeInput.value = text.slice(0, start) + ch + text.slice(end);
 
-    // Move cursor right after the inserted character
     const newPos = start + ch.length;
     activeInput.setSelectionRange(newPos, newPos);
     activeInput.focus();
 
     scrollInputIntoView();
 
-    // Auto-reset Shift after typing an uppercase letter
+    // Auto-reset Shift after uppercase typing
     if (shiftActive && /[A-Z]/.test(ch)) {
         setTimeout(() => {
             shiftActive = false;
@@ -380,6 +390,9 @@ function insertChar(ch) {
             renderKeys();
         }, 100);
     }
+
+    // Trigger input event manually (for any listeners)
+    activeInput.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 /* --------------------------------------------------------------
