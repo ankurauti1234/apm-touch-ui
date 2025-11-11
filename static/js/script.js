@@ -1575,7 +1575,16 @@ async function init() {
         const r = await fetch('/api/check_installation');
         const d = await r.json();
         meterId = d.meter_id;
-        currentState = d.installed ? 'main' : 'welcom';
+
+        const currRes = await fetch('/api/check_current_state');
+        const currData = await currRes.json();
+        console.log("Current installation state:", currData);
+
+        currentState = d.installed ? 'main' : 'welcome';
+        console.log("Initial state set to:", currentState);
+        if (!(currentState === 'main')) {
+            currentState = currData.current_state;
+        }
         if (d.installed) await fetchMembers();
         render();
     } catch { currentState = 'welcome'; render(); }
