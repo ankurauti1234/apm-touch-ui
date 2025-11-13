@@ -1033,6 +1033,7 @@ async function fetchInputSources() {
 
 // Start auto-retry when entering input_source_detection
 function startInputSourceRetry() {
+    console.log('Starting input source detection retry loop');
     // Clear any existing interval
     if (inputSourceRetryInterval) clearInterval(inputSourceRetryInterval);
 
@@ -1586,7 +1587,8 @@ async function init() {
             currentState = currData.current_state;
         }
         if (d.installed) await fetchMembers();
-        render();
+        navigate(currentState);
     } catch { currentState = 'welcome'; render(); }
 }
 init();
+//1036 HHID
