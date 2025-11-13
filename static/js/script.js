@@ -56,7 +56,7 @@ const states = {
         <div class="loading"><div class="spinner"></div><p>Loading system...</p></div>`,
 
     welcome: () => `
-        <h1>Welcome to Touch Meter</h1>
+        <h1>Welcome to Indi Meter</h1>
         <p>Begin the installation process for your meter system.</p>
         <div class="separator"></div>
         <div class="button-group">
