@@ -56,7 +56,7 @@ const states = {
         <div class="loading"><div class="spinner"></div><p>Loading system...</p></div>`,
 
     welcome: () => `
-        <h1>Welcome to Touch Meter</h1>
+        <h1>Welcome to Indi Meter</h1>
         <p>Begin the installation process for your meter system.</p>
         <div class="separator"></div>
         <div class="button-group">
@@ -142,7 +142,7 @@ const states = {
         <h1>Enter Household ID</h1>
         <p>Please provide your household identification number</p>
         <div id="error" class="error" style="display:none;"></div>
-        <input type="text" id="hhid" placeholder="Enter HHID (e.g. HH1002)" onfocus="showKeyboard(this)">
+        <input type="text" id="hhid" value="HH" maxlength="6" placeholder="Enter HHID (e.g. HH1002)" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()" onfocus="showKeyboard(this)">
         <div class="button-group">
             <button class="button" onclick="submitHHID()">
                 <span class="material-icons">send</span> Submit & Send OTP
@@ -357,21 +357,31 @@ function toggleShift() {
 function insertChar(ch) {
     if (!activeInput) return;
 
+    // Only apply special filtering if this is the HHID input
+    if (activeInput.id === 'hhid') {
+        // Block non-alphanumeric input
+        if (!/^[A-Za-z0-9]$/.test(ch)) return;
+
+        // Prevent exceeding 6 characters total
+        if (activeInput.value.length >= 6) return;
+
+        // Force uppercase
+        ch = ch.toUpperCase();
+    }
+
     const start = activeInput.selectionStart ?? 0;
     const end = activeInput.selectionEnd ?? 0;
     const text = activeInput.value;
 
-    // Replace selected text (if any) with the new character
     activeInput.value = text.slice(0, start) + ch + text.slice(end);
 
-    // Move cursor right after the inserted character
     const newPos = start + ch.length;
     activeInput.setSelectionRange(newPos, newPos);
     activeInput.focus();
 
     scrollInputIntoView();
 
-    // Auto-reset Shift after typing an uppercase letter
+    // Auto-reset Shift after uppercase typing
     if (shiftActive && /[A-Z]/.test(ch)) {
         setTimeout(() => {
             shiftActive = false;
@@ -380,6 +390,9 @@ function insertChar(ch) {
             renderKeys();
         }, 100);
     }
+
+    // Trigger input event manually (for any listeners)
+    activeInput.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 /* --------------------------------------------------------------
@@ -1020,6 +1033,7 @@ async function fetchInputSources() {
 
 // Start auto-retry when entering input_source_detection
 function startInputSourceRetry() {
+    console.log('Starting input source detection retry loop');
     // Clear any existing interval
     if (inputSourceRetryInterval) clearInterval(inputSourceRetryInterval);
 
@@ -1102,6 +1116,15 @@ async function checkWiFi() {
 async function submitHHID() {
     hhid = document.getElementById('hhid')?.value.trim();
     if (!hhid) return showError('Enter HHID');
+
+    // --- VALIDATION RULES ---
+    if (!hhid) return showError('Enter HHID');
+    if (!/^[A-Za-z0-9]+$/.test(hhid)) return showError('Special characters not allowed');
+    // if (hhid.length !== 6) return showError('HHID must be exactly 6 characters long');
+
+    // --- Normalizing (optional but cleaner) ---
+    hhid = hhid.toUpperCase();
+
     const btn = event?.target;
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...'; }
     try {
@@ -1553,9 +1576,19 @@ async function init() {
         const r = await fetch('/api/check_installation');
         const d = await r.json();
         meterId = d.meter_id;
-        currentState = d.installed ? 'main' : 'welcom';
+
+        const currRes = await fetch('/api/check_current_state');
+        const currData = await currRes.json();
+        console.log("Current installation state:", currData);
+
+        currentState = d.installed ? 'main' : 'welcome';
+        console.log("Initial state set to:", currentState);
+        if (!(currentState === 'main')) {
+            currentState = currData.current_state;
+        }
         if (d.installed) await fetchMembers();
-        render();
+        navigate(currentState);
     } catch { currentState = 'welcome'; render(); }
 }
 init();
+//1036 HHID

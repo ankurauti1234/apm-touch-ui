@@ -56,6 +56,7 @@ SYSTEM_FILES = {
     "jack_status": "/run/jack_status",
     "hdmi_input": "/run/input_source_hdmi",
     "video_detection": "/run/video_object_detection",
+    "current_state": "/var/lib/current_state",
 }
 
 # ----------------------------------------------------------------------
@@ -77,6 +78,17 @@ def run_system_command(command: List[str]) -> Tuple[bool, str]:
         return True, res.stdout
     except subprocess.CalledProcessError as e:
         return False, e.stderr
+
+
+def current_state() -> str:
+    if not os.path.exists(SYSTEM_FILES["current_state"]):
+        with open(SYSTEM_FILES["current_state"], "w") as f:
+            f.write("welcome")
+    return open(SYSTEM_FILES["current_state"]).read().strip()
+
+def set_current_state(state: str):
+    with open(SYSTEM_FILES["current_state"], "w") as f:
+        f.write(state)
 
 
 def is_installation_done() -> bool:
@@ -316,8 +328,14 @@ def check_installation():
     return jsonify({"installed": is_installation_done(), "meter_id": METER_ID})
 
 
+@app.route("/api/check_current_state", methods=["GET"])
+def check_current_state():
+    return jsonify({"current_state": current_state()})
+
+
 @app.route("/api/check_wifi", methods=["GET"])
 def check_wifi():
+    set_current_state("connect_select")
     try:
         ok, out = run_system_command(
             ["nmcli", "-t", "-f", "TYPE,DEVICE", "connection", "show", "--active"]
@@ -648,7 +666,10 @@ def list_wifi_networks():
 
 @app.route("/api/check_gsm", methods=["GET"])
 def check_gsm():
-    return jsonify({"success": os.path.exists(SYSTEM_FILES["gsm_up"])})
+    if (os.path.exists(SYSTEM_FILES["gsm_up"])):
+        set_current_state("connect_select")
+        return jsonify({"success": True})
+    return jsonify({"success": False})
 
 
 @app.route("/api/shutdown", methods=["POST"])
@@ -671,6 +692,7 @@ def restart():
 
 @app.route("/api/submit_hhid", methods=["POST"])
 def submit_hhid():
+    set_current_state("hhid_input")
     hhid = request.json.get("hhid")
     if not hhid:
         return jsonify({"success": False, "error": "HHID required"}), 400
@@ -680,6 +702,7 @@ def submit_hhid():
         payload = {"meter_id": METER_ID, "hhid": hhid}
         resp = requests.post(INITIATE_URL, json=payload, timeout=30)
         data = resp.json()
+        set_current_state("otp_verification")
         return jsonify({"success": data.get("success", False)}), 200
     except requests.exceptions.Timeout:
         return jsonify({"success": False, "error": "Timeout"}), 504
@@ -702,6 +725,7 @@ def submit_otp():
         result = resp.json()
         if result.get("success"):
             save_hhid(hhid)
+            set_current_state("input_source_detection")
         return jsonify({"success": result.get("success", False)}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -711,6 +735,9 @@ def submit_otp():
 def get_input_sources():
     sources = []
     errors = []
+
+    # set_current_state("input_source_detection")
+    print('"/api/input_sources" called')
 
     if os.path.exists(SYSTEM_FILES["jack_status"]):
         try:
@@ -743,6 +770,7 @@ def get_input_sources():
 
 @app.route("/api/video_detection", methods=["GET"])
 def check_video_detection():
+    set_current_state("video_object_detection")
     if os.path.exists(SYSTEM_FILES["video_detection"]):
         try:
             content = open(SYSTEM_FILES["video_detection"]).read().strip()
@@ -820,6 +848,7 @@ def edit_member_code():
 
 @app.route("/api/finalize", methods=["POST"])
 def finalize():
+    set_current_state("finalize")
     hhid = load_hhid()
     if not hhid:
         return jsonify({"success": False, "error": "HHID not found"}), 400
@@ -904,7 +933,6 @@ def get_current_brightness():
     except Exception as e:
         print(f"[BRIGHTNESS-GET] Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 
 
