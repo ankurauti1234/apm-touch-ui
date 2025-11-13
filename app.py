@@ -626,12 +626,17 @@ def list_wifi_networks():
 
         for s in saved:
             if s["ssid"] in merged:
-                # Merge saved info only if it's actually visible in the scan
                 merged[s["ssid"]]["saved"] = True
                 if s["password"]:
                     merged[s["ssid"]]["password"] = s["password"]
-            # else: skip it — don't add invisible saved networks
-
+            else:
+                merged[s["ssid"]] = {
+                    "ssid": s["ssid"],
+                    "signal_strength": None,
+                    "security": s["security"],
+                    "saved": True,
+                    "password": s["password"]
+                }
 
         # === 4. Sort: saved first, then by signal strength ===
         def sort_key(x):
@@ -732,6 +737,7 @@ def get_input_sources():
     errors = []
 
     # set_current_state("input_source_detection")
+    print('"/api/input_sources" called')
 
     if os.path.exists(SYSTEM_FILES["jack_status"]):
         try:
