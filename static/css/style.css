@@ -665,8 +665,8 @@ ul li {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: calc(var(--radius) - 2px);
-    font-size: 1.8rem;
-    font-weight: 500;
+    font-size: 2rem;
+    font-weight: 550;
     color: hsl(var(--foreground));
     cursor: pointer;
     transition: all 0.15s ease;
@@ -746,6 +746,7 @@ ul li {
 .key-backspace,
 .key-enter {
     min-width: 4rem;
+    font-size: 2rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
