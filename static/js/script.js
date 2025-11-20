@@ -483,6 +483,11 @@ document.addEventListener('click', e => {
    RENDER & PROGRESS BAR
    ============================================================== */
 function render(details = null) {
+    if (!states[currentState] || typeof states[currentState] !== 'function') {
+        console.error("Invalid state:", currentState, "→ forcing welcome");
+        currentState = 'welcome';
+    }
+
     const html = states[currentState](details);
     if (currentState === 'main') {
         resetScreensaverTimer();
@@ -1573,22 +1578,40 @@ function showErrorInPopup(msg, el) {
    ============================================================== */
 async function init() {
     try {
-        const r = await fetch('/api/check_installation');
-        const d = await r.json();
-        meterId = d.meter_id;
+        const [installRes, stateRes] = await Promise.all([
+            fetch('/api/check_installation'),
+            fetch('/api/check_current_state')
+        ]);
 
-        const currRes = await fetch('/api/check_current_state');
-        const currData = await currRes.json();
-        console.log("Current installation state:", currData);
+        const installData = await installRes.json();
+        const stateData = await stateRes.json();
 
-        currentState = d.installed ? 'main' : 'welcome';
-        console.log("Initial state set to:", currentState);
-        if (!(currentState === 'main')) {
-            currentState = currData.current_state;
+        meterId = installData.meter_id || 'IM000000';
+
+        if (installData.installed) {
+            // Already installed → go straight to main dashboard
+            currentState = 'main';
+            await fetchMembers();
+        } else {
+            // Not installed → use the saved flow state, but NEVER trust it blindly
+            let savedState = stateData.current_state || 'welcome';
+
+            // Safety: if saved state is invalid or empty, force welcome
+            if (!states[savedState] || savedState === '' || savedState === 'main') {
+                savedState = 'welcome';
+            }
+
+            currentState = savedState;
         }
-        if (d.installed) await fetchMembers();
+
+        console.log("Starting UI in state:", currentState);
         navigate(currentState);
-    } catch { currentState = 'welcome'; render(); }
+
+    } catch (err) {
+        console.error("Init failed, falling back to welcome:", err);
+        currentState = 'welcome';
+        navigate('welcome');
+    }
 }
 init();
 //1036 HHID
