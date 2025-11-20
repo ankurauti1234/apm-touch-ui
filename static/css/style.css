@@ -66,13 +66,13 @@ body {
 }
 
 .card {
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
+    /* background: hsl(var(--card)); */
+    /* border: 1px solid hsl(var(--border)); */
     border-radius: var(--radius);
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    /* box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); */
     padding: 2rem;
     width: 100%;
-    max-width: 36rem;
+    max-width: 76rem;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -109,7 +109,7 @@ body {
    TYPOGRAPHY
    ═══════════════════════════════════════════════════════════════════════ */
 h1 {
-    font-size: 1.875rem;
+    font-size: 3rem;
     font-weight: 700;
     letter-spacing: -0.025em;
     margin-bottom: 0.5rem;
