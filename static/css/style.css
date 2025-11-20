@@ -747,10 +747,14 @@ ul li {
     font-size: 1.125rem;
 }
 
-.key-backspace,
+.key-backspace{
+    min-width: 4rem;
+    font-size: 2rem;
+}
+
 .key-enter {
     min-width: 4rem;
-    font-size: 4rem;
+    font-size: 2rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
