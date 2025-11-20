@@ -88,11 +88,11 @@ body {
     padding: 0 0 1.5rem;
     margin-bottom: 1rem;
     width: 100%;
-    max-width: 32rem;
+    max-width: 42rem;
 }
 
 .progress-step {
-    width: 2.5rem;
+    width: 4.5rem;
     height: 0.5rem;
     background: hsl(var(--muted));
     border-radius: 9999px;
@@ -101,7 +101,7 @@ body {
 
 .progress-step.active {
     background: hsl(var(--primary));
-    width: 3rem;
+    width: 5rem;
     box-shadow: 0 0 0 3px hsl(var(--ring) / 0.3);
 }
 
@@ -316,7 +316,7 @@ ul li {
    MATERIAL ICONS
    ═══════════════════════════════════════════════════════════════════════ */
 .material-icons {
-    font-size: 1.25rem;
+    font-size: 2.02rem;
     vertical-align: middle;
 }
 
@@ -790,7 +790,7 @@ ul li {
 }
 
 .container.lifted {
-    transform: translateY(-50px);
+    transform: translateY(-250px);
 }
 
 /* Smooth keyboard show/hide */
