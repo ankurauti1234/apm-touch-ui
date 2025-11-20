@@ -306,7 +306,7 @@ function showKeyboard(el) {
                     ontouchstart="handleKeyDown(event)"
                     ontouchend="handleKeyUp(event)"
                 >
-                    <span class="material-icons">backspace</span>
+                    <span class="key-backspace material-icons">backspace</span>
                 </button>
 
                 <button
