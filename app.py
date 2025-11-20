@@ -11,13 +11,13 @@ import requests
 from typing import List, Tuple
 
 from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS # pylint: disable=E0611
 
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QShortcut
+from PyQt5.QtCore import QUrl, Qt # pylint: disable=E0611
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings # pylint: disable=E0611
+from PyQt5.QtGui import QKeySequence # pylint: disable=E0611
+from PyQt5.QtWidgets import QShortcut # pylint: disable=E0611
 
 import paho.mqtt.client as mqtt
 import ssl

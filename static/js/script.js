@@ -55,12 +55,13 @@ const states = {
     loading: () => `
         <div class="loading"><div class="spinner"></div><p>Loading system...</p></div>`,
 
-    welcome: () => `
+    welcome: () => `   
+
         <h1>Welcome to Indi Meter</h1>
         <p>Begin the installation process for your meter system.</p>
         <div class="separator"></div>
         <div class="button-group">
-            <button class="button" onclick="navigate('connect_select')">
+            <button class="button-welcome" onclick="navigate('connect_select')">
                 <span class="material-icons">play_arrow</span> Start Installation
             </button>
         </div>`,
