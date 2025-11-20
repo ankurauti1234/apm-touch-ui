@@ -60,6 +60,8 @@ const states = {
         <p>Begin the installation process for your meter system.</p>
         <div class="separator"></div>
         <div class="button-group">
+        // <input type="text" id="hhid" value="HH" maxlength="6" placeholder="Enter HHID (e.g. HH1002)" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()" onfocus="showKeyboard(this)">
+
             <button class="button" onclick="navigate('connect_select')">
                 <span class="material-icons">play_arrow</span> Start Installation
             </button>
