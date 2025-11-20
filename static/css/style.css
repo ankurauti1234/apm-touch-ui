@@ -671,7 +671,7 @@ ul li {
     user-select: none;
     -webkit-user-select: none;
     flex: 1;
-    max-width: 4.5rem;
+    max-width: 5.5rem;
 }
 
 .key:hover {
