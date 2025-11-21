@@ -152,6 +152,9 @@ const states = {
             <button class="button" onclick="navigate('hhid_input')">
                 <span class="material-icons">arrow_forward</span> Next
             </button>
+            <button class="button secondary" onclick="navigate('network test')">
+                <span class="material-icons">arrow_back</span> Back
+            </button>
         </div>`,
 
     hhid_input: () => `
