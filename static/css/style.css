@@ -87,7 +87,7 @@ body {
     font-weight: 700;
     text-align: center;
     background: transparent;
-    color: hsl(var(--foreground));
+    color:black;
     padding: 0 16px;
 }
 
@@ -236,7 +236,7 @@ select {
     border: 0px hsl(var(--input));
     border-radius: var(--radius);
     background: hsl(var(--card));
-    color: hsl(var(--foreground));
+    color: black;
     margin-bottom: 0rem;
     outline: none;
     transition: border-color 0.15s ease;
@@ -246,10 +246,12 @@ input:focus,
 select:focus {
     border-color: white;
     box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+    outline: none;
 }
 
 input::placeholder {
     color: hsl(var(--muted-foreground));
+    outline: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════

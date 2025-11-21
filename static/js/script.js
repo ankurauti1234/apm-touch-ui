@@ -71,8 +71,6 @@ const states = {
                 onfocus="showKeyboard(this)"
                 oninput="onlyNumbers(this)">
         </div>
-        <!-- Hidden field or just use JS to get full HHID -->
-        <input type="hidden" id="hhid-full" name="hhid">
 
         <div class="separator"></div>
         <div class="button-group">
@@ -161,7 +159,20 @@ const states = {
         <h1>Enter Household ID</h1>
         <p>Please provide your household identification number</p>
         <div id="error" class="error" style="display:none;"></div>
-        <input type="text" id="hhid" value="HH" maxlength="6" placeholder="Enter HHID (e.g. HH1002)" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()" onfocus="showKeyboard(this)">
+
+        <div class="hhid-container">
+            <span class="hhid-prefix">HH</span>
+            <input type="text"
+                id="hhid"                     
+                maxlength="4"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                placeholder="Enter HHID (e.g. HH1002)"
+                autocomplete="off"
+                onfocus="showKeyboard(this)"
+                oninput="onlyNumbers(this)">
+        </div>
+
         <div class="button-group">
             <button class="button" onclick="submitHHID()">
                 <span class="material-icons">send</span> Submit & Send OTP
