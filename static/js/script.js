@@ -59,19 +59,6 @@ const states = {
         <h1>Welcome to Indi Meter</h1>
         <p>Begin the installation process for your meter system.</p>
 
-        <div class="hhid-container">
-            <span class="hhid-prefix">HH</span>
-            <input type="text"
-                id="hhid"                     
-                maxlength="4"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                placeholder="Enter HHID (e.g. HH1002)"
-                autocomplete="off"
-                onfocus="showKeyboard(this)"
-                oninput="onlyNumbers(this)">
-        </div>
-
         <div class="separator"></div>
         <div class="button-group">
         <button class="button" onclick="navigate('connect_select')">
@@ -1146,48 +1133,92 @@ function startInputSourceRetry() {
    VIDEO DETECTION API
    ============================================================== */
 async function checkVideoDetection() {
-    const loading = document.getElementById('video-loading');
-    const results = document.getElementById('video-results');
-    const status = document.getElementById('video-status');
+const loading = document.getElementById('video-loading');
+const results = document.getElementById('video-results');
+const status = document.getElementById('video-status');
+const buttonGroup = document.querySelector('.button-group');
 
-    const checkMessage = document.getElementById('checking-video');
-    const successMessage = document.getElementById('video-success');
+const checkMessage = document.getElementById('checking-video');
+const successMessage = document.getElementById('video-success');
 
-    try {
-        const r = await fetch('/api/video_detection');
-        const d = await r.json();
-        if (d.success && d.detected) {
-            status.innerHTML = `<div class="success"><span class="material-icons">check_circle</span> Video detection active: ${d.status}</div>`;
-            status.dataset.detected = 'true';
+if (!loading || !results || !status || !buttonGroup) return;
 
-            checkMessage.style.display = 'none';
-            successMessage.style.display = 'block';
+try {
+    const r = await fetch('/api/video_detection');
+    const d = await r.json();
 
-            document.querySelector('.button-group')
-                .insertAdjacentHTML('afterbegin', `
-                    <button class="button" onclick="navigate('finalize')">
-                        <span class="material-icons">arrow_forward</span> Next
-                    </button>
-            `);
-        } else {
-            status.innerHTML = `<div class="info"><span class="material-icons">info</span> Video detection not running</div>`;
-            status.dataset.detected = 'false';
-            document.querySelector('.button-group')
-                .insertAdjacentHTML('afterbegin', `
-                    <button class="button" onclick="navigate('video_object_detection')">
-                        <span class="material-icons">refresh</span> Retry
-                    </button>
-            `);
+    if (d.success && d.detected) {
+        // SUCCESS
+        status.innerHTML = `
+            <div class="success">
+                <span class="material-icons">check_circle</span> 
+                Video detection active: ${d.status}
+            </div>`;
+        status.dataset.detected = 'true';
 
+        checkMessage.style.display = 'none';
+        successMessage.style.display = 'block';
+
+        // Remove existing next button
+        const existingNext = buttonGroup.querySelector('button[data-action="next"]');
+        if (existingNext) existingNext.remove();
+
+        buttonGroup.insertAdjacentHTML('afterbegin', `
+            <button class="button" data-action="next" onclick="navigate('finalize')">
+                <span class="material-icons">arrow_forward</span> Next
+            </button>
+        `);
+
+        // STOP RETRY LOOP SINCE SUCCESS
+        if (videoDetectionRetryInterval) {
+            clearInterval(videoDetectionRetryInterval);
+            videoDetectionRetryInterval = null;
         }
-    } catch {
-        status.innerHTML = `<div class="error"><span class="material-icons">error</span> Detection failed</div>`;
+
+    } else {
+        // FAILURE (not detected)
+        status.innerHTML = `
+            <div class="info">
+                <span class="material-icons">info</span> 
+                Video detection not running
+            </div>`;
         status.dataset.detected = 'false';
-    } finally {
-        loading.style.display = 'none';
-        results.style.display = 'block';
+
+        // Remove old retry button
+        const existingRetry = buttonGroup.querySelector('button[data-action="retry"]');
+        if (existingRetry) existingRetry.remove();
+
+        buttonGroup.insertAdjacentHTML('afterbegin', `
+            <button class="button" data-action="retry" onclick="checkVideoDetection()">
+                <span class="material-icons">refresh</span> Retry Now
+            </button>
+        `);
     }
+
+} catch (e) {
+    // NETWORK OR API FAILURE
+    status.innerHTML = `
+        <div class="error">
+            <span class="material-icons">error</span> 
+            Detection failed
+        </div>`;
+    status.dataset.detected = 'false';
+
+    // Add manual retry button
+    const existingRetry = buttonGroup.querySelector('button[data-action="retry"]');
+    if (existingRetry) existingRetry.remove();
+
+    buttonGroup.insertAdjacentHTML('afterbegin', `
+        <button class="button" data-action="retry" onclick="checkVideoDetection()">
+            <span class="material-icons">refresh</span> Retry Now
+        </button>
+    `);
+} finally {
+    loading.style.display = 'none';
+    results.style.display = 'block';
 }
+}
+
 
 /* ==============================================================
    OTHER API CALLS (unchanged)
