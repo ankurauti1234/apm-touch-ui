@@ -788,35 +788,25 @@ def get_input_sources():
 @app.route("/api/video_detection", methods=["GET"])
 def check_video_detection():
     set_current_state("video_object_detection")
-
-    status_file = SYSTEM_FILES["video_detection"]
-
-    # File does NOT exist → detection hasn't started OR is finished
-    if not os.path.exists(status_file):
+    if os.path.exists(SYSTEM_FILES["video_detection"]):
+        try:
+            content = open(SYSTEM_FILES["video_detection"]).read().strip()
+            return jsonify({
+                "success": True,
+                "detected": True,
+                "status": content or "active"
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "success": False,
+                "error": f"Failed to read video_detection: {str(e)}"
+            }), 500
+    else:
         return jsonify({
             "success": True,
             "detected": False,
             "status": "not_running"
         }), 200
-
-    # File exists → detection in progress OR completed
-    try:
-        with open(status_file, "r") as f:
-            content = f.read().strip() or "running"
-
-        return jsonify({
-            "success": True,
-            "detected": True,
-            "status": content
-        }), 200
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "detected": False,
-            "status": "error",
-            "error": str(e)
-        }), 500
 
 
 @app.route("/api/members", methods=["GET"])
