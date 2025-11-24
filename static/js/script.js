@@ -1438,23 +1438,26 @@ if (!saver) {
 function updateClock() {
     const now = new Date();
 
-    // Time: 09:41 (24-hour format, no seconds)
+    // Time: 09:41 (24-hour format)
     const time = now.toLocaleTimeString([], { 
         hour: '2-digit', 
         minute: '2-digit' 
     });
 
-    // Date: Monday, 24 November 2025  ← NO comma after day, full month
-    const date = now.toLocaleDateString('en-IN', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    });
+    // Custom formatting to get: Monday, 24 November 2025
+    const weekday = now.toLocaleDateString('en-IN', { weekday: 'long' });     // Monday
+    const day     = now.getDate();                                             // 24
+    const month   = now.toLocaleDateString('en-IN', { month: 'long' });        // November
+    const year    = now.getFullYear();                                         // 2025
+
+    const date = `${weekday}, ${day} ${month} ${year}`;
 
     document.getElementById('clock-time').textContent = time;
     document.getElementById('clock-date').textContent = date;
 }
+
+setInterval(updateClock, 1000);
+updateClock(); // initial update
 setInterval(updateClock, 1000);
 updateClock();
 
