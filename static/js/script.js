@@ -56,7 +56,7 @@ const states = {
         <div class="loading"><div class="spinner"></div><p>Loading system...</p></div>`,
 
     welcome: () => `
-        <h1>Welcome to Indi Meter</h1>
+    <h1>Welcome to Indi Meter</h1>
         <p>Begin the installation process for your meter system.</p>
 
         <div class="separator"></div>
@@ -64,7 +64,8 @@ const states = {
         <button class="button" onclick="navigate('connect_select')">
             <span class="material-icons">play_arrow</span> Start Installation
         </button>
-        </div>`,
+        </div>
+       `,
 
     connect_select: (currentSSID = null) => `
         <h1>Select Connectivity</h1>
@@ -209,24 +210,77 @@ const states = {
         </div>`,
 
     finalize: (details) => `
-        <h1>Installation Summary</h1>
-        <p>Review your installation details</p>
-        <div id="error" class="error" style="display:none;"></div>
-        <table class="details-table">
-            <tr><th><span class="material-icons">electric_meter</span>Meter ID</th><td>${details.meter_id}</td></tr>
-            <tr><th><span class="material-icons">home</span>Household ID</th><td>${details.hhid || 'Not set'}</td></tr>
-            <tr><th><span class="material-icons">signal_cellular_alt</span>Connectivity</th><td>${details.connectivity}</td></tr>
-            <tr><th><span class="material-icons">input</span>Input Sources</th><td>${details.input_sources.join(', ') || 'None'}</td></tr>
-            <tr><th><span class="material-icons">videocam</span>Video Detection</th><td>${details.video_detection ? 'Working' : 'Not working'}</td></tr>
-        </table>
-        <div class="button-group">
-            <button class="button" onclick="finalizeInstallation()">
-                <span class="material-icons">check_circle</span> Finalize Installation
+    <div class="summary-container">
+    <div class="summary-header">
+        <h1><span class="material-icons icon-title">task_alt</span> Installation Summary</h1>
+        <p class="subtitle">Everything looks good! Review your setup before finalizing.</p>
+    </div>
+
+    <div id="error" class="error-banner" style="display:none;"></div>
+
+    <div class="summary-card">
+        <div class="card-grid">
+    
+        <div class="summary-item">
+            <div class="item-icon text-blue"><span class="material-icons">electric_meter</span></div>
+            <div class="item-content">
+            <div class="item-label">Meter ID</div>
+            <div class="item-value highlight">${details.meter_id}</div>
+            </div>
+        </div>
+    
+        <div class="summary-item">
+            <div class="item-icon text-purple"><span class="material-icons">home</span></div>
+            <div class="item-content">
+            <div class="item-label">Household ID</div>
+            <div class="item-value">${details.hhid || '<em>Not set</em>'}</div>
+            </div>
+        </div>
+    
+        <div class="summary-item">
+            <div class="item-icon text-green"><span class="material-icons">signal_cellular_alt</span></div>
+            <div class="item-content">
+            <div class="item-label">Connectivity</div>
+            <div class="item-value"><strong>${details.connectivity}</strong></div>
+            </div>
+        </div>
+    
+        <div class="summary-item">
+            <div class="item-icon text-orange"><span class="material-icons">input</span></div>
+            <div class="item-content">
+            <div class="item-label">Input Sources</div>
+            <div class="item-value">${details.input_sources.length ? details.input_sources.join(', ') : '<em>None detected</em>'}</div>
+            </div>
+        </div>
+    
+        <div class="summary-item ${details.video_detection ? 'success' : 'warning'}">
+            <div class="item-icon ${details.video_detection ? 'text-green' : 'text-red'}">
+            <span class="material-icons">${details.video_detection ? 'videocam' : 'videocam_off'}</span>
+            </div>
+            <div class="item-content">
+            <div class="item-label">Video Detection</div>
+            <div class="item-value bold ${details.video_detection ? 'text-green' : 'text-red'}">
+                ${details.video_detection ? 'Working perfectly' : 'Not detected'}
+                ${details.video_detection ? '<span class="checkmark">✓</span>' : '<span class="cross">✗</span>'}
+            </div>
+            </div>
+        </div>
+    
+        </div>
+    </div>
+  
+
+        <div class="button-group large">
+            <button class="button primary" onclick="finalizeInstallation()">
+                <span class="material-icons">check_circle</span>
+                Finalize Installation
             </button>
             <button class="button secondary" onclick="navigate('video_object_detection')">
-                <span class="material-icons">arrow_back</span> Back
+                <span class="material-icons">arrow_back</span>
+                Go Back
             </button>
-        </div>`,
+        </div>
+    </div>`,
 
     main: () => {
         const max = 8;
