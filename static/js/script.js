@@ -58,7 +58,6 @@ const states = {
     welcome: () => `
     <h1>Welcome to Indi Meter</h1>
         <p>Begin the installation process for your meter system.</p>
-
         <div class="separator"></div>
         <div class="button-group">
         <button class="button" onclick="navigate('connect_select')">
@@ -260,7 +259,7 @@ const states = {
             <div class="item-content">
             <div class="item-label">Video Detection</div>
             <div class="item-value bold ${details.video_detection ? 'text-green' : 'text-red'}">
-                ${details.video_detection ? 'Working perfectly' : 'Not detected'}
+                ${details.video_detection ? 'Active' : 'Not detected'}
                 ${details.video_detection ? '<span class="checkmark">✓</span>' : '<span class="cross">✗</span>'}
             </div>
             </div>

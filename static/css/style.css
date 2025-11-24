@@ -1090,7 +1090,7 @@ button:focus {
   
   .summary-item {
     background: #fff;
-    padding: 5px;
+    padding: 3px;
     border-radius: 14px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     display: flex;
@@ -1109,6 +1109,7 @@ button:focus {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 15px;
   }
   
   .item-content .item-label {
@@ -1117,7 +1118,7 @@ button:focus {
   }
   
   .item-content .item-value {
-    font-size: 18px;
+    font-size: 17px;
     margin-top: 4px;
     font-weight: 600;
   }
