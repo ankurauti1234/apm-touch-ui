@@ -1129,7 +1129,7 @@ button:focus {
 .summary-item {
     display: flex;
     align-items: center;
-    padding: 20px 24px;
+    padding: 15px 24px;
     background: white;
     transition: all 0.3s ease;
 }
