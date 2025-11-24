@@ -1445,9 +1445,9 @@ function updateClock() {
     });
 
     // Custom formatting to get: Monday, 24 November 2025
-    const weekday = now.toLocaleDateString('en-IN', { weekday: 'long' });     // Monday
+    const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });     // Monday
     const day     = now.getDate();                                             // 24
-    const month   = now.toLocaleDateString('en-IN', { month: 'long' });        // November
+    const month   = now.toLocaleDateString('en-IN', { month: 'short' });        // November
     const year    = now.getFullYear();                                         // 2025
 
     const date = `${weekday}, ${day} ${month} ${year}`;
