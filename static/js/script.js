@@ -1132,59 +1132,83 @@ function startInputSourceRetry() {
 /* ==============================================================
    VIDEO DETECTION API
    ============================================================== */
+// GLOBAL retry interval
+let videoDetectionRetryInterval = null;
+
+// MAIN detection function (same behavior as fetchInputSources)
 async function checkVideoDetection() {
-const loading = document.getElementById('video-loading');
-const results = document.getElementById('video-results');
-const status = document.getElementById('video-status');
-const buttonGroup = document.querySelector('.button-group');
+    const loading = document.getElementById('video-loading');
+    const results = document.getElementById('video-results');
+    const status = document.getElementById('video-status');
+    const buttonGroup = document.querySelector('.button-group');
 
-const checkMessage = document.getElementById('checking-video');
-const successMessage = document.getElementById('video-success');
+    const checkMessage = document.getElementById('checking-video');
+    const successMessage = document.getElementById('video-success');
 
-if (!loading || !results || !status || !buttonGroup) return;
+    if (!loading || !results || !status || !buttonGroup) return;
 
-try {
-    const r = await fetch('/api/video_detection');
-    const d = await r.json();
+    try {
+        const r = await fetch('/api/video_detection');
+        const d = await r.json();
 
-    if (d.success && d.detected) {
-        // SUCCESS
-        status.innerHTML = `
-            <div class="success">
-                <span class="material-icons">check_circle</span> 
-                Video detection active: ${d.status}
-            </div>`;
-        status.dataset.detected = 'true';
+        if (d.success && d.detected) {
+            // SUCCESS
+            status.innerHTML = `
+                <div class="success">
+                    <span class="material-icons">check_circle</span> 
+                    Video detection active: ${d.status}
+                </div>`;
+            status.dataset.detected = 'true';
 
-        checkMessage.style.display = 'none';
-        successMessage.style.display = 'block';
+            checkMessage.style.display = 'none';
+            successMessage.style.display = 'block';
 
-        // Remove existing next button
-        const existingNext = buttonGroup.querySelector('button[data-action="next"]');
-        if (existingNext) existingNext.remove();
+            // Remove existing next button
+            const existingNext = buttonGroup.querySelector('button[data-action="next"]');
+            if (existingNext) existingNext.remove();
 
-        buttonGroup.insertAdjacentHTML('afterbegin', `
-            <button class="button" data-action="next" onclick="navigate('finalize')">
-                <span class="material-icons">arrow_forward</span> Next
-            </button>
-        `);
+            buttonGroup.insertAdjacentHTML('afterbegin', `
+                <button class="button" data-action="next" onclick="navigate('finalize')">
+                    <span class="material-icons">arrow_forward</span> Next
+                </button>
+            `);
 
-        // STOP RETRY LOOP SINCE SUCCESS
-        if (videoDetectionRetryInterval) {
-            clearInterval(videoDetectionRetryInterval);
-            videoDetectionRetryInterval = null;
+            // SUCCESS → STOP RETRY LOOP
+            if (videoDetectionRetryInterval) {
+                clearInterval(videoDetectionRetryInterval);
+                videoDetectionRetryInterval = null;
+            }
+
+        } else {
+            // FAILURE → show waiting status
+            status.innerHTML = `
+                <div class="info">
+                    <span class="material-icons">info</span> 
+                    Video detection not running
+                </div>`;
+            status.dataset.detected = 'false';
+
+            // Replace manual retry button
+            const existingRetry = buttonGroup.querySelector('button[data-action="retry"]');
+            if (existingRetry) existingRetry.remove();
+
+            buttonGroup.insertAdjacentHTML('afterbegin', `
+                <button class="button" data-action="retry" onclick="checkVideoDetection()">
+                    <span class="material-icons">refresh</span> Retry Now
+                </button>
+            `);
         }
 
-    } else {
-        // FAILURE (not detected)
+    } catch (e) {
+        // NETWORK/API FAILURE
         status.innerHTML = `
-            <div class="info">
-                <span class="material-icons">info</span> 
-                Video detection not running
+            <div class="error">
+                <span class="material-icons">error</span> 
+                Detection failed
             </div>`;
         status.dataset.detected = 'false';
 
-        // Remove old retry button
+        // Add manual retry button
         const existingRetry = buttonGroup.querySelector('button[data-action="retry"]');
         if (existingRetry) existingRetry.remove();
 
@@ -1193,31 +1217,36 @@ try {
                 <span class="material-icons">refresh</span> Retry Now
             </button>
         `);
+    } finally {
+        loading.style.display = 'none';
+        results.style.display = 'block';
+    }
+}
+
+// AUTO-RETRY LOOP (same pattern as input source detection)
+function startVideoDetectionRetry() {
+    console.log('Starting video detection retry loop');
+
+    // Stop any existing interval
+    if (videoDetectionRetryInterval) {
+        clearInterval(videoDetectionRetryInterval);
+        videoDetectionRetryInterval = null;
     }
 
-} catch (e) {
-    // NETWORK OR API FAILURE
-    status.innerHTML = `
-        <div class="error">
-            <span class="material-icons">error</span> 
-            Detection failed
-        </div>`;
-    status.dataset.detected = 'false';
+    // FIRST immediate detection attempt
+    checkVideoDetection();
 
-    // Add manual retry button
-    const existingRetry = buttonGroup.querySelector('button[data-action="retry"]');
-    if (existingRetry) existingRetry.remove();
+    // Auto retry every 3 seconds
+    videoDetectionRetryInterval = setInterval(() => {
+        if (currentState === 'video_detection') {
+            checkVideoDetection();
+        } else {
+            clearInterval(videoDetectionRetryInterval);
+            videoDetectionRetryInterval = null;
+        }
+    }, 3000);
+}
 
-    buttonGroup.insertAdjacentHTML('afterbegin', `
-        <button class="button" data-action="retry" onclick="checkVideoDetection()">
-            <span class="material-icons">refresh</span> Retry Now
-        </button>
-    `);
-} finally {
-    loading.style.display = 'none';
-    results.style.display = 'block';
-}
-}
 
 
 /* ==============================================================
