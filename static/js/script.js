@@ -975,27 +975,48 @@ function showSettingsPopup() {
     popup.id = 'settings-popup';
     popup.className = 'popup';
     popup.innerHTML = `
-    <h2 style="margin-top: 0;"><span class="material-icons settings-icon" >settings</span> Settings</h2>
-
-    <div id="brightness-container">
-      <label for="brightness-slider" id="brightness-logo">☀</label>
-      <input type="range" id="brightness-slider" min="0" max="255" step="1" value="153" style="width:300px;">
+    <div id="settings-popup" class="popup settings-popup">
+    <div class="popup-header">
+        <h2>
+            <span class="material-icons" style="font-size:2.2rem; color:var(--primary);">settings</span>
+            Settings
+        </h2>
+        <button class="close-btn" onclick="closeSettingsPopup()" aria-label="Close">
+            <span class="material-icons">close</span>
+        </button>
     </div>
 
-    <div id="settings-content">
-      <button class="button" onclick="showWiFiPopup()">
-        <span class="material-icons">wifi</span><span>Wi-Fi</span>
-      </button>
-      <button class="button" onclick="restart()">
-        <span class="material-icons">restart_alt</span><span>Reboot</span>
-      </button>
-      <button class="button" onclick="shutdown()">
-        <span class="material-icons">power_settings_new</span><span>Shutdown</span>
-      </button>
+    <!-- Brightness Control -->
+    <div class="setting-item brightness-control">
+        <div class="setting-label">
+            <span class="material-icons">brightness_medium</span>
+            <span>Brightness</span>
+        </div>
+        <div class="brightness-wrapper">
+            <span class="sun-icon">Sun</span>
+            <input type="range" id="brightness-slider" min="51" max="255" step="1" value="180">
+            <span class="sun-icon moon">Moon</span>
+        </div>
     </div>
 
-    <button class="button secondary" style="position: absolute; top: 1rem; right: 1rem;" onclick="closeSettingsPopup()">✖</button>
-  `;
+    <!-- Action Buttons -->
+    <div class="settings-grid">
+        <button class="setting-btn wifi-btn" onclick="showWiFiPopup()">
+            <span class="material-icons">wifi</span>
+            <span>Wi-Fi Network</span>
+        </button>
+
+        <button class="setting-btn reboot-btn" onclick="restart()">
+            <span class="material-icons">refresh</span>
+            <span>Reboot System</span>
+        </button>
+
+        <button class="setting-btn shutdown-btn" onclick="shutdown()">
+            <span class="material-icons">power_settings_new</span>
+            <span>Shutdown</span>
+        </button>
+    </div>
+</div> `;
 
     document.body.append(overlay, popup);
 
