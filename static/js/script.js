@@ -423,34 +423,6 @@ function toggleShift() {
 }
 
 
-async function retryOTP() {
-    if (!CURRENT_HHID) {
-        showError("HHID missing. Please go back and enter HHID again.");
-        return;
-    }
-
-    try {
-        showLoader(true);
-        const r = await fetch('/api/submit_hhid', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ hhid: CURRENT_HHID })
-        });
-
-        const data = await r.json();
-
-        if (data.success) {
-            showError("OTP resent! Check your email.", "success");
-        } else {
-            showError(data.error || "Failed to resend OTP");
-        }
-    } catch (e) {
-        showError("Network error while resending OTP");
-    } finally {
-        showLoader(false);
-    }
-}
-
 
 
 /**
@@ -1377,6 +1349,33 @@ async function submitOTP() {
         else showError(d.error || 'Invalid OTP');
     } catch { showError('Network error'); }
     finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP'; } }
+}
+async function retryOTP() {
+    if (!CURRENT_HHID) {
+        showError("HHID missing. Please go back and enter HHID again.");
+        return;
+    }
+
+    try {
+        showLoader(true);
+        const r = await fetch('/api/submit_hhid', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hhid: CURRENT_HHID })
+        });
+
+        const data = await r.json();
+
+        if (data.success) {
+            showError("OTP resent! Check your email.", "success");
+        } else {
+            showError(data.error || "Failed to resend OTP");
+        }
+    } catch (e) {
+        showError("Network error while resending OTP");
+    } finally {
+        showLoader(false);
+    }
 }
 async function finalizeInstallation() {
     const btn = event?.target;
