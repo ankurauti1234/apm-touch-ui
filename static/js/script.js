@@ -422,6 +422,37 @@ function toggleShift() {
     renderKeys();
 }
 
+
+async function retryOTP() {
+    if (!CURRENT_HHID) {
+        showError("HHID missing. Please go back and enter HHID again.");
+        return;
+    }
+
+    try {
+        showLoader(true);
+        const r = await fetch('/api/submit_hhid', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hhid: CURRENT_HHID })
+        });
+
+        const data = await r.json();
+
+        if (data.success) {
+            showError("OTP resent! Check your email.", "success");
+        } else {
+            showError(data.error || "Failed to resend OTP");
+        }
+    } catch (e) {
+        showError("Network error while resending OTP");
+    } finally {
+        showLoader(false);
+    }
+}
+
+
+
 /**
  * ==================================================================
  * ENFORCE HHID FORMAT: "HH" + UP TO 4 DIGITS → e.g. HH1234
@@ -993,9 +1024,9 @@ function showSettingsPopup() {
             <span>Brightness</span>
         </div>
         <div class="brightness-wrapper">
-            <span class="sun-icon">Moon</span>
+            <span class="sun-icon moon">Moon</span>
             <input type="range" id="brightness-slider" min="51" max="255" step="1" value="180">
-            <span class="sun-icon moon">Sun</span>
+            <span class="sun-icon">Sun</span>
         </div>
     </div>
 
@@ -1307,8 +1338,13 @@ async function checkWiFi() {
         } else showWiFiPopup();
     } catch { showError('Wi-Fi check failed'); showWiFiPopup(); }
 }
+
+let CURRENT_HHID = null;
+
 async function submitHHID() {
     hhid = document.getElementById('hhid')?.value.trim();
+    CURRENT_HHID = hhid; 
+
     if (!hhid) return showError('Enter HHID');
 
     // --- VALIDATION RULES ---
@@ -1337,7 +1373,7 @@ async function submitOTP() {
     try {
         const r = await fetch('/api/submit_otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hhid, otp }) });
         const d = await r.json();
-        if (d.success) navigate('input_source_detection');
+        if (d.success){ CURRENT_HHID = null; navigate('input_source_detection');}
         else showError(d.error || 'Invalid OTP');
     } catch { showError('Network error'); }
     finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP'; } }
