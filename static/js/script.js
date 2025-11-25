@@ -178,8 +178,8 @@ const states = {
             <button class="button" onclick="submitOTP()">
                 <span class="material-icons">verified</span> Verify OTP
             </button>
-            <button class="button secondary" onclick="navigate('hhid_input')">
-                <span class="material-icons">arrow_back</span> Retry OTP
+            <button class="button secondary" onclick="resendOTP()">
+                <span class="material-icons">refresh</span> Retry OTP
             </button>
         </div>`,
 
