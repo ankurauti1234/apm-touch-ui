@@ -44,7 +44,7 @@ CORS(app)
 DEVICE_CONFIG = {
     "device_id_file": "/var/lib/device_id.txt",
     "hhid_file": "/var/lib/hhid.txt",
-    "default_meter_id": "AM100003",
+    # "default_meter_id": "AM100003",
     "members_file": "/var/lib/meter_members.json",
     "certs_dir": "/opt/apm/certs"
 }
@@ -59,6 +59,23 @@ SYSTEM_FILES = {
     "current_state": "/var/lib/current_state",
 }
 
+def get_meter_id():
+    device_id_file = DEVICE_CONFIG["device_id_file"]
+    
+    if os.path.exists(device_id_file):
+        try:
+            with open(device_id_file, "r") as f:
+                meter_id = f.read().strip()
+                if meter_id:                    # not empty
+                    return meter_id
+        except Exception as e:
+            print(f"[CONFIG] Failed to read {device_id_file}: {e}")
+    
+    # If file doesn't exist or is empty → fall back
+    fallback = DEVICE_CONFIG.get("default_meter_id", "IM000000")
+    print(f"[CONFIG] Using fallback meter ID: {fallback}")
+    return fallback
+
 # ----------------------------------------------------------------------
 # 4. Load meter-id
 # ----------------------------------------------------------------------
@@ -66,7 +83,7 @@ try:
     with open(DEVICE_CONFIG["device_id_file"], "r") as f:
         METER_ID = f.read().strip()
 except FileNotFoundError:
-    METER_ID = DEVICE_CONFIG["default_meter_id"]
+    METER_ID = get_meter_id()
 print(f"[INFO] METER_ID = {METER_ID}")
 
 # ----------------------------------------------------------------------
@@ -237,7 +254,7 @@ def _mqtt_worker():
         keyfile, certfile, cafile = cert_paths
 
         try:
-            client = mqtt.Client(client_id=METER_ID, clean_session=False)
+            client = mqtt.Client(client_id=METER_ID, callback_api_version=CallbackAPIVersion.VERSION2, clean_session=False)
             client.tls_set(ca_certs=cafile, certfile=certfile, keyfile=keyfile,
                            tls_version=ssl.PROTOCOL_TLSv1_2)
             client.on_connect = on_connect
