@@ -1028,9 +1028,9 @@ function showSettingsPopup() {
             <span>Brightness</span>
         </div>
         <div class="brightness-wrapper">
-            <span class="sun-icon moon">Moon</span>
+            <span class="sun-icon moon">0</span>
             <input type="range" id="brightness-slider" min="51" max="255" step="1" value="180">
-            <span class="sun-icon">Sun</span>
+            <span class="sun-icon">100</span>
         </div>
     </div>
 
