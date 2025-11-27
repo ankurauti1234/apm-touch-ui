@@ -756,17 +756,20 @@ def get_input_sources():
     # set_current_state("input_source_detection")
     print('"/api/input_sources" called')
 
+    # if os.path.exists(SYSTEM_FILES["jack_status"]):
+    #     try:
+    #         status = open(SYSTEM_FILES["jack_status"]).read().strip()
+    #         if status == "line_in":
+    #             sources.append("line_in")
+    #         elif status == "internal":
+    #             sources.append("internal")
+    #         else:
+    #             errors.append(f"Unknown jack_status: {status}")
+    #     except Exception as e:
+    #         errors.append(f"Error reading jack_status: {str(e)}")
+
     if os.path.exists(SYSTEM_FILES["jack_status"]):
-        try:
-            status = open(SYSTEM_FILES["jack_status"]).read().strip()
-            if status == "line_in":
-                sources.append("line_in")
-            elif status == "internal":
-                sources.append("internal")
-            else:
-                errors.append(f"Unknown jack_status: {status}")
-        except Exception as e:
-            errors.append(f"Error reading jack_status: {str(e)}")
+        sources.append("line_in")
 
     if os.path.exists(SYSTEM_FILES["hdmi_input"]):
         sources.append("HDMI")
