@@ -849,14 +849,14 @@ function initWiFiLift() {
                 ">
                 <span class="material-icons" id="eye-icon">visibility</span>
             </button>
-        div>
+        </div>
 
         <div style="width:100%; display:flex;justify-content:center;align-items:center;">
             <div class="loading" id="wifi-loading" style="display:none;">
                 <div class="spinner" style="position:relative; left:35px;">div>
                 <div>Connecting...div>
-            div>
-        div>
+            </div>
+        </div>
 
         <div class="button-group">
             <button class="button" onclick="connectWiFi()">Connectbutton>
@@ -1069,9 +1069,9 @@ function showSettingsPopup() {
             <span>Brightness</span>
         </div>
         <div class="brightness-wrapper">
-            <span class="sun-icon moon">Moon</span>
+            <span class="sun-icon moon">0</span>
             <input type="range" id="brightness-slider" min="51" max="255" step="1" value="180">
-            <span class="sun-icon">Sun</span>
+            <span class="sun-icon">100</span>
         </div>
     </div>
 
