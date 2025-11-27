@@ -798,7 +798,7 @@ function initWiFiLift() {
 /* --------------------------------------------------------------
    Call initWiFiLift() right after the popup is created
    -------------------------------------------------------------- */
-async function showWiFiPopup() {
+   async function showWiFiPopup() {
     closeSettingsPopup();
     closeWiFiPopup();
 
@@ -810,11 +810,11 @@ async function showWiFiPopup() {
     const popup = document.createElement('div');
     popup.id = 'wifi-popup';
     popup.className = 'popup';
-
     popup.innerHTML = `
         <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
         <p>Choose a network to connect</p>
         <div id="wifi-error" class="error" style="display:none;"></div>
+
         <div id="custom-select" class="custom-select">
             <div id="selected-network" class="selected-item">
                 <span id="fetching">Select Network</span>
@@ -822,29 +822,57 @@ async function showWiFiPopup() {
             </div>
             <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
         </div>
-        <input type="password" id="password" placeholder="Password" style="display:none;">
+
+        <!-- PASSWORD FIELD WITH SHOW/HIDE TOGGLE -->
+        <div class="password-wrapper" style="position:relative; display:none;" id="password-wrapper">
+            <input 
+                type="password" 
+                id="password" 
+                placeholder="Password" 
+                autocomplete="off"
+                onfocus="showKeyboard(this)">
+            <button 
+                type="button" 
+                class="toggle-password"
+                onclick="togglePasswordVisibility()"
+                style="
+                    position:absolute;
+                    right:12px;
+                    top:50%;
+                    transform:translateY(-50%);
+                    background:none;
+                    border:none;
+                    color:var(--muted-foreground);
+                    cursor:pointer;
+                    padding:4px;
+                    border-radius:4px;
+                ">
+                <span class="material-icons" id="eye-icon">visibility</span>
+            </button>
+        div>
+
         <div style="width:100%; display:flex;justify-content:center;align-items:center;">
             <div class="loading" id="wifi-loading" style="display:none;">
-                <div class="spinner" style="position:relative; left:35px;"></div>
-                <div>Connecting...</div>
-            </div>
-        </div>
+                <div class="spinner" style="position:relative; left:35px;">div>
+                <div>Connecting...div>
+            div>
+        div>
+
         <div class="button-group">
-            <button class="button" onclick="connectWiFi()">Connect</button>
-            <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
-            <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
-        </div>`;
+            <button class="button" onclick="connectWiFi()">Connectbutton>
+            <button class="button secondary" onclick="disconnectWiFi()">Disconnectbutton>
+            <button class="button secondary" onclick="closeWiFiPopup()">Closebutton>
+        div>
+    `;
+
     document.body.append(overlay, popup);
 
-    // fetching networks message
+    // Fetch networks
     const mess = document.getElementById('fetching');
     mess.innerHTML = 'fetching wifi...';
-
     await scanWiFi();
 
-    // Optional: Auto-open dropdown for better touch UX
     setTimeout(() => {
-
         const trigger = document.getElementById('selected-network');
         const list = document.getElementById('network-list');
         if (trigger && list && list.children.length > 0) {
@@ -854,10 +882,9 @@ async function showWiFiPopup() {
         mess.innerHTML = 'Select Network';
     }, 200);
 
-    // <<< NEW >>> initialise lift behaviour
     initWiFiLift();
 
-    // Custom dropdown touch handler
+    // Custom dropdown handlers
     document.getElementById('selected-network').onclick = (e) => {
         e.stopPropagation();
         const list = document.getElementById('network-list');
@@ -866,7 +893,6 @@ async function showWiFiPopup() {
         e.target.classList.toggle('open', !isOpen);
     };
 
-    // Close dropdown when clicking outside
     document.getElementById('wifi-overlay').onclick = () => {
         const list = document.getElementById('network-list');
         const sel = document.getElementById('selected-network');
@@ -874,6 +900,19 @@ async function showWiFiPopup() {
         if (sel) sel.classList.remove('open');
         closeWiFiPopup();
     };
+}
+
+function togglePasswordVisibility() {
+    const passwordField = document.getElementById('password');
+    const eyeIcon = document.getElementById('eye-icon');
+
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        eyeIcon.textContent = 'visibility_off';
+    } else {
+        passwordField.type = 'password';
+        eyeIcon.textContent = 'visibility';
+    }
 }
 
 let selectedSSID = '';
@@ -944,10 +983,12 @@ async function scanWiFi() {
 }
 
 function togglePasswordField() {
-    const pw = document.getElementById('password');
-    // const ss = document.getElementById('ssid');
-    if (pw) pw.style.display = selectedSSID ? 'block' : 'none';
+    const wrapper = document.getElementById('password-wrapper');
+    if (wrapper) {
+        wrapper.style.display = selectedSSID ? 'block' : 'none';
+    }
 }
+
 async function connectWiFi() {
     const loading = document.getElementById('wifi-loading');
     // const ssid = document.getElementById('ssid')?.value;
