@@ -1253,26 +1253,32 @@ async function fetchInputSources() {
                 <li><span class="material-icons">input</span> ${s}</li>
             `).join('');
 
-            // Clear old buttons
+            // CLEAR OLD BUTTONS
             buttonGroup.innerHTML = '';
 
-            // Check if ANY source contains "line in" (case-insensitive)
-            const isLineIn = d.sources.some(src => 
-                src.toLowerCase().includes('line_in')
-            );
+            // CHECK FOR "line in" – cover ALL common formats
+            const hasLineIn = d.sources.some(src => {
+                const lower = src.toLowerCase();
+                return lower.includes('line in') || 
+                       // "Line In Camera"
+                       lower.includes('line-in') ||                       // "line-in"
+                       lower.includes('line_in') ||                       // "line_in" (underscore)
+                       lower.includes('builtin') ||                       // safety
+                       lower.includes('integrated') ||
+                       lower.includes('inline');
+            });
 
-            if (!isLineIn) {
-                // "line in" detected → auto-skip video detection
+            if (hasLineIn) {
+                // LINE-IN / BUILT-IN CAMERA → SKIP VIDEO TEST
                 buttonGroup.innerHTML = `
                     <button class="button success" onclick="navigate('finalize')">
                         <span class="material-icons">arrow_forward</span>
-                        Continue (Line-In Camera Detected)
+                        Continue to Summary
                     </button>
                 `;
-                showError('Line-In camera detected – skipping video test', 'success');
-                console.log("Line-In input source found → skipping video_object_detection");
+                showError('Built-in/Line-In camera detected – skipping video test', 'success');
             } else {
-                // Normal external camera → go to video test
+                // EXTERNAL CAMERA → go to video detection
                 buttonGroup.innerHTML = `
                     <button class="button" onclick="navigate('video_object_detection')">
                         <span class="material-icons">arrow_forward</span> Next
@@ -1280,7 +1286,7 @@ async function fetchInputSources() {
                 `;
             }
 
-            // Stop auto-retry on success
+            // Stop retry loop
             if (inputSourceRetryInterval) {
                 clearInterval(inputSourceRetryInterval);
                 inputSourceRetryInterval = null;
@@ -1288,7 +1294,7 @@ async function fetchInputSources() {
 
             showError('Input sources detected!', 'success');
         } else {
-            throw new Error('No sources detected');
+            throw new Error('No sources');
         }
     } catch (e) {
         inputSources = [];
