@@ -248,13 +248,14 @@ def _mqtt_worker():
     while True:
         cert_paths = get_cert_paths()
         if not cert_paths:
-            time.sleep(10)  # retry faster when certs are missing
+            time.sleep(10)
             continue
 
         keyfile, certfile, cafile = cert_paths
 
         try:
-            client = mqtt.Client(client_id=METER_ID, callback_api_version=CallbackAPIVersion.VERSION2, clean_session=False)
+            # Remove the callback_api_version parameter to match the working code
+            client = mqtt.Client(client_id=METER_ID, clean_session=False)
             client.tls_set(ca_certs=cafile, certfile=certfile, keyfile=keyfile,
                            tls_version=ssl.PROTOCOL_TLSv1_2)
             client.on_connect = on_connect
@@ -263,7 +264,7 @@ def _mqtt_worker():
 
             _mqtt_log(f"Connecting to {AWS_IOT_ENDPOINT}:8883")
             client.connect(AWS_IOT_ENDPOINT, 8883, keepalive=60)
-            client.loop_forever()  # blocks until disconnect
+            client.loop_forever()
         except Exception as e:
             _mqtt_log(f"MQTT ERROR: {e}")
 
