@@ -1307,19 +1307,19 @@ async function fetchInputSources() {
         const r = await fetch('/api/input_sources');
         const d = await r.json();
 
-        if (d.success && d.sources?.length > 0) {
+        if (d.success && d.input_sources?.length > 0) {
             inputSources = d.sources;
 
-            ul.innerHTML = d.sources.map(s => `
+            ul.innerHTML = d.input_sources.map(s => `
                 <li><span class="material-icons">input</span> ${s}</li>
             `).join('');
 
             // CLEAR OLD BUTTONS
             buttonGroup.innerHTML = '';
-            console.log(d.sources)
+            console.log(d.input_sources)
 
             // CHECK FOR "line in" – cover ALL common formats
-            const hasLineIn = d.sources.some(src => {
+            const hasLineIn = d.input_sources.some(src => {
                 const lower = src.toLowerCase();
                 return lower.includes('line in') || 
                        // "Line In Camera"
