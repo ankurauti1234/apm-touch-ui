@@ -1309,52 +1309,61 @@
 
         if (d.success && d.sources?.length > 0) {
             inputSources = d.sources;
+
+            // Show detected sources
             ul.innerHTML = d.sources.map(s => `
                 <li><span class="material-icons">input</span> ${s}</li>
             `).join('');
 
-            // Replace any existing button with "Next"
-            const existingNext = buttonGroup.querySelector('button[data-action="next"]');
-            if (existingNext) existingNext.remove();
+            // Clear any old button
+            buttonGroup.innerHTML = '';
 
-            buttonGroup.insertAdjacentHTML('afterbegin', `
-                <button class="button" data-action="next" onclick="navigate('video_object_detection')">
+            // Check if line_in is present
+            if (d.sources.includes('line_in')) {
+                // Built-in camera → SKIP EVERYTHING and go directly to finalize
+                showError('Built-in camera detected – proceeding to summary', 'success');
+                
+                // Small delay so user sees the message and list
+                setTimeout(() => {
+                    navigate('finalize');
+                }, 1200);
+
+                return; // Exit early – no button needed
+            }
+
+            // Normal case: external camera → show "Next" button
+            buttonGroup.innerHTML = `
+                <button class="button" onclick="navigate('video_object_detection')">
                     <span class="material-icons">arrow_forward</span> Next
                 </button>
-            `);
+            `;
 
-            // SUCCESS: Stop retry loop
+            // Stop auto-retry
             if (inputSourceRetryInterval) {
                 clearInterval(inputSourceRetryInterval);
                 inputSourceRetryInterval = null;
             }
 
             showError('Input sources detected!', 'success');
+
         } else {
             throw new Error(d.error || 'No sources detected');
         }
+
     } catch (e) {
-        // FAILURE: Keep retrying
         inputSources = [];
         ul.innerHTML = '<li><span class="material-icons">hourglass_top</span> Waiting for input sources...</li>';
-
-        // Replace button with "Retry Now" (manual override)
-        const existingRetry = buttonGroup.querySelector('button[data-action="retry"]');
-        if (existingRetry) existingRetry.remove();
-
-        buttonGroup.insertAdjacentHTML('afterbegin', `
-            <button class="button" data-action="retry" onclick="fetchInputSources()">
+        buttonGroup.innerHTML = `
+            <button class="button" onclick="fetchInputSources()">
                 <span class="material-icons">refresh</span> Retry Now
             </button>
-        `);
-
-        if (e.message) showError(e.message);
+        `;
+        showError('Waiting for camera...');
     } finally {
         loading.style.display = 'none';
         results.style.display = 'block';
     }
 }
-   
    // Start auto-retry when entering input_source_detection
    function startInputSourceRetry() {
        console.log('Starting input source detection retry loop');
