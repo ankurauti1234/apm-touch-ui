@@ -860,44 +860,93 @@ async function showWiFiPopup() {
         </div>
 
         <!-- PASSWORD AREA -->
-        <div class="password-wrapper" id="password-wrapper" style="position:relative;">
-            
-            <input 
-                type="password" 
-                id="password" 
-                placeholder="Password" 
-                autocomplete="off"
-                onfocus="showKeyboard(this)">
+        <div class="password-wrapper" id="password-wrapper" style="position:relative; width:100%; max-width:400px; margin:0 auto;">
+  
+  <!-- Password Input + Eye Icon Container -->
+  <div style="position:relative; display:flex; align-items:center;">
+    
+    <input 
+        type="password" 
+        id="password" 
+        placeholder="Password" 
+        autocomplete="off"
+        style="
+            width:100%;
+            padding:12px 48px 12px 12px;
+            border:1px solid #ccc;
+            border-radius:8px;
+            font-size:16px;
+            outline:none;
+        "
+        onfocus="showKeyboard(this)"
+    >
 
-            <button 
-                type="button" 
-                class="toggle-password"
-                onclick="togglePasswordVisibility()"
-                style="
-                    position:absolute;
-                    right:12px;
-                    top:50%;
-                    transform:translateY(-50%);
-                    background:none;
-                    border:none;
-                    color:var(--muted-foreground);
-                    cursor:pointer;
-                ">
-                <span class="material-icons" id="eye-icon">visibility</span>
-            </button>
+    <!-- Toggle visibility button (eye icon) -->
+    <button 
+        type="button" 
+        class="toggle-password"
+        onclick="togglePasswordVisibility()"
+        style="
+            position:absolute;
+            right:8px;
+            background:none;
+            border:none;
+            cursor:pointer;
+            padding:8px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#666;
+        "
+        aria-label="Toggle password visibility">
+        <span class="material-icons" id="eye-icon" style="font-size:24px;">visibility</span>
+    </button>
+  </div>
 
-            <div class="loading" id="wifi-loading" style="display:none; text-align:center;">
-                <div class="spinner"></div>
-                <div>Connecting...</div>
-            </div>
+  <!-- Loading indicator (centered below the input) -->
+  <div id="wifi-loading" style="display:none; text-align:center; margin-top:12px;">
+    <div class="spinner" style="
+        border:4px solid #f3f3f3;
+        border-top:4px solid #3498db;
+        border-radius:50%;
+        width:32px;
+        height:32px;
+        animation:spin 1s linear infinite;
+        margin:0 auto 8px;
+    "></div>
+    <div>Connecting...</div>
+  </div>
 
-            <!-- BUTTON GROUP ALWAYS VISIBLE -->
-            <div class="button-group" style="margin-top:20px; display:flex; gap:10px;">
-                <button class="button" onclick="connectWiFi()">Connect</button>
-                <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
-                <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
-            </div>
-        </div>
+  <!-- Button group - always visible -->
+  <div class="button-group" style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+    <button class="button" onclick="connectWiFi()" style="
+        padding:10px 20px;
+        background:#0066ff;
+        color:white;
+        border:none;
+        border-radius:8px;
+        cursor:pointer;
+    ">Connect</button>
+    
+    <button class="button secondary" onclick="disconnectWiFi()" style="
+        padding:10px 20px;
+        background:#f0f0f0;
+        color:#333;
+        border:1px solid #ccc;
+        border-radius:8px;
+        cursor:pointer;
+    ">Disconnect</button>
+    
+    <button class="button secondary" onclick="closeWiFiPopup()" style="
+        padding:10px 20px;
+        background:#f0f0f0;
+        color:#333;
+        border:1px solid #ccc;
+        border-radius:8px;
+        cursor:pointer;
+    ">Close</button>
+  </div>
+</div>
     `;
 
     document.body.appendChild(overlay);
@@ -940,17 +989,27 @@ async function showWiFiPopup() {
 
 
 function togglePasswordVisibility() {
-    const passwordField = document.getElementById('password');
-    const eyeIcon = document.getElementById('eye-icon');
-
-    if (passwordField.type === 'password') {
-        passwordField.type = 'text';
-        eyeIcon.textContent = 'visibility_off';
+    const input = document.getElementById('password');
+    const icon = document.getElementById('eye-icon');
+    
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.textContent = 'visibility_off';
     } else {
-        passwordField.type = 'password';
-        eyeIcon.textContent = 'visibility';
+      input.type = 'password';
+      icon.textContent = 'visibility';
     }
-}
+  }
+  
+  /* Spinner animation */
+  const style = document.createElement('style');
+  style.textContent = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  `;
+  document.head.appendChild(style);
 
 let selectedSSID = '';
 
