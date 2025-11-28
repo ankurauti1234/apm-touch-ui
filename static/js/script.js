@@ -1261,7 +1261,7 @@ async function fetchInputSources() {
                 src.toLowerCase().includes('line_in')
             );
 
-            if (isLineIn) {
+            if (!isLineIn) {
                 // "line in" detected → auto-skip video detection
                 buttonGroup.innerHTML = `
                     <button class="button success" onclick="navigate('finalize')">
