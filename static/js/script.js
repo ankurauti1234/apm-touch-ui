@@ -1255,6 +1255,7 @@ async function fetchInputSources() {
 
             // CLEAR OLD BUTTONS
             buttonGroup.innerHTML = '';
+            console.log(d.sources)
 
             // CHECK FOR "line in" – cover ALL common formats
             const hasLineIn = d.sources.some(src => {
