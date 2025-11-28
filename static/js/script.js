@@ -97,7 +97,12 @@ const states = {
                     <span class="material-icons">cell_tower</span> GSM
                 </button>
             </div>
-        `}`,
+        `}
+        <div class="bottom-bar-allpage">
+            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        </div>
+        <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+        </div>`,
 
     network_test: (status = null) => `
         <h1>Network Test</h1>
@@ -124,7 +129,12 @@ const states = {
             </div>
         ` : `
             <div class="loading"><div class="spinner"></div><p>Testing connection...</p></div>
-        `}`,
+        `}
+        <div class="bottom-bar-allpage">
+            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        </div>
+        <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+        </div>`,
 
     display_meter: () => `
         <h1>Meter ID</h1>
@@ -142,6 +152,11 @@ const states = {
             <button class="button secondary" onclick="navigate('connect_select')">
                 <span class="material-icons">arrow_back</span> Back
             </button>
+        </div>
+        <div class="bottom-bar-allpage">
+            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        </div>
+        <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>`,
 
     hhid_input: () => `
@@ -169,6 +184,11 @@ const states = {
             <button class="button secondary" onclick="navigate('display_meter')">
                 <span class="material-icons">arrow_back</span> Back
             </button>
+        </div>
+        <div class="bottom-bar-allpage">
+            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        </div>
+        <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>`,
 
         otp_verification: () => `
@@ -197,6 +217,11 @@ const states = {
                 <span class="material-icons">refresh</span> Resend OTP
             </button>
         </div>
+        <div class="bottom-bar-allpage">
+            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        </div>
+        <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+        </div>
     `,
 
     input_source_detection: () => `
@@ -211,6 +236,11 @@ const states = {
         <div class="button-group">
         </div>
     </div>
+    <div class="bottom-bar-allpage">
+        <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+    </div>
+    <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+    </div>
 `,
 
     video_object_detection: () => `
@@ -222,6 +252,11 @@ const states = {
             <div id="video-status"></div>
             <div class="button-group">
             </div>
+        </div>
+        <div class="bottom-bar-allpage">
+            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        </div>
+        <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>`,
 
     finalize: (details) => `
