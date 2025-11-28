@@ -845,6 +845,7 @@ function initWiFiLift() {
     const popup = document.createElement('div');
     popup.id = 'wifi-popup';
     popup.className = 'popup';
+
     popup.innerHTML = `
         <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
         <p>Choose a network to connect</p>
@@ -858,14 +859,16 @@ function initWiFiLift() {
             <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
         </div>
 
-        <!-- PASSWORD FIELD WITH SHOW/HIDE TOGGLE -->
-        <div class="password-wrapper" style="position:relative; display:none;" id="password-wrapper">
+        <!-- PASSWORD AREA -->
+        <div class="password-wrapper" id="password-wrapper" style="position:relative;">
+            
             <input 
                 type="password" 
                 id="password" 
                 placeholder="Password" 
                 autocomplete="off"
                 onfocus="showKeyboard(this)">
+
             <button 
                 type="button" 
                 class="toggle-password"
@@ -879,64 +882,28 @@ function initWiFiLift() {
                     border:none;
                     color:var(--muted-foreground);
                     cursor:pointer;
-                    padding:4px;
-                    border-radius:4px;
                 ">
                 <span class="material-icons" id="eye-icon">visibility</span>
             </button>
-            <div style="width:100%; display:flex;justify-content:center;align-items:center;">
-            <div class="loading" id="wifi-loading" style="display:none;">
-                <div class="spinner" style="position:relative; left:35px;">div>
-                <div>Connecting...div>
-            </div>
+
+            <div class="loading" id="wifi-loading" style="display:none; text-align:center;">
+                <div class="spinner"></div>
+                <div>Connecting...</div>
             </div>
 
-            <div class="button-group">
+            <!-- BUTTON GROUP ALWAYS VISIBLE -->
+            <div class="button-group" style="margin-top:20px; display:flex; gap:10px;">
                 <button class="button" onclick="connectWiFi()">Connect</button>
                 <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
                 <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
             </div>
         </div>
-
-        
     `;
 
-    document.body.append(overlay, popup);
-
-    // Fetch networks
-    const mess = document.getElementById('fetching');
-    mess.innerHTML = 'fetching wifi...';
-    await scanWiFi();
-
-    setTimeout(() => {
-        const trigger = document.getElementById('selected-network');
-        const list = document.getElementById('network-list');
-        if (trigger && list && list.children.length > 0) {
-            list.style.display = 'block';
-            trigger.classList.add('open');
-        }
-        mess.innerHTML = 'Select Network';
-    }, 200);
-
-    initWiFiLift();
-
-    // Custom dropdown handlers
-    document.getElementById('selected-network').onclick = (e) => {
-        e.stopPropagation();
-        const list = document.getElementById('network-list');
-        const isOpen = list.style.display === 'block';
-        list.style.display = isOpen ? 'none' : 'block';
-        e.target.classList.toggle('open', !isOpen);
-    };
-
-    document.getElementById('wifi-overlay').onclick = () => {
-        const list = document.getElementById('network-list');
-        const sel = document.getElementById('selected-network');
-        if (list) list.style.display = 'none';
-        if (sel) sel.classList.remove('open');
-        closeWiFiPopup();
-    };
+    document.body.appendChild(overlay);
+    document.body.appendChild(popup);
 }
+
 
 function togglePasswordVisibility() {
     const passwordField = document.getElementById('password');
