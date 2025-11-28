@@ -1307,43 +1307,31 @@ async function fetchInputSources() {
         const r = await fetch('/api/input_sources');
         const d = await r.json();
 
-        if (d.success && d.input_sources?.length > 0) {
-            inputSources = d.input_sources;
+        if (d.success && d.sources?.length > 0) {
+            inputSources = d.sources;
 
-            ul.innerHTML = d.input_sources.map(s => `
-                <li><span class="material-icons">input</span> ${s}</li>
+            ul.innerHTML = d.sources.map(s => `
+                <li><span class="material-icons">input</span> ${s === 'line_in' ? 'Line In (Analog Audio)' : s}</li>
             `).join('');
 
-            // CLEAR OLD BUTTONS
-            buttonGroup.innerHTML = '';
-            console.log(d.input_sources)
+            buttonGroup.innerHTML = ''; // Clear old buttons
 
-            // CHECK FOR "line in" – cover ALL common formats
-            const hasLineIn = d.input_sources.some(src => {
-                const lower = src.toLowerCase();
-                return lower.includes('line in') || 
-                       // "Line In Camera"
-                       lower.includes('line-in') ||                       // "line-in"
-                       lower.includes('line_in') ||                       // "line_in" (underscore)
-                       lower.includes('builtin') ||                       // safety
-                       lower.includes('integrated') ||
-                       lower.includes('inline');
-            });
+            // EXACT MATCH: Only "line_in" means analog Line In → skip video test
+            const isLineIn = d.sources.includes('line_in');
 
-            if (hasLineIn) {
-                // LINE-IN / BUILT-IN CAMERA → SKIP VIDEO TEST
+            if (isLineIn) {
                 buttonGroup.innerHTML = `
                     <button class="button success" onclick="navigate('finalize')">
                         <span class="material-icons">arrow_forward</span>
-                        Continue to Summary
+                        Continue to Summary (Line In Detected)
                     </button>
                 `;
-                showError('Built-in/Line-In camera detected – skipping video test', 'success');
+                showError('Line In (analog audio) detected – skipping camera test', 'success');
             } else {
-                // EXTERNAL CAMERA → go to video detection
+                // HDMI or USB camera → need video test
                 buttonGroup.innerHTML = `
                     <button class="button" onclick="navigate('video_object_detection')">
-                        <span class="material-icons">arrow_forward</span> Next
+                        <span class="material-icons">arrow_forward</span> Next: Check Camera
                     </button>
                 `;
             }
@@ -1360,13 +1348,13 @@ async function fetchInputSources() {
         }
     } catch (e) {
         inputSources = [];
-        ul.innerHTML = '<li><span class="material-icons">hourglass_top</span> Waiting for input sources...</li>';
+        ul.innerHTML = '<li><span class="material-icons">hourglass_top</span> Waiting for input source...</li>';
         buttonGroup.innerHTML = `
             <button class="button" onclick="fetchInputSources()">
                 <span class="material-icons">refresh</span> Retry Now
             </button>
         `;
-        showError('Waiting for input source...');
+        showError('Waiting for Line In or HDMI input...');
     } finally {
         loading.style.display = 'none';
         results.style.display = 'block';
