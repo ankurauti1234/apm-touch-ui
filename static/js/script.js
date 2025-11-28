@@ -1258,7 +1258,7 @@ async function fetchInputSources() {
 
             // Check if ANY source contains "line in" (case-insensitive)
             const isLineIn = d.sources.some(src => 
-                src.toLowerCase().includes('line in')
+                src.toLowerCase().includes('line_in')
             );
 
             if (isLineIn) {
