@@ -1354,7 +1354,6 @@
         results.style.display = 'block';
     }
 }
-
    
    // Start auto-retry when entering input_source_detection
    function startInputSourceRetry() {
