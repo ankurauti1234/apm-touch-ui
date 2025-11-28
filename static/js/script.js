@@ -894,9 +894,9 @@ function initWiFiLift() {
         </div>
 
         <div class="button-group">
-            <button class="button" onclick="connectWiFi()">Connectbutton>
-            <button class="button secondary" onclick="disconnectWiFi()">Disconnectbutton>
-            <button class="button secondary" onclick="closeWiFiPopup()">Closebutton>
+            <button class="button" onclick="connectWiFi()">Connect</button>
+            <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
+            <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
         div>
     `;
 
