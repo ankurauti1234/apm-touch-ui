@@ -833,7 +833,7 @@ function initWiFiLift() {
 /* --------------------------------------------------------------
    Call initWiFiLift() right after the popup is created
    -------------------------------------------------------------- */
-   async function showWiFiPopup() {
+async function showWiFiPopup() {
     closeSettingsPopup();
     closeWiFiPopup();
 
@@ -902,6 +902,40 @@ function initWiFiLift() {
 
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
+
+    // Fetch networks
+    const mess = document.getElementById('fetching');
+    mess.innerHTML = 'fetching wifi...';
+    await scanWiFi();
+
+    setTimeout(() => {
+        const trigger = document.getElementById('selected-network');
+        const list = document.getElementById('network-list');
+        if (trigger && list && list.children.length > 0) {
+            list.style.display = 'block';
+            trigger.classList.add('open');
+        }
+        mess.innerHTML = 'Select Network';
+    }, 200);
+
+    initWiFiLift();
+
+    // Custom dropdown handlers
+    document.getElementById('selected-network').onclick = (e) => {
+        e.stopPropagation();
+        const list = document.getElementById('network-list');
+        const isOpen = list.style.display === 'block';
+        list.style.display = isOpen ? 'none' : 'block';
+        e.target.classList.toggle('open', !isOpen);
+    };
+
+    document.getElementById('wifi-overlay').onclick = () => {
+        const list = document.getElementById('network-list');
+        const sel = document.getElementById('selected-network');
+        if (list) list.style.display = 'none';
+        if (sel) sel.classList.remove('open');
+        closeWiFiPopup();
+    };
 }
 
 
