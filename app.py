@@ -254,7 +254,7 @@ def _mqtt_worker():
         keyfile, certfile, cafile = cert_paths
 
         try:
-            client = mqtt.Client(client_id=METER_ID, callback_api_version=CallbackAPIVersion.VERSION2, clean_session=False)
+            client = mqtt.Client(client_id=METER_ID, clean_session=False)
             client.tls_set(ca_certs=cafile, certfile=certfile, keyfile=keyfile,
                            tls_version=ssl.PROTOCOL_TLSv1_2)
             client.on_connect = on_connect
