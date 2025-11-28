@@ -897,7 +897,7 @@ function initWiFiLift() {
             <button class="button" onclick="connectWiFi()">Connect</button>
             <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
             <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
-        div>
+        </div>
     `;
 
     document.body.append(overlay, popup);
