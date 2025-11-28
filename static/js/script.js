@@ -1308,7 +1308,7 @@ async function fetchInputSources() {
         const d = await r.json();
 
         if (d.success && d.input_sources?.length > 0) {
-            inputSources = d.sources;
+            inputSources = d.input_sources;
 
             ul.innerHTML = d.input_sources.map(s => `
                 <li><span class="material-icons">input</span> ${s}</li>
