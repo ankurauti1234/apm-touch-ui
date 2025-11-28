@@ -558,6 +558,14 @@ ul li {
     z-index: 998;
     height: 3.3rem;
     background-color: hsl(var(--background));
+    transition: transform 0.3s ease;
+    transform: translateY(0);
+    z-index: 999;
+}
+
+.bottom-bar-allpage.lifted {
+    transform: translateY(-280px);   /* Adjust this value */
+    /* Try -260px to -300px — whatever clears the keyboard perfectly */
 }
 
 .bar-btn {
@@ -863,7 +871,7 @@ ul li {
 }
 
 .container.lifted {
-    transform: translateY(-290px);
+    transform: translateY(-270px);
 }
 
 /* Smooth keyboard show/hide */

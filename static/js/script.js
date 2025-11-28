@@ -387,12 +387,15 @@
       ============================================================== */
    function showKeyboard(el) {
        activeInput = el;
+
+        const bottomBar = document.querySelector('.bottom-bar-allpage');
    
        // Lift the container card
        const containerCard = document.querySelector('.container');
        if (containerCard) {
            containerCard.classList.add('lifted');
        }
+       if (bottomBar) bottomBar.classList.add('lifted');
    
        let kb = document.getElementById('virtual-keyboard');
        if (kb) {
@@ -862,91 +865,91 @@
            <!-- PASSWORD AREA -->
            <div class="password-wrapper" id="password-wrapper" style="position:relative; width:100%; max-width:400px; margin:0 auto;">
      
-     <!-- Password Input + Eye Icon Container -->
-     <div style="position:relative; display:flex; align-items:center;">
-       
-       <input 
-           type="password" 
-           id="password" 
-           placeholder="Password" 
-           autocomplete="off"
-           style="
-               width:100%;
-               padding:12px 48px 12px 12px;
-               border:1px solid #ccc;
-               border-radius:8px;
-               font-size:16px;
-               outline:none;
-           "
-           onfocus="showKeyboard(this)"
-       >
-   
-       <!-- Toggle visibility button (eye icon) -->
-       <button 
-           type="button" 
-           class="toggle-password"
-           onclick="togglePasswordVisibility()"
-           style="
-               position:absolute;
-               right:8px;
-               background:none;
-               border:none;
-               cursor:pointer;
-               padding:8px;
-               display:flex;
-               align-items:center;
-               justify-content:center;
-               color:#666;
-           "
-           aria-label="Toggle password visibility">
-           <span class="material-icons" id="eye-icon" style="font-size:24px;">visibility</span>
-       </button>
-     </div>
-   
-     <!-- Loading indicator (centered below the input) -->
-     <div id="wifi-loading" style="display:none; text-align:center; margin-top:12px;">
-       <div class="spinner" style="
-           border:4px solid #f3f3f3;
-           border-top:4px solid #3498db;
-           border-radius:50%;
-           width:32px;
-           height:32px;
-           animation:spin 1s linear infinite;
-           margin:0 auto 8px;
-       "></div>
-       <div>Connecting...</div>
-     </div>
-   
-     <!-- Button group - always visible -->
-     <div class="button-group" style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
-       <button class="button" onclick="connectWiFi()" style="
-           padding:10px 20px;
-           background:#0066ff;
-           color:white;
-           border:none;
-           border-radius:8px;
-           cursor:pointer;
-       ">Connect</button>
-       
-       <button class="button secondary" onclick="disconnectWiFi()" style="
-           padding:10px 20px;
-           background:#f0f0f0;
-           color:#333;
-           border:1px solid #ccc;
-           border-radius:8px;
-           cursor:pointer;
-       ">Disconnect</button>
-       
-       <button class="button secondary" onclick="closeWiFiPopup()" style="
-           padding:10px 20px;
-           background:#f0f0f0;
-           color:#333;
-           border:1px solid #ccc;
-           border-radius:8px;
-           cursor:pointer;
-       ">Close</button>
-     </div>
-   </div>
+        <!-- Password Input + Eye Icon Container -->
+        <div style="position:relative; display:flex; align-items:center;">
+        
+        <input 
+            type="password" 
+            id="password" 
+            placeholder="Password" 
+            autocomplete="off"
+            style="
+                width:100%;
+                padding:12px 48px 12px 12px;
+                border:1px solid #ccc;
+                border-radius:8px;
+                font-size:16px;
+                outline:none;
+            "
+            onfocus="showKeyboard(this)"
+        >
+    
+        <!-- Toggle visibility button (eye icon) -->
+        <button 
+            type="button" 
+            class="toggle-password"
+            onclick="togglePasswordVisibility()"
+            style="
+                position:absolute;
+                right:8px;
+                background:none;
+                border:none;
+                cursor:pointer;
+                padding:8px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                color:#666;
+            "
+            aria-label="Toggle password visibility">
+            <span class="material-icons" id="eye-icon" style="font-size:24px;">visibility</span>
+        </button>
+        </div>
+    
+        <!-- Loading indicator (centered below the input) -->
+        <div id="wifi-loading" style="display:none; text-align:center; margin-top:12px;">
+        <div class="spinner" style="
+            border:4px solid #f3f3f3;
+            border-top:4px solid #3498db;
+            border-radius:50%;
+            width:32px;
+            height:32px;
+            animation:spin 1s linear infinite;
+            margin:0 auto 8px;
+        "></div>
+        <div>Connecting...</div>
+        </div>
+    
+        <!-- Button group - always visible -->
+        <div class="button-group" style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+        <button class="button" onclick="connectWiFi()" style="
+            padding:10px 20px;
+            background:#0066ff;
+            color:white;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+        ">Connect</button>
+        
+        <button class="button secondary" onclick="disconnectWiFi()" style="
+            padding:10px 20px;
+            background:#f0f0f0;
+            color:#333;
+            border:1px solid #ccc;
+            border-radius:8px;
+            cursor:pointer;
+        ">Disconnect</button>
+        
+        <button class="button secondary" onclick="closeWiFiPopup()" style="
+            padding:10px 20px;
+            background:#f0f0f0;
+            color:#333;
+            border:1px solid #ccc;
+            border-radius:8px;
+            cursor:pointer;
+        ">Close</button>
+        </div>
+    </div>
        `;
    
        document.body.appendChild(overlay);
@@ -1321,7 +1324,7 @@
             // Check if line_in is present
             if (d.sources.includes('line_in')) {
                 // Built-in camera → SKIP EVERYTHING and go directly to finalize
-                showError('Built-in camera detected – proceeding to summary', 'success');
+                showError('Input Source Detected', 'success');
                 
                 // Small delay so user sees the message and list
                 setTimeout(() => {
@@ -1358,7 +1361,7 @@
                 <span class="material-icons">refresh</span> Retry Now
             </button>
         `;
-        showError('Waiting for camera...');
+        showError('Waiting for input...');
     } finally {
         loading.style.display = 'none';
         results.style.display = 'block';

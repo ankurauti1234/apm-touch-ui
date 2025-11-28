@@ -826,20 +826,148 @@ def toggle_member_status():
     index = request.json.get("index")
     if not isinstance(index, int):
         return jsonify({"success": False, "error": "Invalid index"}), 400
-
+    
     try:
         data = load_members_data()
         members = data.get("members", [])
         if 0 <= index < len(members):
-            members[index]["active"] = not members[index].get("active", False)
-            save_members_data(data)
-            publish_member_event()
-            return jsonify({"success": True, "member": members[index]}), 200
+            # Toggle the member status locally first
+            current_active = members[index].get("active", False)
+            new_active = not current_active
+            
+            # Prepare the payload for MQTT publishing
+            payload = {
+                "DEVICE_ID": METER_ID,
+                "TS": str(int(time.time())),
+                "Type": 3,
+                "Details": {
+                    "members": [
+                        {
+                            "age": calculate_age(m["dob"]),
+                            "gender": m["gender"],
+                            "active": m.get("active", False)
+                        }
+                        for m in data.get("members", [])
+                        if all(k in m for k in ["dob", "gender"])
+                    ]
+                }
+            }
+            
+            # Try to publish the event first
+            publish_success = False
+            if client and client.is_connected():
+                try:
+                    result = client.publish(MQTT_TOPIC, json.dumps(payload))
+                    if result.rc == mqtt.MQTT_ERR_SUCCESS:
+                        publish_success = True
+                        _mqtt_log(f"Successfully published member toggle event (mid={result.mid})")
+                    else:
+                        _mqtt_log(f"Failed to publish member toggle event, return code: {result.rc}")
+                except Exception as publish_error:
+                    _mqtt_log(f"Exception during publish: {publish_error}")
+                    # If publish fails due to connection issues, enqueue it
+                    _enqueue(payload)
+            else:
+                # If not connected, enqueue the event
+                _mqtt_log("MQTT client not connected, enqueuing member toggle event")
+                _enqueue(payload)
+            
+            # Only proceed with toggling the member status if publish was successful or enqueued
+            if publish_success:
+                # Publish was successful, now update the local member status
+                members[index]["active"] = new_active
+                save_members_data(data)
+                return jsonify({
+                    "success": True, 
+                    "member": members[index],
+                    "message": "Member status toggled and event published successfully"
+                }), 200
+            else:
+                # Publish failed and could not be immediately confirmed
+                return jsonify({
+                    "success": False, 
+                    "error": "Failed to publish member status change to server. Event has been queued for transmission.",
+                    "publish_attempted": True
+                }), 200
+                
         else:
             return jsonify({"success": False, "error": "Index out of range"}), 400
+            
     except Exception as e:
+        _mqtt_log(f"Error in toggle_member_status: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+# Add a new endpoint to explicitly publish the current member status
+@app.route("/api/publish_member_status", methods=["POST"])
+def publish_member_status():
+    """Explicitly publish the current member status to MQTT"""
+    try:
+        publish_member_event()
+        return jsonify({
+            "success": True, 
+            "message": "Member status successfully published to server"
+        }), 200
+    except Exception as e:
+        _mqtt_log(f"Error publishing member status: {str(e)}")
+        return jsonify({
+            "success": False, 
+            "error": str(e)
+        }), 500
+
+# Add a new endpoint to check if there are pending MQTT messages
+@app.route("/api/pending_messages", methods=["GET"])
+def get_pending_messages():
+    """Returns the number of pending messages in the MQTT queue"""
+    with _q_lock:
+        pending_count = len(_pub_q)
+    return jsonify({
+        "success": True,
+        "pending_messages": pending_count
+    })
+
+# Modify the existing publish_member_event function to ensure it always attempts immediate publish
+def publish_member_event():
+    data = load_members_data()
+    members = [
+        {
+            "age": calculate_age(m["dob"]),
+            "gender": m["gender"],
+            "active": m.get("active", False)
+        }
+        for m in data.get("members", [])
+        if all(k in m for k in ["dob", "gender"])
+    ]
+    
+    payload = {
+        "DEVICE_ID": METER_ID,
+        "TS": str(int(time.time())),
+        "Type": 3,
+        "Details": {
+            "members": members
+        }
+    }
+    
+    publish_success = False
+    
+    if members:  # Only publish if there are valid members
+        if client and client.is_connected():
+            try:
+                result = client.publish(MQTT_TOPIC, json.dumps(payload))
+                if result.rc == mqtt.MQTT_ERR_SUCCESS:
+                    publish_success = True
+                    _mqtt_log(f"Successfully published member event (mid={result.mid})")
+                else:
+                    _mqtt_log(f"Failed to publish member event, return code: {result.rc}")
+            except Exception as e:
+                _mqtt_log(f"Exception during publish_member_event: {e}")
+        
+        if not publish_success:
+            _mqtt_log("Publishing failed, adding to queue")
+            _enqueue(payload)
+    else:
+        _mqtt_log("No valid members to publish")
+    
+    return publish_success
 
 @app.route("/api/edit_member_code", methods=["POST"])
 def edit_member_code():
