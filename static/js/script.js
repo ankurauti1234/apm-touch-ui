@@ -1248,21 +1248,39 @@ async function fetchInputSources() {
 
         if (d.success && d.sources?.length > 0) {
             inputSources = d.sources;
+
             ul.innerHTML = d.sources.map(s => `
                 <li><span class="material-icons">input</span> ${s}</li>
             `).join('');
 
-            // Replace any existing button with "Next"
-            const existingNext = buttonGroup.querySelector('button[data-action="next"]');
-            if (existingNext) existingNext.remove();
+            // Clear old buttons
+            buttonGroup.innerHTML = '';
 
-            buttonGroup.insertAdjacentHTML('afterbegin', `
-                <button class="button" data-action="next" onclick="navigate('video_object_detection')">
-                    <span class="material-icons">arrow_forward</span> Next
-                </button>
-            `);
+            // Check if ANY source contains "line in" (case-insensitive)
+            const isLineIn = d.sources.some(src => 
+                src.toLowerCase().includes('line in')
+            );
 
-            // SUCCESS: Stop retry loop
+            if (isLineIn) {
+                // "line in" detected → auto-skip video detection
+                buttonGroup.innerHTML = `
+                    <button class="button success" onclick="navigate('finalize')">
+                        <span class="material-icons">arrow_forward</span>
+                        Continue (Line-In Camera Detected)
+                    </button>
+                `;
+                showError('Line-In camera detected – skipping video test', 'success');
+                console.log("Line-In input source found → skipping video_object_detection");
+            } else {
+                // Normal external camera → go to video test
+                buttonGroup.innerHTML = `
+                    <button class="button" onclick="navigate('video_object_detection')">
+                        <span class="material-icons">arrow_forward</span> Next
+                    </button>
+                `;
+            }
+
+            // Stop auto-retry on success
             if (inputSourceRetryInterval) {
                 clearInterval(inputSourceRetryInterval);
                 inputSourceRetryInterval = null;
@@ -1270,24 +1288,17 @@ async function fetchInputSources() {
 
             showError('Input sources detected!', 'success');
         } else {
-            throw new Error(d.error || 'No sources detected');
+            throw new Error('No sources detected');
         }
     } catch (e) {
-        // FAILURE: Keep retrying
         inputSources = [];
         ul.innerHTML = '<li><span class="material-icons">hourglass_top</span> Waiting for input sources...</li>';
-
-        // Replace button with "Retry Now" (manual override)
-        const existingRetry = buttonGroup.querySelector('button[data-action="retry"]');
-        if (existingRetry) existingRetry.remove();
-
-        buttonGroup.insertAdjacentHTML('afterbegin', `
-            <button class="button" data-action="retry" onclick="fetchInputSources()">
+        buttonGroup.innerHTML = `
+            <button class="button" onclick="fetchInputSources()">
                 <span class="material-icons">refresh</span> Retry Now
             </button>
-        `);
-
-        if (e.message) showError(e.message);
+        `;
+        showError('Waiting for input source...');
     } finally {
         loading.style.display = 'none';
         results.style.display = 'block';
