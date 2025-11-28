@@ -884,20 +884,21 @@ function initWiFiLift() {
                 ">
                 <span class="material-icons" id="eye-icon">visibility</span>
             </button>
-        </div>
-
-        <div style="width:100%; display:flex;justify-content:center;align-items:center;">
+            <div style="width:100%; display:flex;justify-content:center;align-items:center;">
             <div class="loading" id="wifi-loading" style="display:none;">
                 <div class="spinner" style="position:relative; left:35px;">div>
                 <div>Connecting...div>
             </div>
+            </div>
+
+            <div class="button-group">
+                <button class="button" onclick="connectWiFi()">Connect</button>
+                <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
+                <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
+            </div>
         </div>
 
-        <div class="button-group">
-            <button class="button" onclick="connectWiFi()">Connect</button>
-            <button class="button secondary" onclick="disconnectWiFi()">Disconnect</button>
-            <button class="button secondary" onclick="closeWiFiPopup()">Close</button>
-        </div>
+        
     `;
 
     document.body.append(overlay, popup);
