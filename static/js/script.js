@@ -98,13 +98,7 @@ const states = {
                 </button>
             </div>
             
-        `}
-        <div class="bottom-bar">
-                <button class="bar-btn"  onclick="showEditMemberPopup()">
-                    <span class="material-icons">edit</span>
-                </button>
-                <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-        </div>`,
+        `}`,
 
     network_test: (status = null) => `
         <h1>Network Test</h1>
