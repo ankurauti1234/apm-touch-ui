@@ -913,7 +913,7 @@ ul li {
 
 /* 2. Lifted state: move up from center */
 #wifi-popup.lifted {
-    transform: translate(-50%, calc(-50% - 50px));
+    transform: translate(-50%, calc(-50% - 80px));
     /* lifts up 60px */
 }
 
