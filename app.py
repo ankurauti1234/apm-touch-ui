@@ -464,7 +464,7 @@ def wifi_connect():
 
     except subprocess.CalledProcessError as e:
         error_detail = e.stderr.strip() if e.stderr else "nmcli command failed"
-        print(f"[WIFI CONNECT ERROR] Subprocess error: {error_detail}")
+        print(f"[WiFi CONNECT ERROR] Subprocess error: {error_detail}")
         return jsonify({
             "success": False,
             "error": "Wi-Fi command failed",
@@ -472,7 +472,7 @@ def wifi_connect():
         }), 500
 
     except Exception as e:
-        print(f"[WIFI CONNECT ERROR] Unexpected: {str(e)}")
+        print(f"[WiFi CONNECT ERROR] Unexpected: {str(e)}")
         return jsonify({
             "success": False,
             "error": "Internal server error",
