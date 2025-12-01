@@ -175,11 +175,12 @@ p {
     margin-bottom: 1.5rem;
 }
 
-.p-wifi {
+.p-wifi{
     font-size: 1rem;
     color: hsl(var(--muted-foreground));
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
+
 /* ═══════════════════════════════════════════════════════════════════════
    BUTTONS
    ═══════════════════════════════════════════════════════════════════════ */
