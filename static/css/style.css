@@ -898,23 +898,25 @@ ul li {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    /* center */
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 999;
-    /* Add your existing popup styles: background, padding, etc. */
     background: white;
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     max-width: 42rem;
-    /* width: 320px; */
     box-sizing: border-box;
 }
 
-/* 2. Lifted state: move up from center */
+/* Lifted state when keyboard appears */
 #wifi-popup.lifted {
-    transform: translate(-50%, calc(-50% - 80px));
-    /* lifts up 60px */
+    transform: translate(-50%, calc(-50% - 100px));  /* Adjust -70px as needed */
+}
+
+/* Spinner animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* 3. Optional: Virtual keyboard */
