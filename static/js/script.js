@@ -84,13 +84,13 @@
                    <button class="button" onclick="navigate('network_test','wifi')">
                        <span class="material-icons">arrow_forward</span> Continue with Wi-Fi
                    </button>
-                   <button class="button secondary" onclick="showWiFiPopup()">
+                   <button class="button secondary" onclick="showWIFIPopup()">
                        <span class="material-icons">settings</span> Change Wi-Fi
                    </button>
                </div>
            ` : `
                <div class="button-group">
-                   <button class="button" onclick="checkWiFi()">
+                   <button class="button" onclick="checkWIFI()">
                        <span class="material-icons">wifi</span> Wi-Fi
                    </button>
                    <button class="button" onclick="navigate('network_test','gsm')">
@@ -736,7 +736,7 @@
    }
    
    /* ==============================================================
-      WiFi POP-UP
+      WIFI POP-UP
       ============================================================== */
    
    /* --------------------------------------------------------------
@@ -792,7 +792,7 @@
       -------------------------------------------------------------- */
    let isTyping = false;  // ← tracks if user is actively typing
    
-   function initWiFiLift() {
+   function initWIFILift() {
        const pw = document.getElementById('password');
        if (!pw) return;
    
@@ -837,11 +837,11 @@
    }
    
    /* --------------------------------------------------------------
-      Call initWiFiLift() right after the popup is created
+      Call initWIFILift() right after the popup is created
       -------------------------------------------------------------- */
-      async function showWiFiPopup() {
+      async function showWIFIPopup() {
         closeSettingsPopup();
-        closeWiFiPopup();
+        closeWIFIPopup();
     
         const overlay = document.createElement('div');
         overlay.id = 'wifi-overlay';
@@ -886,9 +886,9 @@
                 </div>
     
                 <div class="button-group" style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
-                    <button class="button" onclick="connectWiFi()" style="padding:10px 20px; background:#0066ff; color:white; border:none; border-radius:8px; cursor:pointer;">Connect</button>
-                    <button class="button secondary" onclick="disconnectWiFi()" style="padding:10px 20px; background:#f0f0f0; color:#333; border:1px solid #ccc; border-radius:8px; cursor:pointer;">Disconnect</button>
-                    <button class="button secondary" onclick="closeWiFiPopup()" style="padding:10px 20px; background:#f0f0f0; color:#333; border:1px solid #ccc; border-radius:8px; cursor:pointer;">Close</button>
+                    <button class="button" onclick="connectWIFI()" style="padding:10px 20px; background:#0066ff; color:white; border:none; border-radius:8px; cursor:pointer;">Connect</button>
+                    <button class="button secondary" onclick="disconnectWIFI()" style="padding:10px 20px; background:#f0f0f0; color:#333; border:1px solid #ccc; border-radius:8px; cursor:pointer;">Disconnect</button>
+                    <button class="button secondary" onclick="closeWIFIPopup()" style="padding:10px 20px; background:#f0f0f0; color:#333; border:1px solid #ccc; border-radius:8px; cursor:pointer;">Close</button>
                 </div>
             </div>
         `;
@@ -921,7 +921,7 @@
         // Rest of your existing code (fetching, dropdown, etc.)
         const mess = document.getElementById('fetching');
         mess.innerHTML = 'fetching wifi...';
-        await scanWiFi();
+        await scanWIFI();
     
         setTimeout(() => {
             const trigger = document.getElementById('selected-network');
@@ -933,7 +933,7 @@
             mess.innerHTML = 'Select Network';
         }, 20);
     
-        initWiFiLift();
+        initWIFILift();
     
         document.getElementById('selected-network').onclick = (e) => {
             e.stopPropagation();
@@ -947,7 +947,7 @@
             document.getElementById('network-list').style.display = 'none';
             document.getElementById('selected-network')?.classList.remove('open');
             wifiPopup.classList.remove('lifted'); // make sure it returns to center
-            closeWiFiPopup();
+            closeWIFIPopup();
         };
     }
    
@@ -980,7 +980,7 @@
    // Store networks globally for dropdown
    let availableNetworks = [];
    
-   async function scanWiFi() {
+   async function scanWIFI() {
        const container = document.getElementById('network-list');
        const selectedDisplay = document.getElementById('selected-network');
        const err = document.getElementById('wifi-error');
@@ -1049,7 +1049,7 @@
        }
    }
    
-   async function connectWiFi() {
+   async function connectWIFI() {
        const loading = document.getElementById('wifi-loading');
        // const ssid = document.getElementById('ssid')?.value;
        const pass = document.getElementById('password')?.value;
@@ -1068,7 +1068,7 @@
            err.style.display = 'flex';
            if (d.success) {
                setTimeout(async () => {
-                   closeWiFiPopup();
+                   closeWIFIPopup();
                    const cur = await fetch('/api/current_wifi');
                    const cd = await cur.json();
                    if (currentState == 'main') return; // already in main state
@@ -1079,7 +1079,7 @@
        } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; loading.style.display = 'none'; }
        loading.style.display = 'none';
    }
-   async function disconnectWiFi() {
+   async function disconnectWIFI() {
        const err = document.getElementById('wifi-error');
        try {
            const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
@@ -1087,10 +1087,10 @@
            err.className = d.success ? 'success' : 'error';
            err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.message || d.error}`;
            err.style.display = 'flex';
-           if (d.success) setTimeout(scanWiFi, 2000);
+           if (d.success) setTimeout(scanWIFI, 2000);
        } catch { err.innerHTML = '<span class="material-icons">error</span> Disconnect failed'; err.style.display = 'flex'; }
    }
-   function closeWiFiPopup() {
+   function closeWIFIPopup() {
        ['wifi-popup', 'wifi-overlay'].forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
        clearTimeout(liftTimeout);
        render();
@@ -1137,7 +1137,7 @@
    
        <!-- Action Buttons -->
        <div class="settings-grid">
-           <button class="setting-btn wifi-btn" onclick="showWiFiPopup()">
+           <button class="setting-btn wifi-btn" onclick="showWIFIPopup()">
                <span class="material-icons">wifi</span>
                <span>Wi-Fi Network</span>
            </button>
@@ -1157,7 +1157,7 @@
        document.body.append(overlay, popup);
    
        if (document.getElementById('wifi-popup')) {
-           closeWiFiPopup();
+           closeWIFIPopup();
        }
    
        // close popup when clicking outside it
@@ -1440,7 +1440,7 @@
    /* ==============================================================
       OTHER API CALLS (unchanged)
       ============================================================== */
-   async function checkWiFi() {
+   async function checkWIFI() {
        try {
            const r = await fetch('/api/check_wifi');
            const d = await r.json();
@@ -1448,9 +1448,9 @@
                const cur = await fetch('/api/current_wifi');
                const cd = await cur.json();
                if (cd.success) navigate('connect_select', cd.ssid);
-               else showWiFiPopup();
-           } else showWiFiPopup();
-       } catch { showError('Wi-Fi check failed'); showWiFiPopup(); }
+               else showWIFIPopup();
+           } else showWIFIPopup();
+       } catch { showError('Wi-Fi check failed'); showWIFIPopup(); }
    }
    
    let CURRENT_HHID = null;
