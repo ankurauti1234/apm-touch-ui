@@ -548,7 +548,7 @@ ul li {
     bottom: 0;
     left: 0;
     right: 0;
-    background: hsl(var(--card));
+    background: white;
     /* border-top: 1px solid hsl(var(--border)); */
     padding: 0.75rem;
     gap: 1rem;
@@ -572,7 +572,7 @@ ul li {
     /* flex-direction: column; */
     align-items: center;
     gap: 0.25rem;
-    background: hsl(var(--accent));
+    background: hsl(var(--background));
     color: hsl(var(--foreground));
     border: none;
     font-size: 0.75rem;
