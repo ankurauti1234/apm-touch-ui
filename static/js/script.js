@@ -854,7 +854,7 @@
         popup.innerHTML = `
             <!-- your full HTML here (exactly the same as before) -->
             <h2 style="margin-top: 0;">Select Wi-Fi</h2>
-            <p>Choose a network to connect</p>
+            <p class="p-wifi">Choose a network to connect</p>
             <div id="wifi-error" class="error" style="display:none;"></div>
     
             <div id="custom-select" class="custom-select">
