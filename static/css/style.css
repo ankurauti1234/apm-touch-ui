@@ -563,10 +563,9 @@ ul li {
     z-index: 999;
 }
 
-.bottom-bar-allpage.lifted {
-    transform: translateY(-280px);   /* Adjust this value */
-    /* Try -260px to -300px — whatever clears the keyboard perfectly */
-}
+/* .bottom-bar-allpage.lifted {
+    transform: translateY(-280px);   
+} */
 
 .bar-btn {
     display: flex;

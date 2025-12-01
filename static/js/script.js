@@ -106,7 +106,7 @@
    
        network_test: (status = null) => `
            <h1>Network Test</h1>
-           <p>Verifying ${connectivityMode.toUpperCase()} connection</p>
+           <p>Verifying ${connectivityMode} connection</p>
            <div id="error" class="error" style="display:none;"></div>
            ${status === 'success' ? `
                <div class="success" style="display:block;"><span class="material-icons">check_circle</span> Network test successful!</div>
@@ -850,7 +850,7 @@
     
         popup.innerHTML = `
             <!-- your full HTML here (exactly the same as before) -->
-            <h2 style="margin-top: 0;">Wi-Fi Select Wi-Fi</h2>
+            <h2 style="margin-top: 0;">Select Wi-Fi</h2>
             <p>Choose a network to connect</p>
             <div id="wifi-error" class="error" style="display:none;"></div>
     
