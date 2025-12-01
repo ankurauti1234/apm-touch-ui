@@ -99,10 +99,13 @@
                </div>
            `}
            <div class="bottom-bar-allpage">
-               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-           </div>
-           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-           </div>`,
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>`,
    
        network_test: (status = null) => `
            <h1>Network Test</h1>
