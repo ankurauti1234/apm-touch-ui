@@ -84,13 +84,13 @@
                    <button class="button" onclick="navigate('network_test','wifi')">
                        <span class="material-icons">arrow_forward</span> Continue with Wi-Fi
                    </button>
-                   <button class="button secondary" onclick="showWIFIPopup()">
+                   <button class="button secondary" onclick="showWiFiPopup()">
                        <span class="material-icons">settings</span> Change Wi-Fi
                    </button>
                </div>
            ` : `
                <div class="button-group">
-                   <button class="button" onclick="checkWIFI()">
+                   <button class="button" onclick="checkWiFi()">
                        <span class="material-icons">wifi</span> Wi-Fi
                    </button>
                    <button class="button" onclick="navigate('network_test','gsm')">
@@ -99,17 +99,14 @@
                </div>
            `}
            <div class="bottom-bar-allpage">
-                <div class="bar-inner">
-                    <button class="bar-btn" onclick="showSettingsPopup()">
-                        <span class="material-icons">settings</span>
-                    </button>
-                    <!-- Add more buttons here if you want -->
-                </div>
-            </div>`,
+               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+           </div>
+           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+           </div>`,
    
        network_test: (status = null) => `
            <h1>Network Test</h1>
-           <p>Verifying ${connectivityMode} connection</p>
+           <p>Verifying ${connectivityMode.toUpperCase()} connection</p>
            <div id="error" class="error" style="display:none;"></div>
            ${status === 'success' ? `
                <div class="success" style="display:block;"><span class="material-icons">check_circle</span> Network test successful!</div>
@@ -792,7 +789,7 @@
       -------------------------------------------------------------- */
    let isTyping = false;  // ← tracks if user is actively typing
    
-   function initWIFILift() {
+   function initWiFiLift() {
        const pw = document.getElementById('password');
        if (!pw) return;
    
@@ -837,119 +834,161 @@
    }
    
    /* --------------------------------------------------------------
-      Call initWIFILift() right after the popup is created
+      Call initWiFiLift() right after the popup is created
       -------------------------------------------------------------- */
-      async function showWIFIPopup() {
-        closeSettingsPopup();
-        closeWIFIPopup();
-    
-        const overlay = document.createElement('div');
-        overlay.id = 'wifi-overlay';
-        overlay.className = 'overlay';
-    
-        const popup = document.createElement('div');
-        popup.id = 'wifi-popup';
-        popup.className = 'popup'; // this already has the base styles
-    
-        popup.innerHTML = `
-            <!-- your full HTML here (exactly the same as before) -->
-            <h2 style="margin-top: 0;">Select Wi-Fi</h2>
-            <p class="p-wifi">Choose a network to connect</p>
-            <div id="wifi-error" class="error" style="display:none;"></div>
-    
-            <div id="custom-select" class="custom-select">
-                <div id="selected-network" class="selected-item">
-                    <span id="fetching">Select Network</span>
-                    <span class="material-icons arrow">arrow_drop_down</span>
-                </div>
-                <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
-            </div>
-    
-            <div class="password-wrapper" id="password-wrapper" style="position:relative; width:100%; max-width:400px; margin:0 auto;">
-                <div style="position:relative; display:flex; align-items:center;">
-                    <input 
-                        type="password" 
-                        id="password" 
-                        placeholder="Password" 
-                        autocomplete="off"
-                        style="width:100%; padding:12px 48px 12px 12px; border:1px solid #ccc; border-radius:8px; font-size:16px; outline:none;"
-                    >
-                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility()"
-                        style="position:absolute; right:8px; background:none; border:none; cursor:pointer; padding:8px; color:#666;">
-                        <span class="material-icons" id="eye-icon" style="font-size:24px;">visibility</span>
-                    </button>
-                </div>
-    
-                <div id="wifi-loading" style="display:none; text-align:center; margin-top:12px;">
-                    <div class="spinner" style="border:4px solid #f3f3f3; border-top:4px solid #3498db; border-radius:50%; width:32px; height:32px; animation:spin 1s linear infinite; margin:0 auto 8px;"></div>
-                    <div>Connecting...</div>
-                </div>
-    
-                <div class="button-group" style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
-                    <button class="button" onclick="connectWIFI()" style="padding:10px 20px; background:#0066ff; color:white; border:none; border-radius:8px; cursor:pointer;">Connect</button>
-                    <button class="button secondary" onclick="disconnectWIFI()" style="padding:10px 20px; background:#f0f0f0; color:#333; border:1px solid #ccc; border-radius:8px; cursor:pointer;">Disconnect</button>
-                    <button class="button secondary" onclick="closeWIFIPopup()" style="padding:10px 20px; background:#f0f0f0; color:#333; border:1px solid #ccc; border-radius:8px; cursor:pointer;">Close</button>
-                </div>
-            </div>
-        `;
-    
-        document.body.appendChild(overlay);
-        document.body.appendChild(popup);
-    
-        // THIS IS THE KEY PART YOU WERE MISSING:
-        const passwordInput = document.getElementById('password');
-        const wifiPopup = document.getElementById('wifi-popup');
-    
-        passwordInput.addEventListener('focus', () => {
-            wifiPopup.classList.add('lifted');
+   async function showWiFiPopup() {
+       closeSettingsPopup();
+       closeWiFiPopup();
+   
+       const overlay = document.createElement('div');
+       overlay.id = 'wifi-overlay';
+       overlay.className = 'overlay';
+       overlay.onclick = closeWiFiPopup;
+   
+       const popup = document.createElement('div');
+       popup.id = 'wifi-popup';
+       popup.className = 'popup';
+   
+       popup.innerHTML = `
+           <h2 style="margin-top: 0;"><span class="material-icons">wifi</span> Select Wi-Fi</h2>
+           <p class="p-wifi">Choose a network to connect</p>
+           <div id="wifi-error" class="error" style="display:none;"></div>
+   
+           <div id="custom-select" class="custom-select">
+               <div id="selected-network" class="selected-item">
+                   <span id="fetching">Select Network</span>
+                   <span class="material-icons arrow">arrow_drop_down</span>
+               </div>
+               <ul id="network-list" class="dropdown-list" style="display:none;"></ul>
+           </div>
+   
+           <!-- PASSWORD AREA -->
+           <div class="password-wrapper" id="password-wrapper" style="position:relative; width:100%; max-width:400px; margin:0 auto;">
+     
+        <!-- Password Input + Eye Icon Container -->
+        <div style="position:relative; display:flex; align-items:center;">
         
-            // This forces keyboard on first tap in normal browser
-            setTimeout(() => passwordInput.focus(), 200);
-        });
+        <input 
+            type="password" 
+            id="password" 
+            placeholder="Password" 
+            autocomplete="off"
+            style="
+                width:100%;
+                padding:12px 48px 12px 12px;
+                border:1px solid #ccc;
+                border-radius:8px;
+                font-size:16px;
+                outline:none;
+            "
+            onfocus="showKeyboard(this)"
+        >
     
-        passwordInput.addEventListener('blur', () => {
-            wifiPopup.classList.remove('lifted');
-        });
+        <!-- Toggle visibility button (eye icon) -->
+        <button 
+            type="button" 
+            class="toggle-password"
+            onclick="togglePasswordVisibility()"
+            style="
+                position:absolute;
+                right:8px;
+                background:none;
+                border:none;
+                cursor:pointer;
+                padding:8px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                color:#666;
+            "
+            aria-label="Toggle password visibility">
+            <span class="material-icons" id="eye-icon" style="font-size:24px;">visibility</span>
+        </button>
+        </div>
     
-        // Also lower popup when buttons are clicked (especially on mobile)
-        popup.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                wifiPopup.classList.remove('lifted');
-            });
-        });
+        <!-- Loading indicator (centered below the input) -->
+        <div id="wifi-loading" style="display:none; text-align:center; margin-top:12px;">
+        <div class="spinner" style="
+            border:4px solid #f3f3f3;
+            border-top:4px solid #3498db;
+            border-radius:50%;
+            width:32px;
+            height:32px;
+            animation:spin 1s linear infinite;
+            margin:0 auto 8px;
+        "></div>
+        <div>Connecting...</div>
+        </div>
     
-        // Rest of your existing code (fetching, dropdown, etc.)
-        const mess = document.getElementById('fetching');
-        mess.innerHTML = 'fetching wifi...';
-        await scanWIFI();
-    
-        setTimeout(() => {
-            const trigger = document.getElementById('selected-network');
-            const list = document.getElementById('network-list');
-            if (trigger && list && list.children.length > 0) {
-                list.style.display = 'block';
-                trigger.classList.add('open');
-            }
-            mess.innerHTML = 'Select Network';
-        }, 20);
-    
-        initWIFILift();
-    
-        document.getElementById('selected-network').onclick = (e) => {
-            e.stopPropagation();
-            const list = document.getElementById('network-list');
-            const isOpen = list.style.display === 'block';
-            list.style.display = isOpen ? 'none' : 'block';
-            e.currentTarget.classList.toggle('open', !isOpen);
-        };
-    
-        overlay.onclick = () => {
-            document.getElementById('network-list').style.display = 'none';
-            document.getElementById('selected-network')?.classList.remove('open');
-            wifiPopup.classList.remove('lifted'); // make sure it returns to center
-            closeWIFIPopup();
-        };
-    }
+        <!-- Button group - always visible -->
+        <div class="button-group" style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+        <button class="button" onclick="connectWiFi()" style="
+            padding:10px 20px;
+            background:#0066ff;
+            color:white;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+        ">Connect</button>
+        
+        <button class="button secondary" onclick="disconnectWiFi()" style="
+            padding:10px 20px;
+            background:#f0f0f0;
+            color:#333;
+            border:1px solid #ccc;
+            border-radius:8px;
+            cursor:pointer;
+        ">Disconnect</button>
+        
+        <button class="button secondary" onclick="closeWiFiPopup()" style="
+            padding:10px 20px;
+            background:#f0f0f0;
+            color:#333;
+            border:1px solid #ccc;
+            border-radius:8px;
+            cursor:pointer;
+        ">Close</button>
+        </div>
+    </div>
+       `;
+   
+       document.body.appendChild(overlay);
+       document.body.appendChild(popup);
+   
+       // Fetch networks
+       const mess = document.getElementById('fetching');
+       mess.innerHTML = 'fetching wifi...';
+       await scanWiFi();
+   
+       setTimeout(() => {
+           const trigger = document.getElementById('selected-network');
+           const list = document.getElementById('network-list');
+           if (trigger && list && list.children.length > 0) {
+               list.style.display = 'block';
+               trigger.classList.add('open');
+           }
+           mess.innerHTML = 'Select Network';
+       }, 200);
+   
+       initWiFiLift();
+   
+       // Custom dropdown handlers
+       document.getElementById('selected-network').onclick = (e) => {
+           e.stopPropagation();
+           const list = document.getElementById('network-list');
+           const isOpen = list.style.display === 'block';
+           list.style.display = isOpen ? 'none' : 'block';
+           e.target.classList.toggle('open', !isOpen);
+       };
+   
+       document.getElementById('wifi-overlay').onclick = () => {
+           const list = document.getElementById('network-list');
+           const sel = document.getElementById('selected-network');
+           if (list) list.style.display = 'none';
+           if (sel) sel.classList.remove('open');
+           closeWiFiPopup();
+       };
+   }
    
    
    function togglePasswordVisibility() {
@@ -980,7 +1019,7 @@
    // Store networks globally for dropdown
    let availableNetworks = [];
    
-   async function scanWIFI() {
+   async function scanWiFi() {
        const container = document.getElementById('network-list');
        const selectedDisplay = document.getElementById('selected-network');
        const err = document.getElementById('wifi-error');
@@ -1049,7 +1088,7 @@
        }
    }
    
-   async function connectWIFI() {
+   async function connectWiFi() {
        const loading = document.getElementById('wifi-loading');
        // const ssid = document.getElementById('ssid')?.value;
        const pass = document.getElementById('password')?.value;
@@ -1068,7 +1107,7 @@
            err.style.display = 'flex';
            if (d.success) {
                setTimeout(async () => {
-                   closeWIFIPopup();
+                   closeWiFiPopup();
                    const cur = await fetch('/api/current_wifi');
                    const cd = await cur.json();
                    if (currentState == 'main') return; // already in main state
@@ -1079,7 +1118,7 @@
        } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; loading.style.display = 'none'; }
        loading.style.display = 'none';
    }
-   async function disconnectWIFI() {
+   async function disconnectWiFi() {
        const err = document.getElementById('wifi-error');
        try {
            const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
@@ -1087,10 +1126,10 @@
            err.className = d.success ? 'success' : 'error';
            err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.message || d.error}`;
            err.style.display = 'flex';
-           if (d.success) setTimeout(scanWIFI, 2000);
+           if (d.success) setTimeout(scanWiFi, 2000);
        } catch { err.innerHTML = '<span class="material-icons">error</span> Disconnect failed'; err.style.display = 'flex'; }
    }
-   function closeWIFIPopup() {
+   function closeWiFiPopup() {
        ['wifi-popup', 'wifi-overlay'].forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
        clearTimeout(liftTimeout);
        render();
@@ -1137,7 +1176,7 @@
    
        <!-- Action Buttons -->
        <div class="settings-grid">
-           <button class="setting-btn wifi-btn" onclick="showWIFIPopup()">
+           <button class="setting-btn wifi-btn" onclick="showWiFiPopup()">
                <span class="material-icons">wifi</span>
                <span>Wi-Fi Network</span>
            </button>
@@ -1157,7 +1196,7 @@
        document.body.append(overlay, popup);
    
        if (document.getElementById('wifi-popup')) {
-           closeWIFIPopup();
+           closeWiFiPopup();
        }
    
        // close popup when clicking outside it
@@ -1440,7 +1479,7 @@
    /* ==============================================================
       OTHER API CALLS (unchanged)
       ============================================================== */
-   async function checkWIFI() {
+   async function checkWiFi() {
        try {
            const r = await fetch('/api/check_wifi');
            const d = await r.json();
@@ -1448,9 +1487,9 @@
                const cur = await fetch('/api/current_wifi');
                const cd = await cur.json();
                if (cd.success) navigate('connect_select', cd.ssid);
-               else showWIFIPopup();
-           } else showWIFIPopup();
-       } catch { showError('Wi-Fi check failed'); showWIFIPopup(); }
+               else showWiFiPopup();
+           } else showWiFiPopup();
+       } catch { showError('Wi-Fi check failed'); showWiFiPopup(); }
    }
    
    let CURRENT_HHID = null;

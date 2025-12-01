@@ -422,13 +422,13 @@ def wifi_connect():
         delete_cmd = ["sudo", "nmcli", "connection", "delete", ssid]
         try:
             run_system_command(delete_cmd)
-            print(f"[WIFI] Removed existing connection: {ssid}")
+            print(f"[WiFi] Removed existing connection: {ssid}")
         except subprocess.CalledProcessError as e:
             # It's OK if connection doesn't exist
             if "not found" not in e.stderr.lower():
-                print(f"[WIFI] Warning: Failed to delete old connection: {e.stderr}")
+                print(f"[WiFi] Warning: Failed to delete old connection: {e.stderr}")
         except Exception as e:
-            print(f"[WIFI] Unexpected error deleting connection: {e}")
+            print(f"[WiFi] Unexpected error deleting connection: {e}")
 
         # Step 2: Connect to Wi-Fi
         connect_cmd = ["sudo", "nmcli", "device", "wifi", "connect", ssid, "password", pwd]
@@ -436,14 +436,14 @@ def wifi_connect():
 
         if not ok:
             error_msg = out.strip() or "Unknown error during nmcli connect"
-            print(f"[WIFI] Connection failed: {error_msg}")
+            print(f"[WiFi] Connection failed: {error_msg}")
             return jsonify({
                 "success": False,
                 "error": "Failed to connect",
                 "details": error_msg
             }), 500
 
-        print(f"[WIFI] Successfully connected to {ssid}")
+        print(f"[WiFi] Successfully connected to {ssid}")
 
         # Step 3: Create /run/wifi_network_up file using sudo tee
         try:
@@ -453,12 +453,12 @@ def wifi_connect():
                 shell=True,
                 check=True
             )
-            print(f"[WIFI] Created flag: {wifi_up_file}")
+            print(f"[WiFi] Created flag: {wifi_up_file}")
         except subprocess.CalledProcessError as e:
-            print(f"[WIFI] Failed to create wifi_up file: {e}")
+            print(f"[WiFi] Failed to create wifi_up file: {e}")
             # Don't fail the whole request — Wi-Fi is connected!
         except Exception as e:
-            print(f"[WIFI] Unexpected error writing wifi_up: {e}")
+            print(f"[WiFi] Unexpected error writing wifi_up: {e}")
 
         return jsonify({"success": True, "message": "Connected", "ssid": ssid}), 200
 
@@ -518,7 +518,7 @@ def list_wifi_networks():
     """
     try:
         # === 1. Rescan and list available networks ===
-        print("[WIFI] Rescanning networks...")
+        print("[WiFi] Rescanning networks...")
         run_system_command(["sudo", "nmcli", "device", "wifi", "rescan"])
         time.sleep(2.5)  # Give time for scan
 
@@ -558,13 +558,13 @@ def list_wifi_networks():
         saved = []
 
         if not nm_dir.exists():
-            print("[WIFI] /etc/NetworkManager/system-connections/ not found.")
+            print("[WiFi] /etc/NetworkManager/system-connections/ not found.")
         else:
             # Use sudo to read files
             try:
                 ok, file_list = run_system_command(["sudo", "ls", str(nm_dir)])
                 if not ok:
-                    print("[WIFI] Failed to list system-connections (ls failed)")
+                    print("[WiFi] Failed to list system-connections (ls failed)")
                 else:
                     for filename in file_list.strip().split("\n"):
                         if not filename.strip():
@@ -574,7 +574,7 @@ def list_wifi_networks():
                         # Read file with sudo
                         ok, content = run_system_command(["sudo", "cat", str(file_path)])
                         if not ok:
-                            print(f"[WIFI] Failed to read {filename}: {content}")
+                            print(f"[WiFi] Failed to read {filename}: {content}")
                             continue
 
                         parser = configparser.RawConfigParser()
@@ -583,7 +583,7 @@ def list_wifi_networks():
                             from io import StringIO
                             parser.read_string(content, source=filename)
                         except Exception as e:
-                            print(f"[WIFI] Failed to parse {filename}: {e}")
+                            print(f"[WiFi] Failed to parse {filename}: {e}")
                             continue
 
                         def safe_get(section, key):
@@ -622,10 +622,10 @@ def list_wifi_networks():
                         })
 
             except Exception as e:
-                print(f"[WIFI] Error accessing system-connections: {e}")
+                print(f"[WiFi] Error accessing system-connections: {e}")
 
         # === Debug: Print saved networks ===
-        print("\n[WIFI SAVED NETWORKS] ======================")
+        print("\n[WiFi SAVED NETWORKS] ======================")
         if saved:
             print(json.dumps([{
                 "ssid": s["ssid"],
@@ -666,7 +666,7 @@ def list_wifi_networks():
         # === 5. Final response (mask password in logs for safety) ===
         response = {"success": True, "networks": result}
 
-        print("[WIFI API RESPONSE] ========================")
+        print("[WiFi API RESPONSE] ========================")
         log_response = {"success": True, "networks": [
             {k: ("*****" if k == "password" and v else v) for k, v in net.items()}
             for net in result
@@ -678,7 +678,7 @@ def list_wifi_networks():
 
     except Exception as e:
         import traceback
-        print(f"[WIFI ERROR] {e}\n{traceback.format_exc()}")
+        print(f"[WiFi ERROR] {e}\n{traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
