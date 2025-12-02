@@ -388,85 +388,72 @@
    /* ==============================================================
       VIRTUAL KEYBOARD
       ============================================================== */
-   function showKeyboard(el) {
-       activeInput = el;
-
+      function showKeyboard(el) {
+        activeInput = el;
+    
+        // LIFT WIFI POPUP ONLY WHEN THE PASSWORD FIELD IN WIFI POPUP IS FOCUSED
+        if (el.id === 'password' && document.getElementById('wifi-popup')) {
+            liftWiFiPopup();
+        }
+    
         const bottomBar = document.querySelector('.bottom-bar-allpage');
-   
-       // Lift the container card
-       const containerCard = document.querySelector('.container');
-       if (containerCard) {
-           containerCard.classList.add('lifted');
-       }
-       if (bottomBar) bottomBar.classList.add('lifted');
-   
-       let kb = document.getElementById('virtual-keyboard');
-       if (kb) {
-           kb.classList.add('showing');
-           renderKeys();
-           scrollInputIntoView();
-           return;
-       }
-   
-       kb = document.createElement('div');
-       kb.id = 'virtual-keyboard';
-       kb.className = 'virtual-keyboard showing';  // Add 'showing' class immediately
-       kb.innerHTML = `
-           <div class="keyboard-body">
-               <div class="keyboard-keys" id="keyboard-keys"></div>
-               <div class="keyboard-bottom-row">
-                   <button
-                       class="key-special key-shift"
-                       onclick="toggleShift()"
-                       onmousedown="handleKeyDown(event)"
-                       onmouseup="handleKeyUp(event)"
-                       ontouchstart="handleKeyDown(event)"
-                       ontouchend="handleKeyUp(event)"
-                   >
-                       <span class="material-icons">arrow_upward</span>
-                       <span class="key-label">Shift</span>
-                   </button>
-   
-                   <button
-                       class="key key-space"
-                       onclick="insertChar(' ')"
-                       onmousedown="handleKeyDown(event)"
-                       onmouseup="handleKeyUp(event)"
-                       ontouchstart="handleKeyDown(event)"
-                       ontouchend="handleKeyUp(event)"
-                   >Space</button>
-   
-                   <button
-                       class="key-special key-backspace"
-                       onclick="backspace()"
-                       onmousedown="handleKeyDown(event)"
-                       onmouseup="handleKeyUp(event)"
-                       ontouchstart="handleKeyDown(event)"
-                       ontouchend="handleKeyUp(event)"
-                   >
-                       <span class="key-backspace material-icons">backspace</span>
-                   </button>
-   
-                   <button
-                       class="key-special key-enter"
-                       onclick="pressEnter()"
-                       onmousedown="handleKeyDown(event)"
-                       onmouseup="handleKeyUp(event)"
-                       ontouchstart="handleKeyDown(event)"
-                       ontouchend="handleKeyUp(event)"
-                   >
-                       <span class="material-icons">keyboard_return</span>
-                       <span class="key-label">Enter</span>
-                   </button>
-               </div>
-           </div>`;
-       document.body.appendChild(kb);
-       renderKeys();
-       scrollInputIntoView();
-   
-       kb.addEventListener('click', e => e.stopPropagation());
-       el.addEventListener('focus', e => e.stopPropagation());
-   }
+    
+        // Lift the main container card (for normal screens)
+        const containerCard = document.querySelector('.container');
+        if (containerCard) {
+            containerCard.classList.add('lifted');
+        }
+        if (bottomBar) bottomBar.classList.add('lifted');
+    
+        let kb = document.getElementById('virtual-keyboard');
+        if (kb) {
+            kb.classList.add('showing');
+            renderKeys();
+            scrollInputIntoView();
+            return;
+        }
+    
+        kb = document.createElement('div');
+        kb.id = 'virtual-keyboard';
+        kb.className = 'virtual-keyboard showing';
+        kb.innerHTML = `
+            <div class="keyboard-body">
+                <div class="keyboard-keys" id="keyboard-keys"></div>
+                <div class="keyboard-bottom-row">
+                    <button class="key-special key-shift" onclick="toggleShift()"
+                        onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
+                        ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
+                        <span class="material-icons">arrow_upward</span>
+                        <span class="key-label">Shift</span>
+                    </button>
+    
+                    <button class="key key-space" onclick="insertChar(' ')"
+                        onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
+                        ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">Space</button>
+    
+                    <button class="key-special key-backspace" onclick="backspace()"
+                        onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
+                        ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
+                        <span class="key-backspace material-icons">backspace</span>
+                    </button>
+    
+                    <button class="key-special key-enter" onclick="pressEnter()"
+                        onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
+                        ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
+                        <span class="material-icons">keyboard_return</span>
+                        <span class="key-label">Enter</span>
+                    </button>
+                </div>
+            </div>`;
+    
+        document.body.appendChild(kb);
+        renderKeys();
+        scrollInputIntoView();
+    
+        // Prevent clicks inside keyboard from bubbling up
+        kb.addEventListener('click', e => e.stopPropagation());
+    }
+
    function renderKeys() {
        const container = document.getElementById('keyboard-keys');
        if (!container) return;
@@ -637,13 +624,11 @@
        }
    
        // Settle the container card back down
-       const containerCard = document.querySelector('.container');
-       if (containerCard) {
-           containerCard.classList.remove('lifted');
-       }
+       document.querySelector('.container')?.classList.remove('lifted');
    
        activeInput = null;
        shiftActive = false;
+       lowerWiFiPopup();
    }
    function scrollInputIntoView() {
        if (!activeInput) return;
@@ -662,24 +647,26 @@
    }
    
    /* click-outside → hide keyboard */
+   /* ==============================================================
+   GLOBAL CLICK HANDLER — FINAL VERSION (NO MORE POPUP FLICKER EVER)
+   ============================================================== */
    document.addEventListener('click', e => {
-       const kb = document.getElementById('virtual-keyboard');
-       const target = e.target.closest('input[type=text],input[type=password]');
-       if (kb && !e.target.closest('.virtual-keyboard')) {
-           if (target) {
-               activeInput = target;
-               const containerCard = document.querySelector('.container');
-               if (containerCard) containerCard.classList.add('lifted');
-               renderKeys();
-               scrollInputIntoView();
-           }
-           else {
-               const containerCard = document.querySelector('.container');
-               if (containerCard) containerCard.classList.remove('lifted');
-               hideKeyboard();
-           }
-       }
-   });
+    const kb = document.getElementById('virtual-keyboard');
+    const wifiPopup = document.getElementById('wifi-popup');
+    const wifiOverlay = document.getElementById('wifi-overlay');
+
+    if (kb && kb.contains(e.target)) return;
+    if (wifiPopup && wifiPopup.contains(e.target)) return;
+    if (wifiOverlay && wifiOverlay.contains(e.target)) return;
+
+    const input = e.target.closest('input');
+    if (input) {
+        showKeyboard(input);
+        return;
+    }
+
+    hideKeyboard();  // this will lower popup safely
+});
    
    /* ==============================================================
       RENDER & PROGRESS BAR
@@ -901,15 +888,10 @@
         const wifiPopup = document.getElementById('wifi-popup');
     
         passwordInput.addEventListener('focus', () => {
-            wifiPopup.classList.add('lifted');
+            showKeyboard(passwordInput);   // your existing virtual keyboard
+            liftWiFiPopup();               // ← lift it up
+        });
         
-            // This forces keyboard on first tap in normal browser
-            setTimeout(() => passwordInput.focus(), 200);
-        });
-    
-        passwordInput.addEventListener('blur', () => {
-            wifiPopup.classList.remove('lifted');
-        });
     
         // Also lower popup when buttons are clicked (especially on mobile)
         popup.querySelectorAll('button').forEach(btn => {
@@ -943,13 +925,30 @@
             e.currentTarget.classList.toggle('open', !isOpen);
         };
     
-        overlay.onclick = () => {
-            document.getElementById('network-list').style.display = 'none';
-            document.getElementById('selected-network')?.classList.remove('open');
-            wifiPopup.classList.remove('lifted'); // make sure it returns to center
-            closeWiFiPopup();
+        overlay.onclick = (e) => {
+            e.stopPropagation(); // just in case
+            // → NO closeWiFiPopup() here = popup stays open when tapping background
         };
     }
+
+    // === ADD THIS ANYWHERE AFTER showWiFiPopup() can see it ===
+let wifiPopupLifted = false;
+
+function liftWiFiPopup() {
+    const popup = document.getElementById('wifi-popup');
+    if (popup && !wifiPopupLifted) {
+        popup.classList.add('lifted');
+        wifiPopupLifted = true;
+    }
+}
+
+function lowerWiFiPopup() {
+    const popup = document.getElementById('wifi-popup');
+    if (popup && wifiPopupLifted) {
+        popup.classList.remove('lifted');
+        wifiPopupLifted = false;
+    }
+}
    
    
    function togglePasswordVisibility() {
@@ -1050,13 +1049,20 @@
    }
    
    async function connectWiFi() {
+        lowerWiFiPopup();
        const loading = document.getElementById('wifi-loading');
        // const ssid = document.getElementById('ssid')?.value;
        const pass = document.getElementById('password')?.value;
        const err = document.getElementById('wifi-error');
    
        loading.style.display = 'block';
-       if (!selectedSSID || !pass) { err.innerHTML = '<span class="material-icons">error</span> SSID & password required'; err.className = 'error'; err.style.display = 'flex'; loading.style.display = 'none'; return; }
+       if (!selectedSSID || !pass) {
+        err.innerHTML = '<span class="material-icons">error</span> <span style="font-size: 20px;">Provide SSID & Password</span>';
+        err.className = 'error';
+        err.style.display = 'flex';
+        loading.style.display = 'none';
+        return;
+      }
        try {
            const r = await fetch('/api/wifi/connect', {
                method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1091,10 +1097,14 @@
        } catch { err.innerHTML = '<span class="material-icons">error</span> Disconnect failed'; err.style.display = 'flex'; }
    }
    function closeWiFiPopup() {
-       ['wifi-popup', 'wifi-overlay'].forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
-       clearTimeout(liftTimeout);
-       render();
-   }
+    lowerWiFiPopup();   // ← ADD THIS
+    ['wifi-popup', 'wifi-overlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
+    // hide keyboard too just in case
+    hideKeyboard();
+}
    
    
    function showSettingsPopup() {
