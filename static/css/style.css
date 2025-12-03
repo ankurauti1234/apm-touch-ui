@@ -1348,3 +1348,170 @@ button:focus {
     opacity: 0.9;
   }
   
+/* Edit Member card */
+/* ==============================================================
+   EDIT MEMBER POPUP – SAME STYLE AS WIFI POPUP
+   ============================================================== */
+
+   #edit-member-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 16px;                    /* Slightly more rounded than default */
+    padding: 28px 24px;
+    width: 92vw;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    z-index: 1000;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-family: 'Poppins', sans-serif;
+}
+
+#edit-member-popup.lifted {
+    transform: translate(-50%, calc(-50% - 120px));   /* Same lift as Wi-Fi */
+}
+
+/* Header style matching Wi-Fi */
+#edit-member-popup h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.65rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Subtitle */
+#edit-member-popup > p {
+    margin: 0 0 20px 0;
+    font-size: 1rem;
+    color: #666;
+    text-align: center;
+}
+
+/* Error message – same as Wi-Fi */
+#edit-error {
+    display: none;
+    background: rgba(231, 76, 60, 0.12);
+    color: #e74c3c;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    text-align: center;
+    margin: 12px 0;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+#edit-error.show {
+    display: block;
+}
+
+/* Custom Select – reuse your existing .custom-select but make it match Wi-Fi input style */
+#edit-member-popup .custom-select {
+    margin: 1.5rem 0;
+}
+
+#edit-member-popup .selected-item {
+    padding: 16px 18px;
+    background: #ffffff;
+    border: 1.8px solid #ddd;
+    border-radius: 14px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+    transition: all 0.25s ease;
+}
+
+#edit-member-popup .selected-item.open {
+    border-color: #0066ff;
+    box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.15);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+#edit-member-popup .dropdown-list {
+    border: 1.8px solid #0066ff;
+    border-top: none;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+    max-height: 260px;
+}
+
+#edit-member-popup .dropdown-list li {
+    padding: 16px 18px;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+#edit-member-popup .dropdown-list li:hover {
+    background: #f0f8ff;
+}
+
+/* New Code Input – exactly like Wi-Fi password field */
+#code-wrapper {
+    position: relative;
+    margin: 1.5rem 0;
+}
+
+#code-wrapper input#new-code {
+    width: 100%;
+    padding: 16px 18px;
+    border: 1.8px solid #ddd;
+    border-radius: 14px;
+    font-size: 1.15rem;
+    font-weight: 500;
+    background: white;
+    outline: none;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+}
+
+#code-wrapper input#new-code:focus {
+    border-color: #0066ff !important;
+    box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.15);
+}
+
+/* Button Group – same as Wi-Fi */
+#edit-member-popup .button-group {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+}
+
+#edit-member-popup .button-group .button {
+    min-width: 120px;
+    padding: 14px 28px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+}
+
+#edit-member-popup .button-group .button:first-child {
+    background: #0066ff;
+    color: white;
+}
+
+#edit-member-popup .button-group .button.secondary {
+    background: #f8f9fa;
+    color: #333;
+    border: 1.8px solid #ddd;
+}
+
+/* Hover effects */
+#edit-member-popup .button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 102, 255, 0.25);
+}
+
+#edit-member-popup .button.secondary:hover {
+    background: #e9ecef;
+}
