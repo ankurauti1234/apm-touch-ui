@@ -628,6 +628,7 @@
    
        activeInput = null;
        shiftActive = false;
+       lowerEditMemberPopup();
        lowerWiFiPopup();
    }
    function scrollInputIntoView() {
@@ -861,7 +862,7 @@
                         autocomplete="off"
                         style="width:100%; padding:12px 48px 12px 12px; border:1px solid #ccc; border-radius:8px; font-size:16px; outline:none;"
                     >
-                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility()"
+                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility(event)"
                         style="position:absolute; right:8px; background:none; border:none; cursor:pointer; padding:8px; color:#666;">
                         <span class="material-icons" id="eye-icon" style="font-size:24px;">visibility</span>
                     </button>
@@ -951,18 +952,40 @@ function lowerWiFiPopup() {
 }
    
    
-   function togglePasswordVisibility() {
-       const input = document.getElementById('password');
-       const icon = document.getElementById('eye-icon');
-       
-       if (input.type === 'password') {
-         input.type = 'text';
-         icon.textContent = 'visibility_off';
-       } else {
-         input.type = 'password';
-         icon.textContent = 'visibility';
-       }
-     }
+function togglePasswordVisibility(e) {
+    // Block EVERYTHING that could close keyboard or lower popup
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+    }
+
+    const input = document.getElementById('password');
+    const icon  = document.getElementById('eye-icon');
+    const popup = document.getElementById('wifi-popup');
+
+    if (!input || !icon) return;
+
+    // Toggle password ↔ text
+    const wasPassword = input.type === 'password';
+    input.type = wasPassword ? 'text' : 'password';
+    icon.textContent = wasPassword ? 'visibility_off' : 'visibility';
+
+    // FORCE popup to stay lifted – never let it drop even 1 pixel
+    if (popup) {
+        popup.classList.add('lifted');
+        wifiPopupLifted = true;
+    }
+
+    // DO NOT CALL input.focus() → this is what caused the tiny drop+jump!
+    // Keyboard already knows the field is active → just leave it alone
+
+    // Rare edge-case safety: if keyboard somehow closed, reopen instantly (no visible flicker)
+    if (activeInput !== input) {
+        activeInput = input;
+        showKeyboard(input);
+    }
+}
      
      /* Spinner animation */
      const style = document.createElement('style');
@@ -1086,16 +1109,33 @@ function lowerWiFiPopup() {
        loading.style.display = 'none';
    }
    async function disconnectWiFi() {
-       const err = document.getElementById('wifi-error');
-       try {
-           const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
-           const d = await r.json();
-           err.className = d.success ? 'success' : 'error';
-           err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.message || d.error}`;
-           err.style.display = 'flex';
-           if (d.success) setTimeout(scanWiFi, 2000);
-       } catch { err.innerHTML = '<span class="material-icons">error</span> Disconnect failed'; err.style.display = 'flex'; }
-   }
+    const err = document.getElementById('wifi-error');
+    const loading = document.getElementById('wifi-loading');
+
+    try {
+        loading.style.display = 'block';
+        const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
+        const d = await r.json();
+
+        err.className = d.success ? 'success' : 'error';
+        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.message || d.error || 'Disconnected'}`;
+        err.style.display = 'flex';
+
+        if (d.success) {
+            // SUCCESS → immediately refresh the connect_select screen to remove the connected panel
+            setTimeout(async () => {
+                closeWiFiPopup();                    // close popup first
+                await navigate('connect_select');    // ← this will re-render and show Wi-Fi/GSM buttons again
+            }, 1200);
+        }
+    } catch (e) {
+        err.innerHTML = '<span class="material-icons">error</span> Disconnect failed';
+        err.className = 'error';
+        err.style.display = 'flex';
+    } finally {
+        loading.style.display = 'none';
+    }
+}
    function closeWiFiPopup() {
     lowerWiFiPopup();   // ← ADD THIS
     ['wifi-popup', 'wifi-overlay'].forEach(id => {
@@ -1904,70 +1944,140 @@ function lowerWiFiPopup() {
    
    
    function showEditMemberPopup() {
-       if (document.getElementById('edit-member-popup')) return;
-   
-       const overlay = document.createElement('div');
-       overlay.id = 'edit-member-overlay';
-       overlay.className = 'overlay';
-       overlay.onclick = closeEditMemberPopup;
-   
-       const popup = document.createElement('div');
-       popup.id = 'edit-member-popup';
-       popup.className = 'popup';
-       popup.innerHTML = `
-           <h2 style="margin-top: 0;"><span class="material-icons">edit</span> Edit Member Code</h2>
-           <div id="edit-error" class="error" style="display:none;"></div>
-           <div class="custom-select" style="margin:1rem 0;">
-               <div id="edit-selected" class="selected-item">
-                   <span>Select Member</span>
-                   <span class="material-icons arrow">arrow_drop_down</span>
-               </div>
-               <ul id="edit-member-list" class="dropdown-list" style="display:none;"></ul>
-           </div>
-           <input type="text" id="new-code" placeholder="New Code (e.g. M1A)" maxlength="15" onfocus="showKeyboard(this)">
-           <div class="button-group" style="margin-top: 2rem;">
-               <button class="button" onclick="saveMemberCode()">Save</button>
-               <button class="button secondary" onclick="closeEditMemberPopup()">Cancel</button>
-           </div>
-       `;
-   
-       document.body.append(overlay, popup);
-   
-       // Populate member list
-       const list = document.getElementById('edit-member-list');
-       const selected = document.getElementById('edit-selected');
-       membersData?.members.forEach((m, i) => {
-           const li = document.createElement('li');
-           li.innerHTML = `<span>${m.member_code} • ${m.gender}, DOB: ${m.dob}</span>`;
-           li.onclick = (e) => {
-               e.stopPropagation();
-               selectedMemberIndex = i;
-               selected.innerHTML = `<span>${m.member_code}</span><span class="material-icons arrow">arrow_drop_down</span>`;
-               list.style.display = 'none';
-               selected.classList.remove('open');
-               document.getElementById('new-code').focus();
-           };
-           list.appendChild(li);
-       });
-   
-       // Dropdown toggle
-       selected.onclick = (e) => {
-           e.stopPropagation();
-           const open = list.style.display === 'block';
-           list.style.display = open ? 'none' : 'block';
-           selected.classList.toggle('open', !open);
-       };
-   
-       overlay.onclick = () => {
-           list.style.display = 'none';
-           selected.classList.remove('open');
-           closeEditMemberPopup();
-       };
-   }
+    if (document.getElementById('edit-member-popup')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'edit-member-overlay';
+    overlay.className = 'overlay';
+
+    const popup = document.createElement('div');
+    popup.id = 'edit-member-popup';
+    popup.className = 'popup';
+
+    popup.innerHTML = `
+        <h2 style="margin-top: 0;"><span class="material-icons">edit</span> Edit Member Code</h2>
+        <p>Choose a member to edit</p>
+        <div id="edit-error" class="error" style="display:none;"></div>
+
+        <div class="custom-select" style="margin:1rem 0;">
+            <div id="edit-selected" class="selected-item">
+                <span id="fetching-members">Select Member</span>
+                <span class="material-icons arrow">arrow_drop_down</span>
+            </div>
+            <ul id="edit-member-list" class="dropdown-list" style="display:none;"></ul>
+        </div>
+
+        <div class="password-wrapper" id="code-wrapper" style="position:relative; width:100%; max-width:400px; margin:0 auto;">
+            <div style="position:relative; display:flex; align-items:center;">
+                <input 
+                    type="text" 
+                    id="new-code" 
+                    placeholder="New Code (e.g. M1A)" 
+                    maxlength="15"
+                    autocomplete="off"
+                    style="width:100%; padding:12px 48px 12px 12px; border:1px solid #ccc; border-radius:8px; font-size:16px; outline:none;"
+                >
+            </div>
+
+            <div class="button-group" style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+                <button class="button" onclick="saveMemberCode()" style="padding:10px 20px; background:#0066ff; color:white; border:none; border-radius:8px; cursor:pointer;">Save</button>
+                <button class="button secondary" onclick="closeEditMemberPopup()" style="padding:10px 20px; background:#f0f0f0; color:#333; border:1px solid #ccc; border-radius:8px; cursor:pointer;">Cancel</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(popup);
+
+    // THIS IS THE KEY PART FOR KEYBOARD HANDLING
+    const codeInput = document.getElementById('new-code');
+    const editPopup = document.getElementById('edit-member-popup');
+
+    codeInput.addEventListener('focus', () => {
+        showKeyboard(codeInput);   // your existing virtual keyboard
+        liftEditMemberPopup();     // ← lift it up (define this similar to liftWiFiPopup)
+    });
+
+    // Also lower popup when buttons are clicked (especially on mobile)
+    popup.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            editPopup.classList.remove('lifted');
+        });
+    });
+
+    // Populate member list
+    const list = document.getElementById('edit-member-list');
+    const selected = document.getElementById('edit-selected');
+    const mess = document.getElementById('fetching-members');
+    mess.innerHTML = 'fetching members...';
+
+    // Assuming membersData is already available; no async fetch needed unlike WiFi
+    membersData?.members.forEach((m, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${m.member_code} • ${m.gender}, DOB: ${m.dob}</span>`;
+        li.onclick = (e) => {
+            e.stopPropagation();
+            selectedMemberIndex = i;
+            selected.innerHTML = `<span>${m.member_code}</span><span class="material-icons arrow">arrow_drop_down</span>`;
+            list.style.display = 'none';
+            selected.classList.remove('open');
+            document.getElementById('new-code').focus();
+        };
+        list.appendChild(li);
+    });
+
+    setTimeout(() => {
+        const trigger = document.getElementById('edit-selected');
+        const list = document.getElementById('edit-member-list');
+        if (trigger && list && list.children.length > 0) {
+            list.style.display = 'block';
+            trigger.classList.add('open');
+        }
+        mess.innerHTML = 'Select Member';
+    }, 20);
+
+    // Assuming you have an initEditMemberLift() similar to initWiFiLift()
+    initEditMemberLift();
+
+    document.getElementById('edit-selected').onclick = (e) => {
+        e.stopPropagation();
+        const list = document.getElementById('edit-member-list');
+        const isOpen = list.style.display === 'block';
+        list.style.display = isOpen ? 'none' : 'block';
+        e.currentTarget.classList.toggle('open', !isOpen);
+    };
+
+    overlay.onclick = (e) => {
+        e.stopPropagation(); // just in case
+        // → NO closeEditMemberPopup() here = popup stays open when tapping background
+    };
+}
+
+function lowerEditMemberPopup() {
+    const popup = document.getElementById('edit-member-popup');
+    if (popup) {
+        popup.classList.remove('lifted');
+    }
+}
+
+// You may need to define these functions similar to their WiFi counterparts
+function liftEditMemberPopup() {
+    const popup = document.getElementById('edit-member-popup');
+    if (popup) {
+        popup.classList.add('lifted');
+        // Add any additional logic here, e.g., calculate lift amount based on keyboard height
+    }
+}
+
+function initEditMemberLift() {
+    // Initialize any event listeners or observers for keyboard visibility if needed
+    // For example, listen for window resize or keyboard show events on mobile
+}
    
    let selectedMemberIndex = -1;
    
    function closeEditMemberPopup() {
+    lowerEditMemberPopup();
        ['edit-member-popup', 'edit-member-overlay'].forEach(id => {
            const el = document.getElementById(id);
            if (el) el.remove();
@@ -1995,6 +2105,7 @@ function lowerWiFiPopup() {
            if (d.success) {
                membersData.members[selectedMemberIndex] = d.member;
                render();
+               lowerEditMemberPopup();
                closeEditMemberPopup();
            } else {
                showErrorInPopup(d.error || 'Failed', err);
