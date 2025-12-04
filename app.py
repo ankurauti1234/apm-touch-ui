@@ -873,6 +873,78 @@ def toggle_member_status():
             return jsonify({"success": False, "error": "Index out of range"}), 400
 
         member = members[index]
+        old_state = member.get("active", False)
+        new_state = not old_state
+
+        # Build full member list with updated state for the toggled member
+        members_payload = []
+        for i, m in enumerate(members):
+            age = calculate_age(m.get("dob"))
+            if age is None:
+                continue  # skip invalid entries
+            members_payload.append({
+                "age": age,
+                "gender": m["gender"],
+                "active": new_state if i == index else m.get("active", False)
+            })
+
+        payload = {
+            "DEVICE_ID": METER_ID,
+            "TS": str(int(time.time())),
+            "Type": 3,
+            "Details": {
+                "members": members_payload
+            }
+        }
+
+        payload_json = json.dumps(payload)
+
+        _mqtt_log(f"TOGGLING member {index}: {old_state} → {new_state} | Sending full state to MQTT")
+
+        publish_ok = False
+
+        if client and client.is_connected():
+            publish_ok = wait_for_publish_success(client, payload_json, timeout=8.0)
+            _mqtt_log("Direct MQTT publish succeeded" if publish_ok else "Direct publish failed")
+
+        if not publish_ok:
+            _mqtt_log("Queueing member state update (will send when online)")
+            _enqueue(payload)
+            publish_ok = True  # queued = success for consistency
+
+        if not publish_ok:
+            _mqtt_log("CRITICAL: Failed to publish or queue member toggle!")
+            return jsonify({"success": False, "error": "Offline and cannot queue update"}), 503
+
+        # ONLY update local state if MQTT was sent or queued
+        member["active"] = new_state
+        save_members_data(data)
+
+        _mqtt_log(f"Member {index} toggled successfully → active = {new_state}")
+
+        return jsonify({
+            "success": True,
+            "member": member,
+            "active": new_state,
+            "mqtt_status": "sent" if client and client.is_connected() else "queued"
+        }), 200
+
+    except Exception as e:
+        _mqtt_log(f"ERROR in toggle_member_status: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": "Server error"}), 500
+    index = request.json.get("index")
+    if not isinstance(index, int):
+        return jsonify({"success": False, "error": "Invalid index"}), 400
+
+    try:
+        data = load_members_data()
+        members = data.get("members", [])
+        if not (0 <= index < len(members)):
+            return jsonify({"success": False, "error": "Index out of range"}), 400
+
+        member = members[index]
         new_active_state = not member.get("active", False)
 
         # --- Build payload with the NEW intended state ---
