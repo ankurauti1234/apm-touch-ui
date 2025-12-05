@@ -2014,7 +2014,7 @@ function togglePasswordVisibility(e) {
     // Assuming membersData is already available; no async fetch needed unlike WiFi
     membersData?.members.forEach((m, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<span>${m.member_code}</span>`;
+        li.innerHTML = `<span>${m.member_code} </span>`;
         li.onclick = (e) => {
             e.stopPropagation();
             selectedMemberIndex = i;
