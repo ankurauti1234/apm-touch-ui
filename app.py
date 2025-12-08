@@ -49,6 +49,7 @@ DEVICE_CONFIG = {
     "hhid_file": "/var/lib/hhid.txt",
     # "default_meter_id": "AM100003",
     "members_file": "/var/lib/meter_members.json",
+    "guests_file": "/var/lib/meter_guests.json",
     "certs_dir": "/opt/apm/certs"
 }
 
@@ -338,6 +339,144 @@ INITIATE_URL = f"{API_BASE}/initiate-assignment"
 VERIFY_URL   = f"{API_BASE}/verify-otp"
 MEMBERS_URL  = f"{API_BASE}/members"
 
+# === GUESTS FILE ===
+
+def load_guests_count():
+    """Fast count — used by main dashboard"""
+    try:
+        data = load_members_data()
+        guests = data.get("guests", [])
+        return len(guests) if isinstance(guests, list) else 0
+    except Exception as e:
+        print(f"[GUESTS] Count error: {e}")
+        return 0
+
+def get_guests_for_ui():
+    """Full list — used when opening Add Guest dialog"""
+    try:
+        data = load_members_data()
+        return data.get("guests", [])
+    except:
+        return []
+@app.route("/api/guest_count", methods=["GET"])
+def api_guest_count():
+    count = load_guests_count()
+    return jsonify({"success": True, "count": count}), 200
+
+@app.route("/api/guests_list", methods=["GET"])
+def api_guests_list():
+    guests = get_guests_for_ui()
+    return jsonify({"success": True, "guests": guests}), 200
+    
+
+@app.route("/api/update_guests", methods=["POST"])
+def update_guests():
+    try:
+        payload = request.get_json()
+        if not payload or "Details" not in payload:
+            return jsonify({"success": False, "error": "Invalid payload"}), 400
+
+        guest_list = payload["Details"].get("guests", [])
+
+        # THIS LINE FIXES EVERYTHING
+        save_guests_data(guest_list)  # ← Saves to meter_members.json
+
+        payload_json = json.dumps(payload)
+
+        publish_ok = False
+        if client and client.is_connected():
+            publish_ok = wait_for_publish_success(client, payload_json, timeout=8.0)
+
+        if not publish_ok:
+            _enqueue(payload)
+
+        return jsonify({
+            "success": True,
+            "guest_count": len(guest_list),
+            "mqtt_status": "sent" if publish_ok else "queued"
+        }), 200
+
+    except Exception as e:
+        print(f"[ERROR] update_guests: {e}")
+        import traceback; traceback.print_exc()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/sync_guests", methods=["POST"])
+def sync_guests():
+    try:
+        data = request.get_json()
+        if not data or "guests" not in data:
+            return jsonify({"success": False, "error": "Invalid data"}), 400
+
+        guest_list = data["guests"]
+
+        # Build MQTT payload
+        payload = {
+            "DEVICE_ID": METER_ID,
+            "TS": str(int(time.time())),
+            "Type": 4,
+            "Details": {
+                "guests": [
+                    {"age": g["age"], "gender": g["gender"], "active": True}
+                    for g in guest_list
+                ]
+            }
+        }
+
+        payload_json = json.dumps(payload)
+        _mqtt_log(f"SYNC GUESTS → {len(guest_list)} guests")
+
+        publish_ok = False
+        if client and client.is_connected():
+            publish_ok = wait_for_publish_success(client, payload_json, timeout=8.0)
+
+        if not publish_ok:
+            _enqueue(payload)
+            publish_ok = True
+
+        if not publish_ok:
+            return jsonify({"success": False, "error": "Cannot sync"}), 503
+
+        # Save guests inside meter_members.json
+        save_guests_data(guest_list)
+
+        return jsonify({
+            "success": True,
+            "guest_count": len(guest_list)
+        }), 200
+
+    except Exception as e:
+        _mqtt_log(f"ERROR sync_guests: {e}")
+        return jsonify({"success": False, "error": "Server error"}), 500
+
+
+@app.route("/api/get_guests", methods=["GET"])
+def get_guests():
+    guests = load_guests_data()
+    return jsonify({
+        "success": True,
+        "guests": guests,
+        "count": len(guests)
+    }), 200
+
+# === GUESTS ARE NOW STORED INSIDE meter_members.json ===
+def load_guests_data():
+    try:
+        data = load_members_data()  # Reuse existing function
+        return data.get("guests", [])
+    except:
+        return []
+
+def save_guests_data(guest_list):
+    try:
+        data = load_members_data()  # Load full file
+        data["guests"] = [
+            {"age": g["age"], "gender": g["gender"]} for g in guest_list
+        ]
+        save_members_data(data)  # Reuse existing save function
+        print(f"[GUESTS] Saved {len(guest_list)} guests → meter_members.json")
+    except Exception as e:
+        print(f"[GUESTS] Save failed: {e}")
 
 @app.route("/")
 def home():
