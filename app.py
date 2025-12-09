@@ -173,7 +173,7 @@ AWS_IOT_ENDPOINT    = "a3uoz4wfsx2nz3-ats.iot.ap-south-1.amazonaws.com"
 RECONNECT_DELAY     = 5
 MAX_RECONNECT_DELAY = 60
 
-client   = None
+client   = METER_ID
 _pub_q   = []
 _q_lock  = threading.Lock()
 
@@ -186,6 +186,8 @@ def _mqtt_log(msg: str):
 def get_cert_paths():
 
     certs_dir = DEVICE_CONFIG["certs_dir"]
+
+    print(client)
 
     keyfile   = os.path.join(certs_dir, f"{METER_ID}.key")
     certfile  = os.path.join(certs_dir, f"{METER_ID}Chain.crt")
