@@ -50,7 +50,7 @@ DEVICE_CONFIG = {
     # "default_meter_id": "AM100003",
     "members_file": "/var/lib/meter_members.json",
     "guests_file": "/var/lib/meter_guests.json",
-    "certs_dir": "/opt/apm/certs"
+    "certs_dir": "./certs"
 }
 
 SYSTEM_FILES = {
@@ -189,9 +189,9 @@ def get_cert_paths():
 
     print(client)
 
-    keyfile   = os.path.join(certs_dir, f"{METER_ID}.key")
-    certfile  = os.path.join(certs_dir, f"{METER_ID}Chain.crt")
-    cafile    = os.path.join(certs_dir, "AmazonRootCA1.pem")
+    keyfile   = os.path.join(certs_dir, "test.private.pem.key")
+    certfile  = os.path.join(certs_dir, "test.cert.pem.crt")
+    cafile    = os.path.join(certs_dir, "root-CA.crt")
 
     missing = []
     if not os.path.exists(keyfile):   missing.append(f"KEY: {keyfile}")
