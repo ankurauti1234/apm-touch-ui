@@ -572,6 +572,364 @@ ul li {
 /* .bottom-bar-allpage.lifted {
     transform: translateY(-280px);   
 } */
+/* GUEST DIALOG STYLES */
+/* GUEST DIALOG – FINAL VERSION – ROCK SOLID */
+#guest-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    padding: 20px;
+    box-sizing: border-box;
+    /* Prevent any scrolling or interaction behind */
+    touch-action: none;
+}
+
+.guest-dialog {
+    background: white;
+    width: 92%;
+    max-width: 440px;
+    max-height: 90vh;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+    position: relative;
+    overflow-y: auto;
+    animation: popup 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Make sure the card itself is touchable */
+    touch-action: manipulation;
+}
+
+@keyframes popup {
+    0%   { transform: scale(0.8) translateY(50px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Make sure buttons and inputs are fully clickable */
+.guest-dialog button,
+.guest-dialog input,
+.guest-dialog select {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Optional: nice focus glow for touch */
+.guest-dialog input:focus,
+.guest-dialog select:focus,
+.guest-dialog button:focus {
+    outline: 3px solid #1976d2;
+    outline-offset: 2px;
+}
+
+@keyframes popup {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.guest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.guest-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+    padding: 4px;
+}
+
+.guest-close:hover { color: #000; }
+
+.guest-form label {
+    display: block;
+    margin: 16px 0 6px;
+    font-weight: 500;
+}
+
+.guest-form input,
+.guest-form select {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+.guest-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.guest-actions button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.guest-actions .cancel {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.guest-actions .add {
+    background: #1976d2;
+    color: white;
+}
+
+.guest-actions .add:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+}
+
+.guest-list {
+    margin-top: 20px;
+    max-height: 180px;
+    overflow-y: auto;
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+}
+
+.guest-item {
+    padding: 10px;
+    background: #f8fbff;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+}
+
+.guest-remove {
+    background: none;
+    border: none;
+    color: #d32f2f;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* ==============================================================
+   FLOATING NUMPAD – ONLY FOR GUEST DIALOG (Age input)
+   ============================================================== */
+   .guest-numpad {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border-radius: 20px;
+    padding: 20px 16px;
+    /* box-shadow: 0 20px 50px rgba(0,0,0,0.3); */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    z-index: 2147483647;               /* Always on top */
+    animation: numpadSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    user-select: none;
+}
+
+.guest-numpad button {
+    width: 64px;
+    height: 64px;
+    border: none;
+    border-radius: 16px;
+    background: #f1f3f5;
+    color: #333;
+    font-size: 28px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.guest-numpad button:active {
+    transform: scale(0.92);
+    background: #0066ff;
+    color: white;
+    box-shadow: 0 6px 16px rgba(0,102,255,0.4);
+}
+
+.guest-numpad .backspace {
+    grid-column: span 3;
+    background: #ffebee !important;
+    color: #d32f2f;
+    font-size: 36px !important;
+}
+
+@keyframes numpadSlideIn {
+    from { transform: translateX(100%) translateY(-50%); opacity: 0; }
+    to   { transform: translateX(0) translateY(-50%); opacity: 1; }
+}
+
+/* ERROR MESSAGES INSIDE GUEST DIALOG */
+.guest-error {
+    color: #e74c3c;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.guest-error.show {
+    opacity: 1;
+}
+
+/* GENDER BUTTONS — NO CURSOR, TOUCH-FRIENDLY */
+.gender-buttons {
+    display: flex;
+    gap: 12px;
+    margin: 8px 0 4px;
+}
+.gender-btn {
+    flex: 1;
+    padding: 14px;
+    background: #f8f9fa;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.gender-btn.selected {
+    background: #1976d2;
+    color: white;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
+}
+/* CUSTOM TOUCH DROPDOWN — NO CURSOR, PERFECT FOR KIOSK */
+.custom-dropdown {
+    position: relative;
+    margin: 8px 0;
+}
+.dropdown-display {
+    padding: 16px;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+.dropdown-display.active {
+    border-color: #1976d2;
+    box-shadow: 0 0 0 4px rgba(25,118,210,0.2);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.dropdown-display .placeholder { color: #999; }
+.dropdown-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid hsl(0, 0%, 100%);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    z-index: 100;
+}
+.dropdown-options.open {
+    max-height: 180px;
+    padding: 8px 0;
+}
+.dropdown-item {
+    padding: 16px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.dropdown-item:hover {
+    background: #e3f2fd;
+}
+/* CUSTOM DROPDOWN — NO CURSOR, TOUCH-FRIENDLY */
+.custom-select-wrapper {
+    position: relative;
+    margin: 8px 0;
+}
+
+.custom-select-display {
+    padding: 14px 16px;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.custom-select-display.active {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0,102,255,0.15);
+    border-radius: 12px 12px 0 0;
+}
+
+.custom-select-display .placeholder {
+    color: #999;
+}
+
+.custom-select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #0066ff;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    z-index: 10;
+}
+
+.custom-select-options.open {
+    max-height: 200px;
+    padding: 8px 0;
+}
+
+.option {
+    padding: 14px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.option:hover, .option.selected {
+    background: #f0f8ff;
+}
 
 .bar-btn {
     display: flex;
@@ -609,6 +967,9 @@ ul li {
     button {
         width: 30%;
     }
+}
+.btn-text{
+    font-size: 20px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
