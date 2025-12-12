@@ -483,19 +483,24 @@
     `;
 
     document.body.appendChild(overlay);
+
     hideKeyboard();
 
-    requestAnimationFrame(() => {
+    requestAnimationFrame(async () => {
         overlay.style.opacity = '1';
         document.getElementById('guest-age')?.focus();
-        updateGuestList();
-        updateGuestCounter();
+
+        // THIS IS THE KEY FIX:
+        await loadGuestsForDialog();        // Load full list from server
+        updateGuestList();                  // Render list
+        await updateGuestCountFromFile();   // Update header + bottom bar + button
+
+        console.log("Guest dialog opened → count refreshed from disk");
     });
 
     overlay.addEventListener('click', e => e.target === overlay && e.stopPropagation());
-
-    loadGuestsForDialog();  // ← Load full list when opening
-    updateGuestCountFromFile(); // ← Also update count
+    // loadGuestsForDialog();  // ← Load full list when opening
+    // updateGuestCountFromFile(); // ← Also update count
 }
 
 
@@ -544,22 +549,21 @@ function closeGuestDialog() {
     document.getElementById('guest-overlay')?.remove();
 }
    
-   function closeGuestDialog() {
-       document.getElementById('guest-overlay')?.remove();
-       document.querySelector('.guest-dialog')?.remove();
-   }
+function closeGuestDialog() {
+    document.getElementById('guest-overlay')?.remove();
+    hideKeyboard();
+}
    
-   function addGuest() {
+   async function addGuest() {
     const ageInput = document.getElementById('guest-age');
-    const ageError = document.getElementById('age-error');
-    const genderError = document.getElementById('gender-error');
     const genderDisplay = document.getElementById('gender-display');
-
     const age = ageInput.value.trim();
     const gender = genderDisplay?.dataset.value || '';
 
-    let valid = true;
+    const ageError = document.getElementById('age-error');
+    const genderError = document.getElementById('gender-error');
 
+    let valid = true;
     ageError.classList.remove('show');
     genderError.classList.remove('show');
 
@@ -573,42 +577,78 @@ function closeGuestDialog() {
     }
     if (!valid) return;
 
-    if (guests.length >= 8) {
-        alert('Maximum 8 guests allowed');
+    // Use server as source of truth
+    try {
+        const res = await fetch('/api/get_guests');
+        const data = await res.json();
+        if (data.success && data.guests.length >= 8) {
+            alert('Maximum 8 guests allowed');
+            return;
+        }
+    } catch (e) {
+        // offline → allow but warn
+    }
+
+    // Add via backend → this saves + syncs
+    const response = await fetch('/api/sync_guests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            guests: [...guests, { age: parseInt(age), gender }] // append new
+        })
+    });
+
+    const result = await response.json();
+    if (!result.success) {
+        showToast("Failed to save guest");
         return;
     }
 
-    guests.push({ age: parseInt(age), gender });
-
-    // Clear form
+    // CLEAR FORM
     ageInput.value = '';
     genderDisplay.innerHTML = '<span class="placeholder">Select gender</span><span class="material-icons arrow">arrow_drop_down</span>';
     delete genderDisplay.dataset.value;
     ageInput.focus();
 
-    // INSTANT UPDATE — this is what fixes it
+    // INSTANT UI UPDATE FROM SERVER (this is what fixes it)
+    await loadGuestsForDialog();
     updateGuestList();
-    updateGuestCounter();
-    renderGuestCountInMain();
-    updateGuestCountFromFile();     // ← Updates bottom bar instantly
+    await updateGuestCountFromFile();
 
-    // SEND TO MQTT (via backend)
-    sendGuestListToServer();   // This is the key line
-
-    // Auto-scroll to bottom to show new guest
-    const container = document.querySelector('.guest-list-container');
-    if (container) container.scrollTop = container.scrollHeight;
+    // showToast(`Guest added (${result.guest_count}/8)`);
 }
    
-   function removeGuest(index) {
-       guests.splice(index, 1);
-       updateGuestList();
-       updateGuestCounter();
-       renderGuestCountInMain(); // ← ADD THIS LINE — updates bottom bar
-       updateGuestCountFromFile();     // ← Updates bottom bar instantly
+   async function removeGuest(index) {
+        let currentGuests = [];
+        try {
+            const res = await fetch('/api/get_guests');
+            const data = await res.json();
+            if (data.success) currentGuests = data.guests;
+        } catch (e) {
+            showToast("Offline – cannot remove");
+            return;
+        }
 
-       // SEND UPDATED LIST AFTER REMOVAL
-        sendGuestListToServer();   // This is the key line
+        // Remove the one at index
+        currentGuests.splice(index, 1);
+
+        // Send updated list to backend
+        const response = await fetch('/api/sync_guests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ guests: currentGuests })
+        });
+
+        const result = await response.json();
+        if (!result.success) {
+            showToast("Failed to remove guest");
+            return;
+        }
+
+        // INSTANT REFRESH
+        await loadGuestsForDialog();
+        updateGuestList();
+        await updateGuestCountFromFile();
    }
    
    function updateGuestList() {
@@ -621,8 +661,8 @@ function closeGuestDialog() {
     }
 
     list.innerHTML = guests.map((g, i) => `
-        <div class="guest-item" style="padding:12px; background:#f8fbff; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
-            <span>Guest ${i + 1}: ${g.age} years • ${g.gender}</span>
+        <div class="guest-item" style="padding:0px; background:#f8fbff; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+            <span>G ${i + 1}: ${g.age} years • ${g.gender}</span>
             <button onclick="removeGuest(${i})" style="background:none; border:none; color:#d32f2f; font-size:20px; cursor:pointer;">remove</button>
         </div>
     `).join('');
@@ -725,7 +765,7 @@ async function sendGuestListToServer() {
 
         if (result.success) {
             console.log("Guests synced →", result.guest_count, "guests");
-            showToast(`Guest list updated (${guests.length}/8)`);
+            // showToast(`Guest list updated (${guests.length}/8)`);
         } else {
             showToast("Saved locally – will sync when online");
         }
@@ -743,15 +783,16 @@ async function updateGuestCountFromFile() {
         const data = await res.json();
         if (data.success) {
             const count = data.count;
-            // Update bottom bar
+
+            // Update bottom bar (main screen)
             const bottom = document.querySelector('.guest-count');
             if (bottom) bottom.textContent = `${count} / 8 Guests`;
 
-            // Update dialog header (if open)
+            // Update dialog header (CRITICAL)
             const header = document.getElementById('guest-counter-header');
             if (header) header.textContent = count;
 
-            // Update add button
+            // Update Add button state
             const btn = document.getElementById('add-guest-btn');
             if (btn) {
                 btn.disabled = count >= 8;

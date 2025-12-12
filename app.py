@@ -30,10 +30,10 @@ from functools import partial
 # ----------------------------------------------------------------------
 # 1. Qt / Chromium sandbox settings (uncomment if needed on restricted env)
 # ----------------------------------------------------------------------
-# os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
-# os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
-# os.makedirs("/tmp/runtime-root", exist_ok=True)
-# os.chmod("/tmp/runtime-root", 700)
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
+os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
+os.makedirs("/tmp/runtime-root", exist_ok=True)
+os.chmod("/tmp/runtime-root", 700)
 
 # ----------------------------------------------------------------------
 # 2. Flask application
@@ -186,6 +186,7 @@ def _mqtt_log(msg: str):
 def get_cert_paths():
 
     certs_dir = DEVICE_CONFIG["certs_dir"]
+
 
     keyfile   = os.path.join(certs_dir, f"{METER_ID}.key")
     certfile  = os.path.join(certs_dir, f"{METER_ID}Chain.crt")
@@ -344,9 +345,7 @@ MEMBERS_URL  = f"{API_BASE}/members"
 def load_guests_count():
     """Fast count — used by main dashboard"""
     try:
-        data = load_members_data()
-        guests = data.get("guests", [])
-        return len(guests) if isinstance(guests, list) else 0
+        return len(load_guests_data())
     except Exception as e:
         print(f"[GUESTS] Count error: {e}")
         return 0
@@ -354,10 +353,10 @@ def load_guests_count():
 def get_guests_for_ui():
     """Full list — used when opening Add Guest dialog"""
     try:
-        data = load_members_data()
-        return data.get("guests", [])
+        return load_guests_data()
     except:
         return []
+
 @app.route("/api/guest_count", methods=["GET"])
 def api_guest_count():
     count = load_guests_count()
@@ -461,22 +460,28 @@ def get_guests():
 
 # === GUESTS ARE NOW STORED INSIDE meter_members.json ===
 def load_guests_data():
+    """Load only guests from the dedicated guests file"""
     try:
-        data = load_members_data()  # Reuse existing function
-        return data.get("guests", [])
-    except:
+        with open(DEVICE_CONFIG["guests_file"], "r") as f:
+            data = json.load(f)
+            # Expected format: {"guests": [ ... ]}
+            return data.get("guests", [])
+    except FileNotFoundError:
+        return []
+    except Exception as e:
+        print(f"[GUESTS] Load error: {e}")
         return []
 
 def save_guests_data(guest_list):
+    """Save guests to the dedicated meter_guests.json file"""
     try:
-        data = load_members_data()  # Load full file
-        data["guests"] = [
-            {"age": g["age"], "gender": g["gender"]} for g in guest_list
-        ]
-        save_members_data(data)  # Reuse existing save function
-        print(f"[GUESTS] Saved {len(guest_list)} guests → meter_members.json")
+        data = {"guests": guest_list}
+        with open(DEVICE_CONFIG["guests_file"], "w") as f:
+            json.dump(data, f, indent=2)
+        print(f"[GUESTS] Saved {len(guest_list)} guests → {DEVICE_CONFIG['guests_file']}")
     except Exception as e:
         print(f"[GUESTS] Save failed: {e}")
+        raise
 
 @app.route("/")
 def home():
