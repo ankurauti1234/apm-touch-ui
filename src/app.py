@@ -18,10 +18,10 @@ import requests
 from flask import Flask, render_template
 from flask_cors import CORS
 
-
 # ──────────────────────────────────────────────────────────────
-# Local modules (blueprints + startup)
+# Local modules
 # ──────────────────────────────────────────────────────────────
+from src.config import METER_ID, DEVICE_CONFIG, SYSTEM_FILES
 from src.mqtt import start_mqtt
 from src.settings.wifi import wifi_bp
 from src.settings.system_settings import system_settings_bp
@@ -31,16 +31,11 @@ from src.users.members import members_bp
 from src.users.guests import guests_bp
 
 
-from src.config import METER_ID, DEVICE_CONFIG, SYSTEM_FILES
-
-
-
 # ----------------------------------------------------------------------
-# Flask application
+# Flask application — BULLETPROOF PATHS FOR RASPBERRY PI & EVERYWHERE
 # ----------------------------------------------------------------------
-
-# Get the project root (parent of src/)
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Find project root reliably (works whether run from run.py or src/app.py)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 app = Flask(
     __name__,
@@ -68,7 +63,6 @@ def home():
 
 @app.route("/close")
 def close_application():
+    from PyQt5.QtCore import QCoreApplication
     QCoreApplication.quit()
     return "Closing..."
-
-# 118
