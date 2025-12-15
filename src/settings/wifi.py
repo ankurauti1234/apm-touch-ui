@@ -17,15 +17,19 @@ wifi_bp = Blueprint('wifi', __name__, url_prefix='/api')
 
 @wifi_bp.route("/check_wifi", methods=["GET"])
 def check_wifi():
+    print("api work started")
     set_current_state("connect_select")
     try:
+        print("reached try block")
         ok, out = run_system_command(
             ["nmcli", "-t", "-f", "TYPE,DEVICE", "connection", "show", "--active"]
         )
         if not ok:
+            print("check if ok")
             return jsonify({"success": False}), 200
 
         for line in out.strip().split("\n"):
+            print("for loop")
             if not line.strip():
                 continue
             parts = line.split(":", 1)
@@ -36,8 +40,11 @@ def check_wifi():
             if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
                 return jsonify({"success": True}), 200
 
+        print("for loop over")
+
         return jsonify({"success": False}), 200
     except Exception:
+        print("reached except block ")
         return jsonify({"success": False}), 200
 
 
