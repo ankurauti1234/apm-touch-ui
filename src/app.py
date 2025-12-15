@@ -5,8 +5,11 @@
 # Standard library
 # ──────────────────────────────────────────────────────────────
 import os
-import threading
+import sys
 import time
+import threading
+import subprocess
+from typing import List, Tuple
 
 # ──────────────────────────────────────────────────────────────
 # Third-party
@@ -18,6 +21,7 @@ from flask_cors import CORS
 # ──────────────────────────────────────────────────────────────
 # Local modules
 # ──────────────────────────────────────────────────────────────
+from src.config import METER_ID, DEVICE_CONFIG, SYSTEM_FILES
 from src.mqtt import start_mqtt
 from src.settings.wifi import wifi_bp
 from src.settings.system_settings import system_settings_bp
@@ -26,22 +30,12 @@ from src.installation.system_files import system_files_bp
 from src.users.members import members_bp
 from src.users.guests import guests_bp
 
-from src.config import METER_ID, DEVICE_CONFIG, SYSTEM_FILES
-
 
 # ----------------------------------------------------------------------
-# Flask application — BULLETPROOF PATH RESOLUTION (works on Raspberry Pi, WSL, everywhere)
+# Flask application — BULLETPROOF PATHS FOR RASPBERRY PI & EVERYWHERE
 # ----------------------------------------------------------------------
-def get_project_root():
-    """Return absolute path to project root, no matter where we run from."""
-    # If this file is in src/ → go up one level
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    if os.path.basename(current_dir) == "src":
-        return os.path.dirname(current_dir)
-    # Fallback: current working directory
-    return os.getcwd()
-
-PROJECT_ROOT = get_project_root()
+# Find project root reliably (works whether run from run.py or src/app.py)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 app = Flask(
     __name__,
@@ -50,7 +44,7 @@ app = Flask(
 )
 CORS(app)
 
-# Register blueprints
+# Register all blueprints
 app.register_blueprint(wifi_bp)
 app.register_blueprint(system_settings_bp)
 app.register_blueprint(assignment_bp)
