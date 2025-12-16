@@ -1,45 +1,53 @@
 # src/users/members.py
 
-import json
-import time
+import sqlite3
 from flask import Blueprint, jsonify, request
 
-from src.config import METER_ID, DEVICE_CONFIG
-from src.mqtt import (
-    client, _enqueue, wait_for_publish_success,
-    publish_member_event, _mqtt_log, calculate_age
-)
+from src.config import METER_ID, DB_PATH
+from src.installation.assignment import load_hhid
+from src.mqtt import client, _enqueue, wait_for_publish_success, publish_member_event, _mqtt_log, calculate_age
 
 members_bp = Blueprint('members', __name__, url_prefix='/api')
 
 
 def load_members_data() -> dict:
-    try:
-        with open(DEVICE_CONFIG["members_file"], "r") as f:
-            data = json.load(f)
-        clean_members = []
-        for m in data.get("members", []):
-            clean = {
-                "member_code": m.get("member_code"),
-                "dob": m.get("dob"),
-                "gender": m.get("gender"),
-                "created_at": m.get("created_at"),
-                "active": m.get("active", False)
-            }
-            clean = {k: v for k, v in clean.items() if v is not None}
-            clean_members.append(clean)
-        data["members"] = clean_members
-        return data
-    except FileNotFoundError:
-        from src.installation.assignment import load_hhid
-        return {"meter_id": METER_ID, "hhid": load_hhid(), "members": []}
+    hhid = load_hhid()
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT member_code, dob, gender, created_at, active
+            FROM members WHERE meter_id = ? AND hhid = ?
+        """, (METER_ID, hhid))
+        members = []
+        for row in cur.fetchall():
+            members.append({
+                "member_code": row[0],
+                "dob": row[1],
+                "gender": row[2],
+                "created_at": row[3],
+                "active": bool(row[4])
+            })
+    return {"meter_id": METER_ID, "hhid": hhid, "members": members}
 
 
 def save_members_data(data: dict):
-    with open(DEVICE_CONFIG["members_file"], "w") as f:
-        json.dump(data, f, indent=2)
+    meter_id = data.get("meter_id", METER_ID)
+    hhid = data.get("hhid", load_hhid())
+    members = data.get("members", [])
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM members WHERE meter_id = ? AND hhid = ?", (meter_id, hhid))
+        for m in members:
+            cur.execute("""
+                INSERT INTO members (meter_id, hhid, member_code, dob, gender, created_at, active)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (meter_id, hhid, m.get("member_code"), m.get("dob"), m.get("gender"), m.get("created_at"), int(m.get("active", False))))
+        conn.commit()
 
 
+# ----------------------------------------------------------------------
+# Endpoints — keep your existing ones (they use load/save so they work automatically)
+# ----------------------------------------------------------------------
 @members_bp.route("/members", methods=["GET"])
 def get_members():
     try:
@@ -64,7 +72,6 @@ def toggle_member_status():
         member = members[index]
         new_active_state = not member.get("active", False)
 
-        # Build full payload
         members_payload = []
         for i, m in enumerate(members):
             age = calculate_age(m.get("dob"))

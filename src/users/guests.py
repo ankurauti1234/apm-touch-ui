@@ -1,47 +1,54 @@
 # src/users/guests.py
 
+import sqlite3
 import json
 import time
 from flask import Blueprint, jsonify, request
 
-from src.config import METER_ID, DEVICE_CONFIG
-from src.users.members import load_members_data, save_members_data
+from src.config import METER_ID, DB_PATH
+from src.installation.assignment import load_hhid
 from src.mqtt import client, _enqueue, wait_for_publish_success, _mqtt_log
-
 
 guests_bp = Blueprint('guests', __name__, url_prefix='/api')
 
 
-# -----------------------------------------------------------------------
-# Dedicated guests file handling (new & better)
-# -----------------------------------------------------------------------
 def load_guests_data():
-    """Load only guests from the dedicated guests file"""
-    try:
-        with open(DEVICE_CONFIG["guests_file"], "r") as f:
-            data = json.load(f)
-            return data.get("guests", [])
-    except FileNotFoundError:
-        return []
-    except Exception as e:
-        print(f"[GUESTS] Load error: {e}")
-        return []
+    hhid = load_hhid()
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT age, gender, active
+            FROM guests WHERE meter_id = ? AND hhid = ?
+        """, (METER_ID, hhid))
+        guests = []
+        for row in cur.fetchall():
+            guests.append({
+                "age": row[0],
+                "gender": row[1],
+                "active": bool(row[2])
+            })
+        return guests
 
 
 def save_guests_data(guest_list):
-    """Save guests to the dedicated meter_guests.json file"""
-    try:
-        data = {"guests": guest_list}
-        with open(DEVICE_CONFIG["guests_file"], "w") as f:
-            json.dump(data, f, indent=2)
-        print(f"[GUESTS] Saved {len(guest_list)} guests → {DEVICE_CONFIG['guests_file']}")
-    except Exception as e:
-        print(f"[GUESTS] Save failed: {e}")
-        raise
+    hhid = load_hhid()
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM guests WHERE meter_id = ? AND hhid = ?", (METER_ID, hhid))
+        for g in guest_list:
+            cur.execute("""
+                INSERT INTO guests (meter_id, hhid, age, gender, active)
+                VALUES (?, ?, ?, ?, ?)
+            """, (METER_ID, hhid, g.get("age"), g.get("gender"), int(g.get("active", True))))
+        conn.commit()
 
 
 def load_guests_count():
-    return len(load_guests_data())
+    hhid = load_hhid()
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM guests WHERE meter_id = ? AND hhid = ?", (METER_ID, hhid))
+        return cur.fetchone()[0]
 
 
 def get_guests_for_ui():
@@ -49,7 +56,7 @@ def get_guests_for_ui():
 
 
 # ----------------------------------------------------------------------
-# Guest endpoints
+# Guest endpoints — keep your existing ones (they use the new functions)
 # ----------------------------------------------------------------------
 @guests_bp.route("/guest_count", methods=["GET"])
 def api_guest_count():

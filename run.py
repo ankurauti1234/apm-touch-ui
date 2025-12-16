@@ -9,6 +9,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from src.app import app
 from src.mqtt import start_mqtt
+from src.config import init_db
 
 # PyQt5
 from PyQt5.QtWidgets import QApplication, QMainWindow, QShortcut
@@ -71,6 +72,9 @@ if __name__ == "__main__":
     print("Starting MQTT...")
     start_mqtt()
     time.sleep(2)
+
+    print("Initializing database...")
+    init_db()
 
     print("Starting Flask...")
     threading.Thread(target=lambda: app.run(

@@ -1,6 +1,38 @@
 # src/config.py — shared configuration (no imports!)
 
 import os
+import sqlite3
+
+
+# Add this right after the existing imports
+DB_PATH = "/var/lib/meter.db"
+
+def init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                meter_id TEXT NOT NULL,
+                hhid TEXT NOT NULL,
+                member_code TEXT,
+                dob TEXT,
+                gender TEXT,
+                created_at TEXT,
+                active INTEGER DEFAULT 0
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS guests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                meter_id TEXT NOT NULL,
+                hhid TEXT NOT NULL,
+                age INTEGER,
+                gender TEXT,
+                active INTEGER DEFAULT 1
+            )
+        """)
+        conn.commit()
 
 DEVICE_CONFIG = {
     "device_id_file": "/var/lib/device_id.txt",
