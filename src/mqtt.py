@@ -29,10 +29,11 @@ def _mqtt_log(msg: str):
 # Cert validation
 # ----------------------------------------------------------------------
 def get_cert_paths():
-    certs_dir = DEVICE_CONFIG["certs_dir"]
-    keyfile   = f"{certs_dir}/test.private.pem.key"
-    certfile  = f"{certs_dir}/test.cert.pem.crt"
-    cafile    = f"{certs_dir}/root-CA.crt"
+    certs_dir = DEVICE_CONFIG["certs_dir"]  # now "/opt/apm/certs"
+
+    keyfile   = os.path.join(certs_dir, f"{METER_ID}.key")
+    certfile  = os.path.join(certs_dir, f"{METER_ID}Chain.crt")
+    cafile    = os.path.join(certs_dir, "AmazonRootCA1.pem")
 
     missing = []
     if not os.path.exists(keyfile):   missing.append(f"KEY: {keyfile}")
@@ -45,6 +46,7 @@ def get_cert_paths():
     else:
         _mqtt_log(f"Certs OK: {keyfile}, {certfile}, {cafile}")
         return keyfile, certfile, cafile
+
 
 # ----------------------------------------------------------------------
 # Queue

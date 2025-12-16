@@ -7,7 +7,7 @@ DEVICE_CONFIG = {
     "hhid_file": "/var/lib/hhid.txt",
     "members_file": "/var/lib/meter_members.json",
     "guests_file": "/var/lib/meter_guests.json",
-    "certs_dir": "./certs"
+    "certs_dir": "/opt/apm/certs"
 }
 
 SYSTEM_FILES = {

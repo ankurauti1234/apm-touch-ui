@@ -16,6 +16,12 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 from PyQt5.QtCore import QUrl, Qt, QCoreApplication
 from PyQt5.QtGui import QKeySequence
 
+# Qt sandbox settings for restricted environments
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
+os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
+os.makedirs("/tmp/runtime-root", exist_ok=True)
+os.chmod("/tmp/runtime-root", 700)
+
 
 class BrowserWindow(QMainWindow):
     def __init__(self):
