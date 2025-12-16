@@ -27,11 +27,28 @@ from datetime import datetime
 
 from functools import partial
 
+import sqlite3
+
+import shutil
+
+runtime_dir = "/tmp/runtime-root"
+
+if os.path.exists(runtime_dir):
+    shutil.rmtree(runtime_dir)
+
+os.makedirs(runtime_dir, mode=0o700)
+
+# pylint: disable=no-member
+os.chown(runtime_dir, 0, 0)  # root:root
+# pylint: enable=no-member
+
+os.environ["XDG_RUNTIME_DIR"] = runtime_dir
+
 # ----------------------------------------------------------------------
 # 1. Qt / Chromium sandbox settings (uncomment if needed on restricted env)
 # ----------------------------------------------------------------------
 os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
-os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
+# os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
 os.makedirs("/tmp/runtime-root", exist_ok=True)
 os.chmod("/tmp/runtime-root", 700)
 
@@ -48,8 +65,8 @@ DEVICE_CONFIG = {
     "device_id_file": "/var/lib/device_id.txt",
     "hhid_file": "/var/lib/hhid.txt",
     # "default_meter_id": "AM100003",
-    "members_file": "/var/lib/meter_members.json",
-    "guests_file": "/var/lib/meter_guests.json",
+    # "members_file": "/var/lib/meter_members.json",
+    # "guests_file": "/var/lib/meter_guests.json",
     "certs_dir": "/opt/apm/certs"
 }
 
@@ -62,6 +79,35 @@ SYSTEM_FILES = {
     "video_detection": "/run/video_object_detection",
     "current_state": "/var/lib/current_state",
 }
+
+DB_PATH = "/var/lib/meter.db"
+
+def init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                meter_id TEXT NOT NULL,
+                hhid TEXT NOT NULL,
+                member_code TEXT,
+                dob TEXT,
+                gender TEXT,
+                created_at TEXT,
+                active INTEGER DEFAULT 0
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS guests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                meter_id TEXT NOT NULL,
+                hhid TEXT NOT NULL,
+                age INTEGER,
+                gender TEXT,
+                active INTEGER DEFAULT 1
+            )
+        """)
+        conn.commit()
 
 def get_meter_id():
     device_id_file = DEVICE_CONFIG["device_id_file"]
@@ -138,31 +184,38 @@ def load_hhid() -> str:
 
 
 def save_members_data(data: dict):
-    with open(DEVICE_CONFIG["members_file"], "w") as f:
-        json.dump(data, f, indent=2)
+    meter_id = data.get("meter_id", METER_ID)
+    hhid = data.get("hhid", load_hhid())
+    members = data.get("members", [])
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM members WHERE meter_id = ? AND hhid = ?", (meter_id, hhid))
+        for m in members:
+            cur.execute("""
+                INSERT INTO members (meter_id, hhid, member_code, dob, gender, created_at, active)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (meter_id, hhid, m.get("member_code"), m.get("dob"), m.get("gender"), m.get("created_at"), int(m.get("active", False))))
+        conn.commit()
 
 
 def load_members_data() -> dict:
-    try:
-        with open(DEVICE_CONFIG["members_file"], "r") as f:
-            data = json.load(f)
-        # Strip any old/unexpected fields
-        clean_members = []
-        for m in data.get("members", []):
-            clean = {
-                "member_code": m.get("member_code"),
-                "dob": m.get("dob"),
-                "gender": m.get("gender"),
-                "created_at": m.get("created_at"),
-                "active": m.get("active", False)  # preserve local state
-            }
-            # Remove None values to keep JSON clean
-            clean = {k: v for k, v in clean.items() if v is not None}
-            clean_members.append(clean)
-        data["members"] = clean_members
-        return data
-    except FileNotFoundError:
-        return {"meter_id": METER_ID, "hhid": load_hhid(), "members": []}
+    hhid = load_hhid()
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT member_code, dob, gender, created_at, active
+            FROM members WHERE meter_id = ? AND hhid = ?
+        """, (METER_ID, hhid))
+        members = []
+        for row in cur.fetchall():
+            members.append({
+                "member_code": row[0],
+                "dob": row[1],
+                "gender": row[2],
+                "created_at": row[3],
+                "active": bool(row[4])
+            })
+    return {"meter_id": METER_ID, "hhid": hhid, "members": members}
 
 
 # ----------------------------------------------------------------------
@@ -345,7 +398,11 @@ MEMBERS_URL  = f"{API_BASE}/members"
 def load_guests_count():
     """Fast count — used by main dashboard"""
     try:
-        return len(load_guests_data())
+        hhid = load_hhid()
+        with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM guests WHERE meter_id = ? AND hhid = ?", (METER_ID, hhid))
+            return cur.fetchone()[0]
     except Exception as e:
         print(f"[GUESTS] Count error: {e}")
         return 0
@@ -378,7 +435,7 @@ def update_guests():
         guest_list = payload["Details"].get("guests", [])
 
         # THIS LINE FIXES EVERYTHING
-        save_guests_data(guest_list)  # ← Saves to meter_members.json
+        save_guests_data(guest_list)  # ← Saves to db
 
         payload_json = json.dumps(payload)
 
@@ -436,7 +493,7 @@ def sync_guests():
         if not publish_ok:
             return jsonify({"success": False, "error": "Cannot sync"}), 503
 
-        # Save guests inside meter_members.json
+        # Save guests to db
         save_guests_data(guest_list)
 
         return jsonify({
@@ -458,27 +515,43 @@ def get_guests():
         "count": len(guests)
     }), 200
 
-# === GUESTS ARE NOW STORED INSIDE meter_members.json ===
+# === GUESTS ARE NOW STORED IN DB ===
 def load_guests_data():
-    """Load only guests from the dedicated guests file"""
+    """Load only guests from the db"""
     try:
-        with open(DEVICE_CONFIG["guests_file"], "r") as f:
-            data = json.load(f)
-            # Expected format: {"guests": [ ... ]}
-            return data.get("guests", [])
-    except FileNotFoundError:
-        return []
+        hhid = load_hhid()
+        with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT age, gender, active
+                FROM guests WHERE meter_id = ? AND hhid = ?
+            """, (METER_ID, hhid))
+            guests = []
+            for row in cur.fetchall():
+                guests.append({
+                    "age": row[0],
+                    "gender": row[1],
+                    "active": bool(row[2])
+                })
+            return guests
     except Exception as e:
         print(f"[GUESTS] Load error: {e}")
         return []
 
 def save_guests_data(guest_list):
-    """Save guests to the dedicated meter_guests.json file"""
+    """Save guests to the db"""
     try:
-        data = {"guests": guest_list}
-        with open(DEVICE_CONFIG["guests_file"], "w") as f:
-            json.dump(data, f, indent=2)
-        print(f"[GUESTS] Saved {len(guest_list)} guests → {DEVICE_CONFIG['guests_file']}")
+        hhid = load_hhid()
+        with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM guests WHERE meter_id = ? AND hhid = ?", (METER_ID, hhid))
+            for g in guest_list:
+                cur.execute("""
+                    INSERT INTO guests (meter_id, hhid, age, gender, active)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (METER_ID, hhid, g.get("age"), g.get("gender"), int(g.get("active", True))))
+            conn.commit()
+        print(f"[GUESTS] Saved {len(guest_list)} guests → db")
     except Exception as e:
         print(f"[GUESTS] Save failed: {e}")
         raise
@@ -560,7 +633,7 @@ def wifi_connect():
     if not ssid:
         return jsonify({"success": False, "error": "SSID is required"}), 400
     if not pwd:
-        return jsonify({"success": False, "error": "Password is required"}), 400
+        return jupytext({"success": False, "error": "Password is required"}), 400
 
     wifi_up_file = SYSTEM_FILES["wifi_up"]
 
@@ -1346,6 +1419,8 @@ class BrowserWindow(QtWidgets.QMainWindow):
 # 10. Main
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
+    # Init DB
+    init_db()
     # Start MQTT (robust, auto-reconnect, queued)
     threading.Thread(target=init_mqtt, daemon=True).start()
     time.sleep(2)
@@ -1359,4 +1434,3 @@ if __name__ == "__main__":
     win = BrowserWindow()
     win.show()
     sys.exit(qt_app.exec_())
-    
