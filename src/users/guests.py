@@ -1,6 +1,7 @@
 # src/users/guests.py
 
 import json
+import time
 from flask import Blueprint, jsonify, request
 
 from src.config import METER_ID, DEVICE_CONFIG
