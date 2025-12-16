@@ -3,9 +3,10 @@
 import json
 from flask import Blueprint, jsonify, request
 
-from src.config import DEVICE_CONFIG
+from src.config import METER_ID, DEVICE_CONFIG
 from src.users.members import load_members_data, save_members_data
 from src.mqtt import client, _enqueue, wait_for_publish_success, _mqtt_log
+
 
 guests_bp = Blueprint('guests', __name__, url_prefix='/api')
 
