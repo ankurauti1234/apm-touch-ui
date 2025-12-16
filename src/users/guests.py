@@ -10,9 +10,9 @@ from src.mqtt import client, _enqueue, wait_for_publish_success, _mqtt_log
 guests_bp = Blueprint('guests', __name__, url_prefix='/api')
 
 
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 # Dedicated guests file handling (new & better)
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 def load_guests_data():
     """Load only guests from the dedicated guests file"""
     try:
