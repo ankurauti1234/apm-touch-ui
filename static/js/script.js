@@ -589,7 +589,6 @@ function addGuest() {
     // INSTANT UPDATE — this is what fixes it
     updateGuestList();
     updateGuestCounter();        // ← dialog header + button
-    renderGuestCountInMain();    // ← bottom bar on main screen
     updateGuestCountFromFile();  // ← optional: refresh from backend for consistency
 
     // SEND TO MQTT (via backend)
@@ -604,7 +603,6 @@ function removeGuest(index) {
     guests.splice(index, 1);
     updateGuestList();
     updateGuestCounter();
-    renderGuestCountInMain(); // ← ADD THIS LINE — updates bottom bar
     updateGuestCountFromFile();     // ← Updates bottom bar instantly
 
     // SEND UPDATED LIST AFTER REMOVAL
@@ -631,19 +629,19 @@ function updateGuestList() {
 function updateGuestCounter() {
     const count = guests.length;
 
-    // Update dialog header (when open)
+    // Dialog header (when open)
     const header = document.getElementById('guest-counter-header');
     if (header) header.textContent = count;
 
-    // Update main screen bottom bar (always exists after main state)
+    // Bottom bar on main dashboard (always update)
     const bottom = document.querySelector('.guest-count');
     if (bottom) bottom.textContent = `${count} / 8 Guests`;
 
-    // Update add button in dialog
+    // Add button (when dialog open)
     const btn = document.getElementById('add-guest-btn');
     if (btn) {
-        btn.disabled = count >= 8;
-        btn.textContent = count >= 8 ? 'Limit Reached' : 'Add';
+        btn.disabled = count >= MAX_GUESTS;
+        btn.textContent = count >= MAX_GUESTS ? 'Limit Reached' : 'Add';
     }
 }
 
