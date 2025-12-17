@@ -60,6 +60,7 @@ def get_guests_for_ui():
 @guests_bp.route("/guest_count", methods=["GET"])
 def api_guest_count():
     count = load_guests_count()
+    print(f"[INFO] Guest count: {count}")
     return jsonify({"success": True, "count": count}), 200
 
 
