@@ -154,8 +154,8 @@ function addGuest() {
     updateGuestList();
     updateGuestCounter();
     renderGuestCountInMain();
-    updateGuestCountFromFile();
     sendGuestListToServer();
+    updateGuestCountFromFile();
 
     const container = document.querySelector('.guest-list-container');
     if (container) container.scrollTop = container.scrollHeight;
@@ -166,8 +166,8 @@ function removeGuest(index) {
     updateGuestList();
     updateGuestCounter();
     renderGuestCountInMain();
-    updateGuestCountFromFile();
     sendGuestListToServer();
+    updateGuestCountFromFile();
 }
 
 function updateGuestList() {
@@ -277,6 +277,9 @@ async function sendGuestListToServer() {
     } catch (err) {
         console.error("Guest sync failed:", err);
         showToast("No internet – saved locally");
+    } finally {
+        // ALWAYS refresh count from backend after sync attempt
+        updateGuestCountFromFile();
     }
 }
 
