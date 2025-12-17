@@ -5,8 +5,7 @@ import json
 import time
 from flask import Blueprint, jsonify, request
 
-from src.config import METER_ID, DB_PATH
-from src.installation.assignment import load_hhid
+from src.config import METER_ID, DB_PATH, load_hhid
 from src.mqtt import client, _enqueue, wait_for_publish_success, _mqtt_log
 
 guests_bp = Blueprint('guests', __name__, url_prefix='/api')

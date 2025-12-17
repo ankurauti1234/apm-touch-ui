@@ -3,8 +3,7 @@
 import sqlite3
 from flask import Blueprint, jsonify, request
 
-from src.config import METER_ID, DB_PATH
-from src.installation.assignment import load_hhid
+from src.config import METER_ID, DB_PATH, load_hhid
 from src.mqtt import client, _enqueue, wait_for_publish_success, publish_member_event, _mqtt_log, calculate_age
 
 members_bp = Blueprint('members', __name__, url_prefix='/api')

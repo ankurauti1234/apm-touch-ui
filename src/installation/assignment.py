@@ -4,7 +4,7 @@ import requests
 from flask import Blueprint, jsonify, request
 import os
 
-from src.config import METER_ID, DEVICE_CONFIG
+from src.config import METER_ID, DEVICE_CONFIG, load_hhid, save_hhid
 from src.installation.system_files import set_current_state, set_installation_done
 from src.users.members import save_members_data
 
@@ -16,18 +16,6 @@ MEMBERS_URL  = f"{API_BASE}/members"
 # CHANGED: Blueprint name is now 'assignment' (not 'lambda')
 assignment_bp = Blueprint('assignment', __name__, url_prefix='/api')
 
-
-# HHID functions — live here
-def save_hhid(hhid: str):
-    with open(DEVICE_CONFIG["hhid_file"], "w") as f:
-        f.write(hhid)
-
-def load_hhid() -> str:
-    try:
-        with open(DEVICE_CONFIG["hhid_file"], "r") as f:
-            return f.read().strip()
-    except FileNotFoundError:
-        return ""
 
 
 @assignment_bp.route("/submit_hhid", methods=["POST"])

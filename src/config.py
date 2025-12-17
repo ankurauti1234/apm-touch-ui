@@ -74,3 +74,15 @@ try:
 except FileNotFoundError:
     METER_ID = get_meter_id()
 print(f"[INFO] METER_ID = {METER_ID}")
+
+# HHID functions — live here
+def save_hhid(hhid: str):
+    with open(DEVICE_CONFIG["hhid_file"], "w") as f:
+        f.write(hhid)
+
+def load_hhid() -> str:
+    try:
+        with open(DEVICE_CONFIG["hhid_file"], "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return ""
