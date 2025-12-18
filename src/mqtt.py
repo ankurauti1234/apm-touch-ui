@@ -152,7 +152,7 @@ def wait_for_publish_success(client, payload_json: str, timeout: float = 10.0) -
         client.on_publish = original
 
 def publish_member_event():
-    from src.app import load_members_data, save_members_data
+    from src.users.members import load_members_data, save_members_data
     data = load_members_data()
     members = [
         {
