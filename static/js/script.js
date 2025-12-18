@@ -543,9 +543,6 @@ function numpadBackspace() {
 function closeGuestDialog() {
     document.getElementById('guest-overlay')?.remove();
     document.querySelector('.guest-dialog')?.remove();
-    // Refresh bottom bar count when closing dialog
-    const bottomCount = document.querySelector('.guest-count');
-    if (bottomCount) bottomCount.textContent = `${guests.length} / 8 Guests`;
 }
 
 function addGuest() {
@@ -597,11 +594,12 @@ function addGuest() {
     const container = document.querySelector('.guest-list-container');
     if (container) container.scrollTop = container.scrollHeight;
 
-    // At the very end of addGuest() and removeGuest()
-    document.getElementById('guest-counter-header')?.textContent = guests.length;
+    // ──────── INSTANT COUNTER UPDATE ────────
+    const header = document.getElementById('guest-counter-header');
+    if (header) header.textContent = guests.length;
 
-    const bottomCount = document.querySelector('.guest-count');
-    if (bottomCount) bottomCount.textContent = `${guests.length} / 8 Guests`;
+    const bottom = document.querySelector('.guest-count');
+    if (bottom) bottom.textContent = guests.length + " / 8 Guests";
 }
 
 function removeGuest(index) {
@@ -613,11 +611,12 @@ function removeGuest(index) {
     // SEND UPDATED LIST AFTER REMOVAL
     sendGuestListToServer();   // This is the key line
 
-    // At the very end of addGuest() and removeGuest()
-    document.getElementById('guest-counter-header')?.textContent = guests.length;
+    // ──────── INSTANT COUNTER UPDATE ────────
+    const header = document.getElementById('guest-counter-header');
+    if (header) header.textContent = guests.length;
 
-    const bottomCount = document.querySelector('.guest-count');
-    if (bottomCount) bottomCount.textContent = `${guests.length} / 8 Guests`;
+    const bottom = document.querySelector('.guest-count');
+    if (bottom) bottom.textContent = guests.length + " / 8 Guests";
 }
 
 function updateGuestList() {
