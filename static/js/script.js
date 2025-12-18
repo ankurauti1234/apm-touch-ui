@@ -721,7 +721,7 @@ async function sendGuestListToServer() {
 
         if (result.success) {
             console.log("Guests synced →", result.guest_count, "guests");
-            showToast(`Guest list updated (${guests.length}/8)`);
+            // showToast(`Guest list updated (${guests.length}/8)`);
         } else {
             showToast("Saved locally – will sync when online");
         }
