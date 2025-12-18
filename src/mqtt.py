@@ -156,7 +156,7 @@ def publish_member_event():
     data = load_members_data()
     members = [
         {
-            "member_id": m.get("member_id", ""),
+            "member_id": m.get("member_code", ""),
             "age": calculate_age(m["dob"]),
             "gender": m["gender"],
             "active": m.get("active", False)

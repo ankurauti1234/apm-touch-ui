@@ -79,7 +79,7 @@ def toggle_member_status():
             if age is None:
                 continue
             members_payload.append({
-                "member_id": m.get("member_id", ""),
+                "member_id": m.get("member_code", ""),
                 "age": age,
                 "gender": m["gender"],
                 "active": new_active_state if i == index else m.get("active", False)
