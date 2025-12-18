@@ -411,7 +411,7 @@ function openDialog() {
         <div style="display:flex; align-items:stretch; justify-content:center; gap:0; max-width:1100px; margin:0 auto; background:white; border-radius:24px; overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,0.45);">
             
             <!-- LEFT PANEL: GUEST LIST -->
-<div style="width:340px; background:#f0f7ff; padding:28px; display:flex; flex-direction:column; border-right:1px solid #e0e0e0; height:100%; max-height:300px;">
+<div style="width:340px; background:#f0f7ff; padding:28px; display:flex; flex-direction:column; border-right:1px solid #e0e0e0; height:100%; max-height:500px;">
     <h3 style="margin:0 0 20px; font-size:19px; color:#1a1a1a;">
         Added Guests <strong id="guest-counter-header">0</strong>/8
     </h3>
