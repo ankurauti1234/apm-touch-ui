@@ -542,6 +542,10 @@ function numpadBackspace() {
 // Close numpad when dialog closes
 function closeGuestDialog() {
     document.getElementById('guest-overlay')?.remove();
+}
+
+function closeGuestDialog() {
+    document.getElementById('guest-overlay')?.remove();
     document.querySelector('.guest-dialog')?.remove();
 }
 
@@ -593,13 +597,6 @@ function addGuest() {
     // Auto-scroll to bottom to show new guest
     const container = document.querySelector('.guest-list-container');
     if (container) container.scrollTop = container.scrollHeight;
-
-    // ──────── INSTANT COUNTER UPDATE ────────
-    const header = document.getElementById('guest-counter-header');
-    if (header) header.textContent = guests.length;
-
-    const bottom = document.querySelector('.guest-count');
-    if (bottom) bottom.textContent = guests.length + " / 8 Guests";
 }
 
 function removeGuest(index) {
@@ -610,13 +607,6 @@ function removeGuest(index) {
 
     // SEND UPDATED LIST AFTER REMOVAL
     sendGuestListToServer();   // This is the key line
-
-    // ──────── INSTANT COUNTER UPDATE ────────
-    const header = document.getElementById('guest-counter-header');
-    if (header) header.textContent = guests.length;
-
-    const bottom = document.querySelector('.guest-count');
-    if (bottom) bottom.textContent = guests.length + " / 8 Guests";
 }
 
 function updateGuestList() {
@@ -1715,6 +1705,7 @@ async function navigate(state, param = null) {
         await fetchMembers();
         await loadGuestsFromServer();
         render();
+        updateGuestCounter();
         updateGuestCountFromFile();     // ← Updates bottom bar instantly
         // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
         setTimeout(() => {
