@@ -542,11 +542,10 @@ function numpadBackspace() {
 // Close numpad when dialog closes
 function closeGuestDialog() {
     document.getElementById('guest-overlay')?.remove();
-}
-
-function closeGuestDialog() {
-    document.getElementById('guest-overlay')?.remove();
     document.querySelector('.guest-dialog')?.remove();
+    // Refresh bottom bar count when closing dialog
+    const bottomCount = document.querySelector('.guest-count');
+    if (bottomCount) bottomCount.textContent = `${guests.length} / 8 Guests`;
 }
 
 function addGuest() {
