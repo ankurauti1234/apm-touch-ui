@@ -597,6 +597,12 @@ function addGuest() {
     // Auto-scroll to bottom to show new guest
     const container = document.querySelector('.guest-list-container');
     if (container) container.scrollTop = container.scrollHeight;
+
+    // At the very end of addGuest() and removeGuest()
+    document.getElementById('guest-counter-header')?.textContent = guests.length;
+
+    const bottomCount = document.querySelector('.guest-count');
+    if (bottomCount) bottomCount.textContent = `${guests.length} / 8 Guests`;
 }
 
 function removeGuest(index) {
@@ -607,6 +613,12 @@ function removeGuest(index) {
 
     // SEND UPDATED LIST AFTER REMOVAL
     sendGuestListToServer();   // This is the key line
+
+    // At the very end of addGuest() and removeGuest()
+    document.getElementById('guest-counter-header')?.textContent = guests.length;
+
+    const bottomCount = document.querySelector('.guest-count');
+    if (bottomCount) bottomCount.textContent = `${guests.length} / 8 Guests`;
 }
 
 function updateGuestList() {
