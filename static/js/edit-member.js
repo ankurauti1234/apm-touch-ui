@@ -52,7 +52,7 @@ function showEditMemberPopup() {
 
     // Keyboard + lift handling for the code input
     const codeInput = document.getElementById('new-code');
-    code.addEventListener('focus', () => {
+    codeInput.addEventListener('focus', () => {
         showKeyboard(code);
         liftEditMemberPopup();
     });
