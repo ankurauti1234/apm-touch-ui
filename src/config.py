@@ -37,8 +37,8 @@ def init_db():
 DEVICE_CONFIG = {
     "device_id_file": "/var/lib/device_id.txt",
     "hhid_file": "/var/lib/hhid.txt",
-    "members_file": "/var/lib/meter_members.json",
-    "guests_file": "/var/lib/meter_guests.json",
+    # "members_file": "/var/lib/meter_members.json",
+    # "guests_file": "/var/lib/meter_guests.json",
     "certs_dir": "/opt/apm/certs"
 }
 
