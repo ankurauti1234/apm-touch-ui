@@ -413,7 +413,7 @@ function openDialog() {
             <!-- LEFT PANEL: GUEST LIST -->
             <div style="width:340px; background:#f0f7ff; padding:28px; display:flex; flex-direction:column; border-right:1px solid #e0e0e0;">
                 <h3 style="margin:0 0 20px; font-size:19px; color:#1a1a1a;">
-                    Added Guests <strong id="guest-counter-header">${guests.length}</strong>/8
+                    Added Guests <strong id="guest-counter-header">0</strong>/8
                 </h3>
                 <div style="flex:1; overflow-y:auto; padding-right:8px;">
                     <div id="guest-list" style="display:flex; flex-direction:column; gap:12px;"></div>
@@ -471,7 +471,7 @@ function openDialog() {
             <div style="width:300px; background:#fafafa; padding:28px; display:flex; align-items:center; justify-content:center; border-left:1px solid #e0e0e0;">
                 <div class="guest-numpad" style="display:grid; grid-template-columns:repeat(3,70px); gap:14px;">
                     ${[7, 8, 9, 4, 5, 6, 1, 2, 3].map(n =>
-        <button onclick="numpadPress('${n}')" style="width:70px; height:70px; border:none; border-radius:18px; background:#ffffff; font-size:30px; font-weight:700; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,0.15);">${n}</button>
+        `<button onclick="numpadPress('${n}')" style="width:70px; height:70px; border:none; border-radius:18px; background:#ffffff; font-size:30px; font-weight:700; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,0.15);">${n}</button>`
     ).join('')}
                     <button onclick="numpadPress('0')" style="grid-column:2;">0</button>
                     <button class="backspace" onclick="numpadBackspace()" style="grid-column:1/4; background:#ffebee; color:#d32f2f;">
