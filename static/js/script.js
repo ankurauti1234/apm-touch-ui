@@ -589,7 +589,6 @@ function addGuest() {
     // INSTANT UPDATE — this is what fixes it
     updateGuestList();
     updateGuestCounter();        // ← dialog header + button
-    // updateGuestCountFromFile();  // ← optional: refresh from backend for consistency
 
     // SEND TO MQTT (via backend)
     sendGuestListToServer();   // This is the key line
@@ -603,7 +602,6 @@ function removeGuest(index) {
     guests.splice(index, 1);
     updateGuestList();
     updateGuestCounter();
-    // updateGuestCountFromFile();     // ← Updates bottom bar instantly
 
     // SEND UPDATED LIST AFTER REMOVAL
     sendGuestListToServer();   // This is the key line
