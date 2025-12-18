@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════
    RESET & BASE – POPPINS FONT
    ═══════════════════════════════════════════════════════════════════════ */
-   * {
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -54,7 +54,7 @@ body {
 /* ═══════════════════════════════════════════════════════════════════════
    HHID Input
    ═══════════════════════════════════════════════════════════════════════ */
-   .hhid-container {
+.hhid-container {
     display: flex;
     align-items: center;
     background-color: white;
@@ -87,7 +87,7 @@ body {
     font-weight: 700;
     text-align: center;
     background: transparent;
-    color:black;
+    color: black;
     padding: 0 16px;
 }
 
@@ -175,7 +175,7 @@ p {
     margin-bottom: 1.5rem;
 }
 
-.p-wifi{
+.p-wifi {
     font-size: 1rem;
     color: hsl(var(--muted-foreground));
     margin-bottom: 1.5rem;
@@ -595,7 +595,7 @@ ul li {
     max-height: 90vh;
     border-radius: 20px;
     padding: 28px;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
     position: relative;
     overflow-y: auto;
     animation: popup 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -604,8 +604,15 @@ ul li {
 }
 
 @keyframes popup {
-    0%   { transform: scale(0.8) translateY(50px); opacity: 0; }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
+    0% {
+        transform: scale(0.8) translateY(50px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
 }
 
 /* Make sure buttons and inputs are fully clickable */
@@ -625,8 +632,15 @@ ul li {
 }
 
 @keyframes popup {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .guest-header {
@@ -647,7 +661,9 @@ ul li {
     padding: 4px;
 }
 
-.guest-close:hover { color: #000; }
+.guest-close:hover {
+    color: #000;
+}
 
 .guest-form label {
     display: block;
@@ -724,7 +740,7 @@ ul li {
 /* ==============================================================
    FLOATING NUMPAD – ONLY FOR GUEST DIALOG (Age input)
    ============================================================== */
-   .guest-numpad {
+.guest-numpad {
     position: fixed;
     right: 20px;
     top: 50%;
@@ -736,7 +752,8 @@ ul li {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    z-index: 2147483647;               /* Always on top */
+    z-index: 2147483647;
+    /* Always on top */
     animation: numpadSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     user-select: none;
 }
@@ -755,14 +772,14 @@ ul li {
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .guest-numpad button:active {
     transform: scale(0.92);
     background: #0066ff;
     color: white;
-    box-shadow: 0 6px 16px rgba(0,102,255,0.4);
+    box-shadow: 0 6px 16px rgba(0, 102, 255, 0.4);
 }
 
 .guest-numpad .backspace {
@@ -773,8 +790,15 @@ ul li {
 }
 
 @keyframes numpadSlideIn {
-    from { transform: translateX(100%) translateY(-50%); opacity: 0; }
-    to   { transform: translateX(0) translateY(-50%); opacity: 1; }
+    from {
+        transform: translateX(100%) translateY(-50%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0) translateY(-50%);
+        opacity: 1;
+    }
 }
 
 /* ERROR MESSAGES INSIDE GUEST DIALOG */
@@ -800,6 +824,7 @@ ul li {
     gap: 12px;
     margin: 8px 0 4px;
 }
+
 .gender-btn {
     flex: 1;
     padding: 14px;
@@ -811,17 +836,20 @@ ul li {
     cursor: pointer;
     transition: all 0.2s ease;
 }
+
 .gender-btn.selected {
     background: #1976d2;
     color: white;
     border-color: #1976d2;
     box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
 }
+
 /* CUSTOM TOUCH DROPDOWN — NO CURSOR, PERFECT FOR KIOSK */
 .custom-dropdown {
     position: relative;
     margin: 8px 0;
 }
+
 .dropdown-display {
     padding: 16px;
     background: white;
@@ -836,13 +864,18 @@ ul li {
     user-select: none;
     transition: all 0.2s ease;
 }
+
 .dropdown-display.active {
     border-color: #1976d2;
-    box-shadow: 0 0 0 4px rgba(25,118,210,0.2);
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.2);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
-.dropdown-display .placeholder { color: #999; }
+
+.dropdown-display .placeholder {
+    color: #999;
+}
+
 .dropdown-options {
     position: absolute;
     top: 100%;
@@ -857,19 +890,23 @@ ul li {
     transition: max-height 0.3s ease;
     z-index: 100;
 }
+
 .dropdown-options.open {
     max-height: 180px;
     padding: 8px 0;
 }
+
 .dropdown-item {
     padding: 16px;
     font-size: 16px;
     cursor: pointer;
     transition: background 0.2s;
 }
+
 .dropdown-item:hover {
     background: #e3f2fd;
 }
+
 /* CUSTOM DROPDOWN — NO CURSOR, TOUCH-FRIENDLY */
 .custom-select-wrapper {
     position: relative;
@@ -892,7 +929,7 @@ ul li {
 
 .custom-select-display.active {
     border-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(0,102,255,0.15);
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15);
     border-radius: 12px 12px 0 0;
 }
 
@@ -927,7 +964,8 @@ ul li {
     transition: background 0.2s;
 }
 
-.option:hover, .option.selected {
+.option:hover,
+.option.selected {
     background: #f0f8ff;
 }
 
@@ -968,7 +1006,8 @@ ul li {
         width: 30%;
     }
 }
-.btn-text{
+
+.btn-text {
     font-size: 20px;
 }
 
@@ -1167,7 +1206,7 @@ ul li {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.key-shift{
+.key-shift {
     font-size: 2rem;
 }
 
@@ -1186,7 +1225,7 @@ ul li {
     font-size: 1.125rem;
 }
 
-.key-backspace{
+.key-backspace {
     min-width: 6rem;
     font-size: 4rem;
 }
@@ -1276,13 +1315,19 @@ ul li {
 
 /* Lifted state when keyboard appears */
 #wifi-popup.lifted {
-    transform: translate(-50%, calc(-50% - 100px));  /* Adjust -70px as needed */
+    transform: translate(-50%, calc(-50% - 100px));
+    /* Adjust -70px as needed */
 }
 
 /* Spinner animation */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* 3. Optional: Virtual keyboard */
@@ -1470,95 +1515,112 @@ button:focus {
 /* ═══════════════════════════════════════════════════════════════════════
    INSTALLATION SUMMARY
    ═══════════════════════════════════════════════════════════════════════ */
-   .summary-card {
+.summary-card {
     width: 100%;
     margin: 20px auto;
-  }
-  
-  .card-grid {
+}
+
+.card-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 cards in first row */
+    grid-template-columns: repeat(4, 1fr);
+    /* 4 cards in first row */
     gap: 20px;
-  }
-  
-  .summary-item {
+}
+
+.summary-item {
     background: #fff;
     padding: 3px;
     border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     display: flex;
     gap: 15px;
     align-items: center;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  
-  .summary-item:hover {
+}
+
+.summary-item:hover {
     transform: translateY(-4px);
-    box-shadow: 0 4px 18px rgba(0,0,0,0.15);
-  }
-  
-  .item-icon {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+}
+
+.item-icon {
     font-size: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-left: 15px;
-  }
-  
-  .item-content .item-label {
+}
+
+.item-content .item-label {
     font-size: 14px;
     color: #666;
-  }
-  
-  .item-content .item-value {
+}
+
+.item-content .item-value {
     font-size: 17px;
     margin-top: 4px;
     font-weight: 600;
-  }
-  
-  .item-value.highlight {
-    color: #1e3fae;
-  }
-  
-  .bold {
-    font-weight: 700;
-  }
-  
-  .text-blue { color: #1e3fae; }
-  .text-purple { color: #8e44ad; }
-  .text-green { color: #27ae60; }
-  .text-orange { color: #e67e22; }
-  .text-red { color: #c0392b; }
-  
-  .success {
-    border-left: 5px solid #27ae60;
-  }
-  
-  .warning {
-    border-left: 5px solid #c0392b;
-  }
-  
-  /* ✔ Responsive for tablet/mobile */
-  @media (max-width: 1024px) {
-    .card-grid {
-      grid-template-columns: repeat(2, 1fr); /* 2 per row */
-    }
-  }
-  
-  @media (max-width: 600px) {
-    .card-grid {
-      grid-template-columns: 1fr; /* Stack */
-    }
-  }
-  
+}
 
-  .settings-popup {
+.item-value.highlight {
+    color: #1e3fae;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+.text-blue {
+    color: #1e3fae;
+}
+
+.text-purple {
+    color: #8e44ad;
+}
+
+.text-green {
+    color: #27ae60;
+}
+
+.text-orange {
+    color: #e67e22;
+}
+
+.text-red {
+    color: #c0392b;
+}
+
+.success {
+    border-left: 5px solid #27ae60;
+}
+
+.warning {
+    border-left: 5px solid #c0392b;
+}
+
+/* ✔ Responsive for tablet/mobile */
+@media (max-width: 1024px) {
+    .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 per row */
+    }
+}
+
+@media (max-width: 600px) {
+    .card-grid {
+        grid-template-columns: 1fr;
+        /* Stack */
+    }
+}
+
+
+.settings-popup {
     width: 480px;
     max-width: 94vw;
     border-radius: 20px;
     padding: 24px;
     background: white;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
     border: 1px solid #e0e0e0;
 }
 
@@ -1641,11 +1703,16 @@ button:focus {
     border-radius: 50%;
     background: var(--primary, #0d6efd);
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(13,110,253,0.4);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
 }
 
-.sun-icon { font-size: 1.6rem; }
-.moon { opacity: 0.6; }
+.sun-icon {
+    font-size: 1.6rem;
+}
+
+.moon {
+    opacity: 0.6;
+}
 
 /* Action Buttons Grid */
 .settings-grid {
@@ -1671,13 +1738,24 @@ button:focus {
     min-height: 100px;
 }
 
-.wifi-btn    { background: #e3f2fd; color: #1976d2; }
-.reboot-btn  { background: #fff3e0; color: #ef6c00; }
-.shutdown-btn { background: #ffebee; color: #d32f2f; }
+.wifi-btn {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.reboot-btn {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+
+.shutdown-btn {
+    background: #ffebee;
+    color: #d32f2f;
+}
 
 .setting-btn:hover {
     transform: translateY(-6px);
-    box-shadow: 0 12px 25px rgba(0,0,0,0.18);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.18);
 }
 
 .setting-btn span.material-icons {
@@ -1689,38 +1767,49 @@ button:focus {
     font-size: 1.1rem;
     margin-right: 8px;
 }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
 
 .icon-with-slash {
     position: relative;
     display: inline-block;
-  }
-  
-  .icon-with-slash .slash {
+}
+
+.icon-with-slash .slash {
     position: absolute;
     top: 2px;
     left: 2px;
     width: 24px;
     height: 2px;
-    background: rgb(127, 2, 2);        /* choose color */
+    background: rgb(127, 2, 2);
+    /* choose color */
     transform: rotate(45deg);
     transform-origin: center;
     border-radius: 2px;
     opacity: 0.9;
-  }
-  
+}
+
 /* Edit Member card */
 /* ==============================================================
    EDIT MEMBER POPUP – SAME STYLE AS WIFI POPUP
    ============================================================== */
 
-   #edit-member-popup {
+#edit-member-popup {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background: white;
-    border-radius: 16px;                    /* Slightly more rounded than default */
+    border-radius: 16px;
+    /* Slightly more rounded than default */
     padding: 28px 24px;
     width: 92vw;
     max-width: 420px;
@@ -1731,7 +1820,8 @@ button:focus {
 }
 
 #edit-member-popup.lifted {
-    transform: translate(-50%, calc(-50% - 120px));   /* Same lift as Wi-Fi */
+    transform: translate(-50%, calc(-50% - 120px));
+    /* Same lift as Wi-Fi */
 }
 
 /* Header style matching Wi-Fi */
@@ -1746,7 +1836,7 @@ button:focus {
 }
 
 /* Subtitle */
-#edit-member-popup > p {
+#edit-member-popup>p {
     margin: 0 0 20px 0;
     font-size: 1rem;
     color: #666;
@@ -1875,4 +1965,20 @@ button:focus {
 
 #edit-member-popup .button.secondary:hover {
     background: #e9ecef;
+}
+
+
+
+/*counter removed */
+
+/* Chrome, Edge, Safari */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
 }
