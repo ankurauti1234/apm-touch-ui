@@ -136,3 +136,173 @@ function startVideoDetectionRetry() {
         }
     }, 3000);
 }
+
+
+
+/* ==============================================================
+   Form submissions & system actions
+   ============================================================== */
+
+let CURRENT_HHID = null;
+
+async function submitHHID() {
+    hhid = document.getElementById('hhid')?.value.trim() || '';
+    CURRENT_HHID = hhid;
+
+    if (!hhid) return showError('Enter HHID');
+
+    hhid = hhid.toUpperCase();
+
+    const btn = event?.target;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
+    }
+
+    try {
+        const r = await fetch('/api/submit_hhid', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hhid })
+        });
+        const d = await r.json();
+        if (d.success) {
+            showError('OTP sent! Check email.', 'success');
+            setTimeout(() => navigate('otp_verification'), 1500);
+        } else {
+            showError(d.error || 'Invalid HHID');
+        }
+    } catch {
+        showError('Network error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
+        }
+    }
+}
+
+async function submitOTP() {
+    const input = document.getElementById('otp');
+    const otp = input?.value.trim();
+
+    if (!/^\d{4}$/.test(otp)) {
+        showError('Please enter a valid 4-digit OTP');
+        input.value = '';
+        input.focus();
+        return;
+    }
+
+    const btn = event?.target;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Verifying...';
+    }
+
+    try {
+        const r = await fetch('/api/submit_otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hhid, otp })
+        });
+        const d = await r.json();
+
+        if (d.success) {
+            CURRENT_HHID = null;
+            navigate('input_source_detection');
+        } else {
+            showError(d.error || 'Invalid OTP');
+            input.value = '';
+            input.focus();
+        }
+    } catch {
+        showError('Network error. Try again.');
+        input.value = '';
+        input.focus();
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP';
+        }
+    }
+}
+
+async function retryOTP() {
+    if (!CURRENT_HHID) {
+        showError("HHID missing. Please go back and enter HHID again.");
+        return;
+    }
+
+    const btn = document.querySelector('button[onclick="retryOTP()"]') || document.querySelector('.button.secondary');
+    if (!btn) return;
+
+    btn.disabled = true;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<span class="material-icons spinner-small">hourglass_top</span> Sending…';
+
+    try {
+        const r = await fetch('/api/submit_hhid', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hhid: CURRENT_HHID })
+        });
+        const data = await r.json();
+        if (data.success) {
+            showError("OTP resent! Check your email.", "success");
+        } else {
+            showError(data.error || "Failed to resend OTP");
+        }
+    } catch {
+        showError("Network error – please try again");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML || '<span class="material-icons">refresh</span> Resend OTP';
+    }
+}
+
+async function finalizeInstallation() {
+    const btn = event?.target;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Finalizing...';
+    }
+    try {
+        const r = await fetch('/api/finalize', { method: 'POST' });
+        const d = await r.json();
+        if (d.success) {
+            membersData = d.data;
+            navigate('main');
+        } else {
+            showError(d.error);
+        }
+    } catch {
+        showError('Failed to finalize');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">check_circle</span> Finalize Installation';
+        }
+    }
+}
+
+async function shutdown() {
+    if (!confirm('Shutdown system?')) return;
+    try {
+        const r = await fetch('/api/shutdown', { method: 'POST' });
+        const d = await r.json();
+        alert(d.success ? 'Shutting down...' : d.error);
+    } catch {
+        alert('Shutdown failed');
+    }
+}
+
+async function restart() {
+    if (!confirm('Restart system?')) return;
+    try {
+        const r = await fetch('/api/restart', { method: 'POST' });
+        const d = await r.json();
+        alert(d.success ? 'Restarting...' : d.error);
+    } catch {
+        alert('Restart failed');
+    }
+}
