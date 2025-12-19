@@ -49,7 +49,7 @@ def check_current_state():
     return jsonify({"current_state": current_state()})
 
 
-@app.route("/api/input_sources", methods=["GET"])
+@system_files_bp.route("/api/input_sources", methods=["GET"])
 def get_input_sources():
     sources = []
     errors = []
@@ -89,7 +89,7 @@ def get_input_sources():
     }), 200
 
 
-@app.route("/api/video_detection", methods=["GET"])
+@system_files_bp.route("/api/video_detection", methods=["GET"])
 def check_video_detection():
     set_current_state("video_object_detection")
     if os.path.exists(SYSTEM_FILES["video_detection"]):
