@@ -3,8 +3,6 @@
    Retry loops for input source and video detection
    ============================================================== */
 
-let inputSourceRetryInterval = null;
-
 async function fetchInputSources() {
     const loading = document.getElementById('input-loading');
     const results = document.getElementById('input-results');
@@ -69,8 +67,6 @@ function startInputSourceRetry() {
         }
     }, 3000);
 }
-
-let videoDetectionRetryInterval = null;
 
 async function checkVideoDetection() {
     const loading = document.getElementById('video-loading');
