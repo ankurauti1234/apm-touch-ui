@@ -82,7 +82,7 @@ function showEditMemberPopup() {
                 selected.innerHTML = `<span>${m.member_code || '??'}</span><span class="material-icons arrow">arrow_drop_down</span>`;
                 list.style.display = 'none';
                 selected.classList.remove('open');
-                code.focus();
+                codeInput.focus();  // ← FIXED
             };
             list.appendChild(li);
         });

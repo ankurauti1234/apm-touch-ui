@@ -139,7 +139,7 @@ function blockEventIfActive(e) {
 ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click',
     'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
         document.addEventListener(evt, blockEventIfActive, { capture: true, passive: false })
-});
+    });
 
 saver.addEventListener('click', () => {
     hideScreensaver();
