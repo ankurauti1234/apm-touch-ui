@@ -30,6 +30,33 @@ async function apiPost(url, data = {}) {
 }
 
 
+/* ==============================================================
+   Member actions
+   ============================================================== */
+
+async function toggleMember(idx) {
+    if (!membersData?.members?.[idx]) return;
+
+    try {
+        const r = await fetch('/api/toggle_member_status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ index: idx })
+        });
+        const d = await r.json();
+        if (d.success) {
+            membersData.members[idx] = d.member;
+            render();
+        } else {
+            showError(d.error || 'Failed to update member');
+        }
+    } catch (err) {
+        showError('Network error');
+        console.error('Toggle member failed:', err);
+    }
+}
+
+
 // Add this to the bottom of api.js
 async function fetchMembers() {
     try {
