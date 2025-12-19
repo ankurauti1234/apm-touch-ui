@@ -341,7 +341,6 @@ const states = {
     },
 };
 
-let CURRENT_HHID = null;
 
 async function submitHHID() {
     hhid = document.getElementById('hhid')?.value.trim();
@@ -367,3 +366,4 @@ async function submitHHID() {
     } catch { showError('Network error'); }
     finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP'; } }
 }
+
