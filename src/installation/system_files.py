@@ -48,10 +48,10 @@ def check_installation():
 def check_current_state():
     return jsonify({"current_state": current_state()})
 
-
 @system_files_bp.route("/input_sources", methods=["GET"])
 def get_input_sources():
     sources = []
+
     if os.path.exists(SYSTEM_FILES["jack_status"]):
         sources.append("line_in")
     if os.path.exists(SYSTEM_FILES["hdmi_input"]):
@@ -62,31 +62,44 @@ def get_input_sources():
             "success": False,
             "error": "No input sources detected",
             "sources": []
-        }), 404
+        }), 404  # ← Proper error code when nothing found
 
-    return jsonify({"success": True, "sources": sources}), 200
+    return jsonify({
+        "success": True,
+        "sources": sources
+    }), 200
 
 
 @system_files_bp.route("/video_detection", methods=["GET"])
 def check_video_detection():
     set_current_state("video_object_detection")
-    if os.path.exists(SYSTEM_FILES["video_detection"]):
-        try:
-            content = open(SYSTEM_FILES["video_detection"]).read().strip()
-            return jsonify({
-                "success": True,
-                "detected": True,
-                "status": content or "active"
-            }), 200
-        except Exception as e:
-            return jsonify({"success": False, "error": f"Failed to read video_detection: {str(e)}"}), 500
-    else:
+
+    video_file = SYSTEM_FILES["video_detection"]
+
+    if not os.path.exists(video_file):
         return jsonify({
-            "success": True,
+            "success": False,
             "detected": False,
             "status": "not_running"
+        }), 404  # ← Now returns 404 when file missing
+
+    try:
+        with open(video_file, 'r') as f:
+            content = f.read().strip()
+        status = content or "active"
+
+        return jsonify({
+            "success": True,
+            "detected": True,
+            "status": status
         }), 200
 
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Failed to read video detection status: {str(e)}",
+            "detected": False
+        }), 500
 
 @system_files_bp.route("/check_gsm", methods=["GET"])
 def check_gsm():
