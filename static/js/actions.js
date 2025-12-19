@@ -306,5 +306,3 @@ async function restart() {
         alert('Restart failed');
     }
 }
-
-// push
