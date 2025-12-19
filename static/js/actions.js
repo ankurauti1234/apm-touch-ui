@@ -14,32 +14,51 @@ async function fetchInputSources() {
     try {
         const r = await fetch('/api/input_sources');
         const d = await r.json();
+
         if (d.success && d.sources?.length > 0) {
             inputSources = d.sources;
-            ul.innerHTML = d.sources.map(s => `<li><span class="material-icons">input</span> ${s}</li>`).join('');
+
+            // Show detected sources
+            ul.innerHTML = d.sources.map(s => `
+                <li><span class="material-icons">input</span> ${s}</li>
+            `).join('');
+
+            // Clear any old button
             buttonGroup.innerHTML = '';
 
+            // Check if line_in is present
             if (d.sources.includes('line_in')) {
+                // Built-in camera → SKIP EVERYTHING and go directly to finalize
                 showError('Input Source Detected', 'success');
-                setTimeout(() => navigate('finalize'), 1200);
-                return;
+
+                // Small delay so user sees the message and list
+                setTimeout(() => {
+                    navigate('finalize');
+                }, 1200);
+
+                return; // Exit early – no button needed
             }
 
+            // Normal case: external camera → show "Next" button
             buttonGroup.innerHTML = `
                 <button class="button" onclick="navigate('video_object_detection')">
                     <span class="material-icons">arrow_forward</span> Next
                 </button>
             `;
 
+            // Stop auto-retry
             if (inputSourceRetryInterval) {
                 clearInterval(inputSourceRetryInterval);
                 inputSourceRetryInterval = null;
             }
+
             showError('Input sources detected!', 'success');
+
         } else {
-            throw new Error('No sources');
+            throw new Error(d.error || 'No sources detected');
         }
-    } catch {
+
+    } catch (e) {
         inputSources = [];
         ul.innerHTML = '<li><span class="material-icons">hourglass_top</span> Waiting for input sources...</li>';
         buttonGroup.innerHTML = `
@@ -53,11 +72,16 @@ async function fetchInputSources() {
         results.style.display = 'block';
     }
 }
-
+// Start auto-retry when entering input_source_detection
 function startInputSourceRetry() {
     console.log('Starting input source detection retry loop');
+    // Clear any existing interval
     if (inputSourceRetryInterval) clearInterval(inputSourceRetryInterval);
+
+    // Initial call
     fetchInputSources();
+
+    // Retry every 3 seconds
     inputSourceRetryInterval = setInterval(() => {
         if (currentState === 'input_source_detection') {
             fetchInputSources();
@@ -83,50 +107,68 @@ async function checkVideoDetection() {
         const d = await r.json();
 
         if (d.success && d.detected) {
+            // SUCCESS: Video detection is working!
             status.innerHTML = `<div class="success"><span class="material-icons">check_circle</span> Video detection active: ${d.status || 'Running'}</div>`;
             status.dataset.detected = 'true';
+
             checkMessage.style.display = 'none';
             successMessage.style.display = 'block';
 
-            buttonGroup.querySelector('button')?.remove();
+            // Remove any existing button and add "Next"
+            buttonGroup.querySelector('button[data-action="next"], button[data-action="retry"]')?.remove();
             buttonGroup.insertAdjacentHTML('afterbegin', `
-                <button class="button" onclick="navigate('finalize')">
-                    <span class="material-icons">arrow_forward</span> Next
-                </button>
-            `);
+                      <button class="button" data-action="next" onclick="navigate('finalize')">
+                          <span class="material-icons">arrow_forward</span> Next
+                      </button>
+                  `);
 
+            // Stop auto-retry on success
             if (videoDetectionRetryInterval) {
                 clearInterval(videoDetectionRetryInterval);
                 videoDetectionRetryInterval = null;
             }
+
             showError('Video detection successful!', 'success');
         } else {
-            throw new Error('Not ready');
+            throw new Error(d.error || 'Video detection not ready');
         }
-    } catch {
+    } catch (e) {
+        // FAILURE: Show waiting state + manual retry button
         status.innerHTML = `<div class="info"><span class="material-icons">hourglass_top</span> Waiting for video detection...</div>`;
         status.dataset.detected = 'false';
 
-        buttonGroup.querySelector('button')?.remove();
+        // Replace button with "Retry Now"
+        buttonGroup.querySelector('button[data-action="next"], button[data-action="retry"]')?.remove();
         buttonGroup.insertAdjacentHTML('afterbegin', `
-            <button class="button" onclick="checkVideoDetection()">
-                <span class="material-icons">refresh</span> Retry Now
-            </button>
-        `);
+                  <button class="button" data-action="retry" onclick="checkVideoDetection()">
+                      <span class="material-icons">refresh</span> Retry Now
+                  </button>
+              `);
+
+        if (e.message && e.message !== 'Failed to fetch') {
+            showError(e.message);
+        }
     } finally {
         loading.style.display = 'none';
         results.style.display = 'block';
     }
 }
-
+// Start auto-retry loop when entering video_object_detection state
 function startVideoDetectionRetry() {
     console.log('Starting video detection retry loop');
+
+    // Clear any old interval
     if (videoDetectionRetryInterval) clearInterval(videoDetectionRetryInterval);
+
+    // First check immediately
     checkVideoDetection();
+
+    // Then retry every 3 seconds while in this state
     videoDetectionRetryInterval = setInterval(() => {
         if (currentState === 'video_object_detection') {
             checkVideoDetection();
         } else {
+            // Stop retrying if user left this step
             clearInterval(videoDetectionRetryInterval);
             videoDetectionRetryInterval = null;
         }
@@ -134,46 +176,33 @@ function startVideoDetectionRetry() {
 }
 
 
-
 /* ==============================================================
    Form submissions & system actions
    ============================================================== */
 
 async function submitHHID() {
-    hhid = document.getElementById('hhid')?.value.trim() || '';
+    hhid = document.getElementById('hhid')?.value.trim();
     CURRENT_HHID = hhid;
 
     if (!hhid) return showError('Enter HHID');
 
+    // --- VALIDATION RULES ---
+    if (!hhid) return showError('Enter HHID');
+    if (!/^[A-Za-z0-9]+$/.test(hhid)) return showError('Special characters not allowed');
+    // if (hhid.length !== 6) return showError('HHID must be exactly 6 characters long');
+
+    // --- Normalizing (optional but cleaner) ---
     hhid = hhid.toUpperCase();
 
     const btn = event?.target;
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
-    }
-
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...'; }
     try {
-        const r = await fetch('/api/submit_hhid', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ hhid })
-        });
+        const r = await fetch('/api/submit_hhid', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hhid }) });
         const d = await r.json();
-        if (d.success) {
-            showError('OTP sent! Check email.', 'success');
-            setTimeout(() => navigate('otp_verification'), 1500);
-        } else {
-            showError(d.error || 'Invalid HHID');
-        }
-    } catch {
-        showError('Network error');
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
-        }
-    }
+        if (d.success) { showError('OTP sent! Check email.', 'success'); setTimeout(() => navigate('otp_verification'), 1500); }
+        else showError(d.error || 'Invalid HHID');
+    } catch { showError('Network error'); }
+    finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP'; } }
 }
 
 async function submitOTP() {
@@ -203,13 +232,14 @@ async function submitOTP() {
 
         if (d.success) {
             CURRENT_HHID = null;
+            input.value = ''; // Clear on success too (optional)
             navigate('input_source_detection');
         } else {
             showError(d.error || 'Invalid OTP');
-            input.value = '';
-            input.focus();
+            input.value = '';     // ← Critical: Clear field on invalid OTP
+            input.focus();        // ← Bring cursor back
         }
-    } catch {
+    } catch (e) {
         showError('Network error. Try again.');
         input.value = '';
         input.focus();
@@ -227,9 +257,13 @@ async function retryOTP() {
         return;
     }
 
-    const btn = document.querySelector('button[onclick="retryOTP()"]') || document.querySelector('.button.secondary');
+    // Find the Resend button (works even if you move it later)
+    const btn = document.querySelector('button[onclick="retryOTP()"]') ||
+        document.querySelector('.button.secondary');   // fallback
+
     if (!btn) return;
 
+    // Disable button + show inline spinner
     btn.disabled = true;
     const originalHTML = btn.innerHTML;
     btn.innerHTML = '<span class="material-icons spinner-small">hourglass_top</span> Sending…';
@@ -240,15 +274,19 @@ async function retryOTP() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ hhid: CURRENT_HHID })
         });
+
         const data = await r.json();
+
         if (data.success) {
             showError("OTP resent! Check your email.", "success");
         } else {
             showError(data.error || "Failed to resend OTP");
         }
-    } catch {
+    } catch (e) {
+        console.error(e);
         showError("Network error – please try again");
     } finally {
+        // Always restore the button
         btn.disabled = false;
         btn.innerHTML = originalHTML || '<span class="material-icons">refresh</span> Resend OTP';
     }
@@ -256,27 +294,14 @@ async function retryOTP() {
 
 async function finalizeInstallation() {
     const btn = event?.target;
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Finalizing...';
-    }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_top</span> Finalizing...'; }
     try {
         const r = await fetch('/api/finalize', { method: 'POST' });
         const d = await r.json();
-        if (d.success) {
-            membersData = d.data;
-            navigate('main');
-        } else {
-            showError(d.error);
-        }
-    } catch {
-        showError('Failed to finalize');
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<span class="material-icons">check_circle</span> Finalize Installation';
-        }
-    }
+        if (d.success) { membersData = d.data; navigate('main'); }
+        else showError(d.error);
+    } catch { showError('Failed to finalize'); }
+    finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">check_circle</span> Finalize Installation'; } }
 }
 
 async function shutdown() {
