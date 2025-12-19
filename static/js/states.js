@@ -340,28 +340,3 @@ const states = {
     <div id="screensaver"></div>`;
     },
 };
-
-async function submitHHID() {
-    hhid = document.getElementById('hhid')?.value.trim();
-    CURRENT_HHID = hhid;
-
-    if (!hhid) return showError('Enter HHID');
-
-    // --- VALIDATION RULES ---
-    if (!hhid) return showError('Enter HHID');
-    if (!/^[A-Za-z0-9]+$/.test(hhid)) return showError('Special characters not allowed');
-    // if (hhid.length !== 6) return showError('HHID must be exactly 6 characters long');
-
-    // --- Normalizing (optional but cleaner) ---
-    hhid = hhid.toUpperCase();
-
-    const btn = event?.target;
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...'; }
-    try {
-        const r = await fetch('/api/submit_hhid', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hhid }) });
-        const d = await r.json();
-        if (d.success) { showError('OTP sent! Check email.', 'success'); setTimeout(() => navigate('otp_verification'), 1500); }
-        else showError(d.error || 'Invalid HHID');
-    } catch { showError('Network error'); }
-    finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP'; } }
-}

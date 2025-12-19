@@ -26,20 +26,8 @@
     <!-- PROGRESS BAR (moved into card by JS) -->
     <div id="progress-bar" style="display: none;"></div>
 
-    <!-- MODULAR JS FILES (loaded in dependency order) -->
-    <script src="{{ url_for('static', filename='js/config.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/globals.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/states.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/render.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/keyboard.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/wifi.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/edit-member.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/guest.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/screensaver.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/init.js') }}"></script>
+    <!-- MAIN JS -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 
 </html>
