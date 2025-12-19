@@ -139,8 +139,6 @@ function startVideoDetectionRetry() {
    Form submissions & system actions
    ============================================================== */
 
-let CURRENT_HHID = null;
-
 async function submitHHID() {
     hhid = document.getElementById('hhid')?.value.trim() || '';
     CURRENT_HHID = hhid;
