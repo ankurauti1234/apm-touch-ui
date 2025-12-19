@@ -3,6 +3,30 @@
    Retry loops for input source and video detection
    ============================================================== */
 
+
+async function checkWiFi() {
+    try {
+        const r = await fetch('/api/check_wifi');
+        const d = await r.json();
+        if (d.success) {
+            const cur = await fetch('/api/current_wifi');
+            const cd = await cur.json();
+            if (cd.success) {
+                navigate('connect_select', cd.ssid);
+            } else {
+                showWiFiPopup();
+            }
+        } else {
+            showWiFiPopup();
+        }
+    } catch {
+        showError('Wi-Fi check failed');
+        showWiFiPopup();
+    }
+}
+
+
+
 async function fetchInputSources() {
     const loading = document.getElementById('input-loading');
     const results = document.getElementById('input-results');
