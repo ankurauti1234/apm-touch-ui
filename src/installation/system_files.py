@@ -49,25 +49,47 @@ def check_current_state():
     return jsonify({"current_state": current_state()})
 
 
-@system_files_bp.route("/input_sources", methods=["GET"])
+@app.route("/api/input_sources", methods=["GET"])
 def get_input_sources():
     sources = []
+    errors = []
+
+    # set_current_state("input_source_detection")
+    print('"/api/input_sources" called')
+
+    # if os.path.exists(SYSTEM_FILES["jack_status"]):
+    #     try:
+    #         status = open(SYSTEM_FILES["jack_status"]).read().strip()
+    #         if status == "line_in":
+    #             sources.append("line_in")
+    #         elif status == "internal":
+    #             sources.append("internal")
+    #         else:
+    #             errors.append(f"Unknown jack_status: {status}")
+    #     except Exception as e:
+    #         errors.append(f"Error reading jack_status: {str(e)}")
+
     if os.path.exists(SYSTEM_FILES["jack_status"]):
         sources.append("line_in")
+
     if os.path.exists(SYSTEM_FILES["hdmi_input"]):
         sources.append("HDMI")
 
-    if not sources:
+    if not sources and not errors:
         return jsonify({
             "success": False,
             "error": "No input sources detected",
             "sources": []
         }), 404
 
-    return jsonify({"success": True, "sources": sources}), 200
+    return jsonify({
+        "success": True,
+        "sources": sources,
+        "errors": errors if errors else None
+    }), 200
 
 
-@system_files_bp.route("/video_detection", methods=["GET"])
+@app.route("/api/video_detection", methods=["GET"])
 def check_video_detection():
     set_current_state("video_object_detection")
     if os.path.exists(SYSTEM_FILES["video_detection"]):
@@ -79,7 +101,10 @@ def check_video_detection():
                 "status": content or "active"
             }), 200
         except Exception as e:
-            return jsonify({"success": False, "error": f"Failed to read video_detection: {str(e)}"}), 500
+            return jsonify({
+                "success": False,
+                "error": f"Failed to read video_detection: {str(e)}"
+            }), 500
     else:
         return jsonify({
             "success": True,
