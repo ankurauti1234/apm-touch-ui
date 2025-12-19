@@ -30,6 +30,21 @@ async function apiPost(url, data = {}) {
 }
 
 
+//Wifi API 
+async function checkWiFi() {
+    try {
+        const r = await fetch('/api/check_wifi');
+        const d = await r.json();
+        if (d.success) {
+            const cur = await fetch('/api/current_wifi');
+            const cd = await cur.json();
+            if (cd.success) navigate('connect_select', cd.ssid);
+            else showWiFiPopup();
+        } else showWiFiPopup();
+    } catch { showError('Wi-Fi check failed'); showWiFiPopup(); }
+}
+
+
 // Add this to the bottom of api.js
 async function fetchMembers() {
     try {
