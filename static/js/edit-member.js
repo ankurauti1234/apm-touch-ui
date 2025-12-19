@@ -95,7 +95,7 @@ function showEditMemberPopup() {
         if (list.children.length > 0) {
             list.style.display = 'block';
             selected.classList.add('open');
-        }
+        }z
         msg.textContent = 'Select Member';
     }, 20);
 
