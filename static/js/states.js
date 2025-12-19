@@ -367,3 +367,110 @@ async function submitHHID() {
     finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP'; } }
 }
 
+async function submitOTP() {
+    const input = document.getElementById('otp');
+    const otp = input?.value.trim();
+
+    if (!/^\d{4}$/.test(otp)) {
+        showError('Please enter a valid 4-digit OTP');
+        input.value = '';
+        input.focus();
+        return;
+    }
+
+    const btn = event?.target;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Verifying...';
+    }
+
+    try {
+        const r = await fetch('/api/submit_otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hhid, otp })
+        });
+        const d = await r.json();
+
+        if (d.success) {
+            CURRENT_HHID = null;
+            input.value = ''; // Clear on success too (optional)
+            navigate('input_source_detection');
+        } else {
+            showError(d.error || 'Invalid OTP');
+            input.value = '';     // ← Critical: Clear field on invalid OTP
+            input.focus();        // ← Bring cursor back
+        }
+    } catch (e) {
+        showError('Network error. Try again.');
+        input.value = '';
+        input.focus();
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP';
+        }
+    }
+}
+async function retryOTP() {
+    if (!CURRENT_HHID) {
+        showError("HHID missing. Please go back and enter HHID again.");
+        return;
+    }
+
+    // Find the Resend button (works even if you move it later)
+    const btn = document.querySelector('button[onclick="retryOTP()"]') ||
+        document.querySelector('.button.secondary');   // fallback
+
+    if (!btn) return;
+
+    // Disable button + show inline spinner
+    btn.disabled = true;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<span class="material-icons spinner-small">hourglass_top</span> Sending…';
+
+    try {
+        const r = await fetch('/api/submit_hhid', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hhid: CURRENT_HHID })
+        });
+
+        const data = await r.json();
+
+        if (data.success) {
+            showError("OTP resent! Check your email.", "success");
+        } else {
+            showError(data.error || "Failed to resend OTP");
+        }
+    } catch (e) {
+        console.error(e);
+        showError("Network error – please try again");
+    } finally {
+        // Always restore the button
+        btn.disabled = false;
+        btn.innerHTML = originalHTML || '<span class="material-icons">refresh</span> Resend OTP';
+    }
+}
+
+async function finalizeInstallation() {
+    const btn = event?.target;
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_top</span> Finalizing...'; }
+    try {
+        const r = await fetch('/api/finalize', { method: 'POST' });
+        const d = await r.json();
+        if (d.success) { membersData = d.data; navigate('main'); }
+        else showError(d.error);
+    } catch { showError('Failed to finalize'); }
+    finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">check_circle</span> Finalize Installation'; } }
+}
+
+async function toggleMember(idx) {
+    if (!membersData?.members?.[idx]) return;
+    try {
+        const r = await fetch('/api/toggle_member_status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ index: idx }) });
+        const d = await r.json();
+        if (d.success) { membersData.members[idx] = d.member; render(); }
+        else showError(d.error || 'Failed to update');
+    } catch { showError('Network error'); }
+}
