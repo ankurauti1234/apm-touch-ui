@@ -242,7 +242,11 @@ async function connectWiFi() {
                 const cur = await fetch('/api/current_wifi');
                 const cd = await cur.json();
                 if (currentState !== 'main' && cd.success) {
-                    navigate('connect_select', cd.ssid);
+                    if (currentState !== 'connect_select' && cd.success) {
+                        return;
+                    } else {
+                        navigate('connect_select', cd.ssid);
+                    }
                 }
             }, 2000);
         }
