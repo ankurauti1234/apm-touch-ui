@@ -271,7 +271,11 @@ async function disconnectWiFi() {
         if (d.success) {
             setTimeout(() => {
                 closeWiFiPopup();
-                navigate('connect_select');
+                if (currentState !== 'connect_select' && cd.success) {
+                    return;
+                } else {
+                    navigate('connect_select', cd.ssid);
+                }
             }, 1200);
         }
     } catch (e) {
