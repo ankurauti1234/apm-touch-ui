@@ -345,6 +345,7 @@ def publish_member_event():
     data = load_members_data()
     members = [
         {
+            "member_id": m.get("member_code", ""),
             "age": calculate_age(m["dob"]),  # Convert DOB to age
             "gender": m["gender"],
             "active": m.get("active", False)
@@ -1100,6 +1101,7 @@ def toggle_member_status():
             if age is None:
                 continue  # skip invalid entries
             members_payload.append({
+                "member_id": m.get("member_code", ""),
                 "age": age,
                 "gender": m["gender"],
                 "active": new_state if i == index else m.get("active", False)
