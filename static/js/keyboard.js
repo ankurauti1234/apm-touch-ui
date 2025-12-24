@@ -60,6 +60,12 @@ function showKeyboard(el) {
                     <span class="material-icons">keyboard_return</span>
                     <span class="key-label">Enter</span>
                 </button>
+
+                <button class="key-special key-special-characters" onclick="switchSpecialCharacters()"
+                    onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
+                    <span id="special-label" class="key-label">!?%</span>
+                </button>
             </div>
         </div>`;
 
@@ -74,7 +80,7 @@ function renderKeys() {
     const container = document.getElementById('keyboard-keys');
     if (!container) return;
 
-    const layout = shiftActive ? keyboardLayouts.shift : keyboardLayouts.normal;
+    const layout = specialActive ? keyboardLayouts.special : (shiftActive ? keyboardLayouts.shift : keyboardLayouts.normal);
 
     container.innerHTML = layout.map((row, i) => `
         <div class="keyboard-row keyboard-row-${i}">
@@ -98,6 +104,26 @@ function toggleShift() {
     if (btn) btn.classList.toggle('active', shiftActive);
     renderKeys();
 }
+
+// Toggle to special characters layout
+function switchSpecialCharacters() {
+    specialActive = !specialActive;
+
+    const btn = document.querySelector('.key-special-characters');
+    if (btn) btn.classList.toggle('active', specialActive);
+
+    const btn2 = document.querySelector('.key-shift');
+    if (btn2) {
+        btn2.disabled = specialActive;
+        btn2.classList.toggle('key-disabled', specialActive);
+    }
+
+    const label = document.getElementById('special-label');
+    if (label) label.textContent = specialActive ? 'ABC' : '!?%';
+
+    renderKeys();
+}
+
 
 // HHID input – only numbers, max 4 digits after "HH"
 function onlyNumbers(input) {

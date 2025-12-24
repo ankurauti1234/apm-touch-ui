@@ -11,6 +11,7 @@ let inputSources = [];
 let membersData = null;
 let activeInput = null;
 let shiftActive = false;
+let specialActive = false;
 
 let guests = [];
 let selectedSSID = '';

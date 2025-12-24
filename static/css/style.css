@@ -1176,12 +1176,12 @@ ul li {
 
 .key-special {
     min-width: 3.5rem;
-    height: 2.5rem;
+    height: 3.3rem;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
-    background: hsl(var(--secondary));
+    background: hsl(var(--background));
     border: 1px solid hsl(var(--border));
     border-radius: calc(var(--radius) - 2px);
     font-size: 0.75rem;
@@ -1215,6 +1215,17 @@ ul li {
     color: hsl(var(--primary-foreground));
 }
 
+.key-special-characters.active {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+}
+
+.key-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
 .key-space {
     flex: 1;
     min-width: 30rem;
@@ -1233,6 +1244,15 @@ ul li {
 .key-enter {
     min-width: 4rem;
     font-size: 2rem;
+}
+
+.key-special-characters {
+    min-width: 4rem;
+    font-size: 2rem;
+    position: fixed;
+    bottom: 4.8rem;
+    left: 9.3rem;
+    padding: 0 1.3rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
