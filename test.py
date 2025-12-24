@@ -33,33 +33,32 @@
    /* ==============================================================
       KEYBOARD LAYOUTS
       ============================================================== */
-   const keyboardLayouts = {
-       normal: [
-           ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
-           ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
-           ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
-           ['z', 'x', 'c', 'v', 'b', 'n', 'm', '.']
-       ],
-       shift: [
-           ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'],
-           ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-           ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-           ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
-       ],
-
-       special: [
-        ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'],
-        ['-', '+', '=', '{', '}', '[', ']', '|', '\\', '/'],
-        [';', ':', '\'', '"', ',', '<', '>', '?', '`', '~'],
-        ['_', '.']
-    ]
-
-   };
+      const keyboardLayouts = {
+        normal: [
+            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+            ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+            ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+            ['z', 'x', 'c', 'v', 'b', 'n', 'm', '.']
+        ],
+        shift: [
+            ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'],
+            ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+            ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+            ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+        ],
+        special: [
+            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+            ['@', '#', '$', '%', '^', '&', '*', '(', ')', '_'],
+            ['-', '+', '=', '{', '}', '[', ']', '|', '\\', '/'],
+            ['<', '>', ',', '.', '?', '!', '`', '~', '"', "'"]
+        ]
+    };
    
    /* ==============================================================
       HTML TEMPLATES (states)
       ============================================================== */
       
+      let currentLayout = 'normal'; // 'normal', 'shift', or 'special'
    const states = {
        loading: () => `
            <div class="loading"><div class="spinner"></div><p>Loading system...</p></div>`,
@@ -876,46 +875,71 @@ function showToast(message) {
             return;
         }
     
+        function toggleLayout() {
+            if (currentLayout === 'special') {
+                currentLayout = 'normal';
+                shiftActive = false; // reset shift when going back to letters
+            } else {
+                currentLayout = 'special';
+                shiftActive = false; // no shift in special mode
+            }
+        
+            // Update visual state
+            const shiftBtn = document.querySelector('.key-shift');
+            if (shiftBtn) {
+                shiftBtn.classList.toggle('active', shiftActive);
+            }
+        
+            renderKeys();
+        }
+        
+        function updateSpecialButtonLabel() {
+            const label = document.getElementById('layout-label');
+            if (label) {
+                label.textContent = currentLayout === 'special' ? 'ABC' : '?123';
+            }
+        }
+
         kb = document.createElement('div');
         kb.id = 'virtual-keyboard';
         kb.className = 'virtual-keyboard showing';
         kb.innerHTML = `
-            <div class="keyboard-body">
-                <div class="keyboard-keys" id="keyboard-keys"></div>
-                <div class="keyboard-bottom-row">
-                    <button class="key-special key-shift" onclick="toggleShift()"
-                        onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
-                        ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
-                        <span class="material-icons">arrow_upward</span>
-                        <span class="key-label">Shift</span>
-                    </button>
+        <div class="keyboard-body">
+            <div class="keyboard-keys" id="keyboard-keys"></div>
+            <div class="keyboard-bottom-row">
+                <!-- Special / ABC button -->
+                <button class="key-special key-layout-toggle" onclick="toggleLayout()"
+                    onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
+                    <span class="key-label" id="layout-label">?123</span>
+                </button>
     
-                    <button class="key key-space" onclick="insertChar(' ')"
-                        onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
-                        ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">Space
-                    </button>
+                <!-- Shift button -->
+                <button class="key-special key-shift" onclick="toggleShift()"
+                    onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
+                    <span class="material-icons">arrow_upward</span>
+                    <span class="key-label">Shift</span>
+                </button>
     
-                    <button class="key-special key-backspace" onclick="backspace()"
-                        onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
-                        ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
-                        <span class="key-backspace material-icons">backspace</span>
-                    </button>
+                <button class="key key-space" onclick="insertChar(' ')"
+                    onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">Space</button>
     
-                    <button class="key-special key-enter" onclick="pressEnter()"
-                        onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
-                        ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
-                        <span class="material-icons">keyboard_return</span>
-                        <span class="key-label">Enter</span>
-                    </button>
-
-                    <button class="key-special key-backspace" onclick="toggleSpecial()"
-                        onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
-                        ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
-                        <span class="key-backspace material-icons">?123</span>
-                    </button>
-
-                </div>
-            </div>`;
+                <button class="key-special key-backspace" onclick="backspace()"
+                    onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
+                    <span class="material-icons">backspace</span>
+                </button>
+    
+                <button class="key-special key-enter" onclick="pressEnter()"
+                    onmousedown="handleKeyDown(event)" onmouseup="handleKeyUp(event)"
+                    ontouchstart="handleKeyDown(event)" ontouchend="handleKeyUp(event)">
+                    <span class="material-icons">keyboard_return</span>
+                    <span class="key-label">Enter</span>
+                </button>
+            </div>
+        </div>`;
     
         document.body.appendChild(kb);
         renderKeys();
@@ -925,62 +949,44 @@ function showToast(message) {
         kb.addEventListener('click', e => e.stopPropagation());
     }
 
+    function renderKeys() {
+        const container = document.getElementById('keyboard-keys');
+        if (!container) return;
     
-
-   function renderKeys() {
-       const container = document.getElementById('keyboard-keys');
-       if (!container) return;
-   
-       let layout;
-       if (specialActive) {
-           layout = keyboardLayouts.special;
-       } else if (shiftActive) {
-           layout = keyboardLayouts.shift;
-       } else {
-           layout = keyboardLayouts.normal;
-       }
-
-       container.innerHTML = layout.map((row, i) => `
-           <div class="keyboard-row keyboard-row-${i}">
-               ${row.map(k => `
-                   <button 
-                       class="key" 
-                       onclick="insertChar('${k}')"
-                       onmousedown="handleKeyDown(event)"
-                       onmouseup="handleKeyUp(event)"
-                       ontouchstart="handleKeyDown(event)"
-                       ontouchend="handleKeyUp(event)"
-                   >${k}</button>
-               `).join('')}
-           </div>
-       `).join('');
-   }
-
-   let specialActive = false;
-
-    function toggleSpecial() {
-        specialActive = !specialActive;
-        // Turn off shift when special is activated
-        if (specialActive) {
-            shiftActive = false;
-            const shiftBtn = document.querySelector('.key-shift');
-            if (shiftBtn) shiftBtn.classList.remove('active');
+        let layout;
+        if (currentLayout === 'special') {
+            layout = keyboardLayouts.special;
+        } else {
+            layout = shiftActive ? keyboardLayouts.shift : keyboardLayouts.normal;
         }
-
-        const specialBtn = document.querySelector('.key-special-btn');
-        if (specialBtn) {
-            specialBtn.classList.toggle('active', specialActive);
-        }
-
-        renderKeys();
+    
+        container.innerHTML = layout.map((row, i) => `
+            <div class="keyboard-row keyboard-row-${i}">
+                ${row.map(k => `
+                    <button
+                        class="key"
+                        onclick="insertChar('${k.replace(/'/g, "\\'")}')"
+                        onmousedown="handleKeyDown(event)"
+                        onmouseup="handleKeyUp(event)"
+                        ontouchstart="handleKeyDown(event)"
+                        ontouchend="handleKeyUp(event)"
+                    >${k}</button>
+                `).join('')}
+            </div>
+        `).join('');
+    
+        // Update the special button label
+        updateSpecialButtonLabel();
     }
 
    function toggleShift() {
-       shiftActive = !shiftActive;
-       const btn = document.querySelector('.key-shift');
-       if (btn) btn.classList.toggle('active', shiftActive);
-       renderKeys();
-   }
+    if (currentLayout === 'special') return; // ignore shift in symbol mode
+
+    shiftActive = !shiftActive;
+    const btn = document.querySelector('.key-shift');
+    if (btn) btn.classList.toggle('active', shiftActive);
+    renderKeys();
+}
    
    
    
@@ -1126,6 +1132,7 @@ function showToast(message) {
        // Settle the container card back down
        document.querySelector('.container')?.classList.remove('lifted');
    
+       currentLayout = 'normal';
        activeInput = null;
        shiftActive = false;
        lowerEditMemberPopup();
