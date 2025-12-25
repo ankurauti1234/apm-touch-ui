@@ -2105,7 +2105,7 @@ button:focus {
     padding: 8px 14px;
     background: rgba(0, 0, 0, 0.08);
     border-radius: 10px;
-    color: rgba(255, 255, 255, 0.939);
+    color: rgb(255, 255, 255);
 }
 
 .add-guest-btn .material-icons {
