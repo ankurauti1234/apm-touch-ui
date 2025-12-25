@@ -1982,7 +1982,7 @@ button:focus {
 #main-wifi-status {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
     font-size: 16px;
     color: black;
     white-space: nowrap;
