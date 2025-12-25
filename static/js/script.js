@@ -158,7 +158,7 @@ setInterval(updateWifiStatus, 30000);
            <div class="bottom-bar-allpage">
                 <div class="bar-inner">
                     <button class="bar-btn" onclick="showSettingsPopup()">
-                        <span class="material-icons">settings</span>
+                        <span class="material-symbols-outlined">settings</span>
                     </button>
 
                     <!-- Wi-Fi Status Indicator -->
@@ -166,8 +166,6 @@ setInterval(updateWifiStatus, 30000);
                         <span id="wifi-ssid" class="wifi-ssid"></span>
                         <span id="wifi-icon" class="material-symbols-outlined wifi-icon">signal_wifi_off</span>
                     </div>
-
-                    <!-- Add more buttons here if you want -->
                 </div>
             </div>`,
    
