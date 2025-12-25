@@ -1959,7 +1959,7 @@ button:focus {
 .bar-center {
     display: flex;
     align-items: center;
-    margin-left: -8px;            /* Pulls it closer to Add Guest button */
+    margin-left: -4px;            /* Pulls it closer to Add Guest button */
 }
 
 .bar-center .guest-count {
