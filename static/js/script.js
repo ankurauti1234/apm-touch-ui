@@ -1795,44 +1795,28 @@ function togglePasswordVisibility(e) {
            const cur = await fetch('/api/current_wifi');
            const cd = await cur.json();
            render(cd.success ? cd.ssid : null);
-           updateBottomBarWiFiStatus();
+           //updateBottomBarWiFiStatus();
            return;
        }
    
        /* ---------- NETWORK TEST (file-based) ---------- */
        if (state === 'network_test') {
-        connectivityMode = param;               // 'wifi' | 'gsm'
-        render();                               // show initial spinner/loading
-    
-        setTimeout(async () => {
-            const api = connectivityMode === 'wifi' ? '/api/check_wifi' :
-                connectivityMode === 'gsm' ? '/api/check_gsm' : null;
-            
-            let success = false;
-            if (api) {
-                try {
-                    const r = await fetch(api);
-                    const d = await r.json();
-                    success = d.success;
-                    console.log("Network test result:", success);
-                    if (!success) showError(`${connectivityMode.toUpperCase()} not ready`);
-                } catch (e) {
-                    console.error("Network test fetch failed:", e);
-                    showError('Network test failed');
-                }
-            } else {
-                showError('Invalid mode');
-            }
-    
-            // Re-render with success or error state
-            render(success ? 'success' : 'error');
-    
-            // NOW update the bottom bar Wi-Fi status (after final render)
-            updateBottomBarWiFiStatus();
-        }, 1500);
-    
-        return;
-    }
+           connectivityMode = param;               // 'wifi' | 'gsm'
+           render();                               // show spinner
+           setTimeout(async () => {
+               const api = connectivityMode === 'wifi' ? '/api/check_wifi' :
+                   connectivityMode === 'gsm' ? '/api/check_gsm' : null;
+               if (!api) { render('error'); showError('Invalid mode'); return; }
+               try {
+                   const r = await fetch(api);
+                   const d = await r.json();
+                   console.log("Network test result:", d.success);
+                   render(d.success ? 'success' : 'error');
+                   if (!d.success) showError(`${connectivityMode.toUpperCase()} not ready`);
+               } catch { render('error'); showError('Network test failed'); }
+           }, 1500);
+           return;
+       }
    
        /* ---------- INPUT SOURCES ---------- */
        if (state === 'input_source_detection') {
