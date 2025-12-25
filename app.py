@@ -571,6 +571,7 @@ def check_installation():
 def check_current_state():
     return jsonify({"current_state": current_state()})
 
+
 @app.route("/api/check_wifi", methods=["GET"])
 def check_wifi():
     set_current_state("connect_select")
@@ -599,6 +600,34 @@ def check_wifi():
 
     except Exception:
         return jsonify({"success": False, "ssid": "Disconnected"}), 200
+
+
+@app.route("/api/current_wifi", methods=["GET"])
+def current_wifi():
+    try:
+        ok, out = run_system_command(
+            ["nmcli", "-t", "-f", "NAME,TYPE,DEVICE", "connection", "show", "--active"]
+        )
+        if not ok:
+            return jsonify({"success": False, "error": "nmcli failed"}), 500
+
+        for line in out.strip().split("\n"):
+            if not line.strip():
+                continue
+            parts = line.split(":", 2)
+            if len(parts) < 3:
+                continue
+
+            name, conn_type, device = parts[0], parts[1], parts[2]
+
+            if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
+                return jsonify({"success": True, "ssid": name}), 200
+
+        return jsonify({"success": False, "error": "No active Wi-Fi connection"}), 404
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 @app.route("/api/wifi/connect", methods=["POST"])
 def wifi_connect():
