@@ -445,25 +445,8 @@
         }
 
         statusEl.innerHTML = `
-        <span
-        style="
-          max-width:150px;
-          display:inline-block;
-          overflow:hidden;
-          white-space:nowrap;
-          animation: marquee 6s linear infinite;
-        "
-      >
-        ${text}
-      </span>
-      
-      <style>
-      @keyframes marquee {
-        0%   { transform: translateX(100%); }
-        100% { transform: translateX(-100%); }
-      }
-      </style>
-                  <span class="material-icons" style="color:${color};">${icon}</span>
+            <span style="max-width:350px;overflow:hidden;text-overflow:ellipsis;">${text}</span>
+            <span class="material-icons" style="color:${color};">${icon}</span>
         `;
     } catch (e) {
         statusEl.innerHTML = `
