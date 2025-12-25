@@ -63,39 +63,32 @@
             const ssidElement = document.getElementById('wifi-ssid');
             const iconElement = document.getElementById('wifi-icon');
 
-            if (data.connected && data.ssid) {
+            if (data.connected && data.ssid && data.signal !== undefined) {
                 ssidElement.textContent = data.ssid;
-            
-                let iconName;
-                let className = 'good';
-            
-                if (data.signal >= 80) {
-                    iconName = 'signal_wifi_4_bar';
-                } else if (data.signal >= 60) {
-                    iconName = 'signal_wifi_3_bar';
-                } else if (data.signal >= 30) {  // Adjust thresholds as needed
-                    iconName = 'signal_wifi_2_bar';
-                    className = 'weak';  // gray, "not that strong"
-                } else {
-                    iconName = 'signal_wifi_1_bar';
-                    className = 'weak';
-                }
-            
-                iconElement.textContent = iconName;
-                iconElement.className = 'material-symbols-outlined wifi-icon ' + className;
+
+                // Always use the same 'wifi' icon, just change color based on strength
+                let className = (data.signal >= 50) ? 'good' : 'weak';  // Adjust threshold: >=50% strong/green, else gray/weak
+
+                iconElement.textContent = 'wifi';
+                iconElement.className = 'material-icons wifi-icon ' + className;
             } else {
+                // Disconnected: hide SSID, show wifi with slash
                 ssidElement.textContent = '';
-                iconElement.textContent = 'signal_wifi_off';  // nice slash icon
-                iconElement.className = 'material-symbols-outlined wifi-icon off';
+                iconElement.textContent = 'wifi_off';
+                iconElement.className = 'material-icons wifi-icon off';
             }
         })
         .catch(err => {
             console.error('WiFi check failed', err);
-            // Optional: show disconnected on error
             document.getElementById('wifi-ssid').textContent = '';
             document.getElementById('wifi-icon').textContent = 'wifi_off';
+            document.getElementById('wifi-icon').className = 'material-icons wifi-icon off';
         });
 }
+
+// Call on load and every 30 seconds
+updateWifiStatus();
+setInterval(updateWifiStatus, 30000);
 
 // Initial update
 updateWifiStatus();
@@ -158,13 +151,13 @@ setInterval(updateWifiStatus, 30000);
            <div class="bottom-bar-allpage">
                 <div class="bar-inner">
                     <button class="bar-btn" onclick="showSettingsPopup()">
-                        <span class="material-symbols-outlined">settings</span>
+                        <span class="material-icons">settings</span>
                     </button>
 
                     <!-- Wi-Fi Status Indicator -->
                     <div class="wifi-status" id="wifi-status">
                         <span id="wifi-ssid" class="wifi-ssid"></span>
-                        <span id="wifi-icon" class="material-symbols-outlined wifi-icon">signal_wifi_off</span>
+                        <span id="wifi-icon" class="material-icons wifi-icon">wifi_off</span>
                     </div>
                 </div>
             </div>`,
