@@ -847,7 +847,7 @@ async function updateBottomBarWiFiStatus() {
                     align-items: center;
                     gap: 8px;
                     font-size: 16px;
-                    color: #fff;
+                    color: black;
                     margin-left: auto;
                     padding-right: 12px;
                 `;

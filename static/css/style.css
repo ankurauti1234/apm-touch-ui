@@ -1912,7 +1912,7 @@ button:focus {
     align-items: center;
     gap: 10px;
     font-size: 16px;
-    color: rgb(0, 0, 0);
+    color: white;
     white-space: nowrap;
     opacity: 0.95;
     margin-left: auto;                /* Ensures it stays on the far right */
