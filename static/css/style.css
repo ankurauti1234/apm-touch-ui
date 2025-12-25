@@ -1980,17 +1980,16 @@ button:focus {
 #main-wifi-status {
     display: flex;
     align-items: center;
-    gap: 30px;                    /* ← Increased from 20px → more distance */
+    gap: 45px;                    /* Space between name and icon */
     font-size: 16px;
     color: black;
     white-space: nowrap;
 }
 
 #main-wifi-status span:first-child {
-    max-width: none;                     /* ← Remove limit completely */
-    overflow: visible;                   /* Optional: allow overflow if needed */
-    text-overflow: clip;                 /* No "..." */
-    white-space: nowrap;
+    max-width: 300px;             /* ← INCREASED: long Wi-Fi names now show fully */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #main-wifi-status .material-icons {
