@@ -157,8 +157,7 @@ setInterval(updateWifiStatus, 30000);
                     <!-- Wi-Fi Status Indicator -->
                     <div class="wifi-status" id="wifi-status">
                         <span id="wifi-ssid" class="wifi-ssid"></span>
-                        <span id="wifi-icon" class="material-icons wifi-icon">wifi_off</span>
-                    </div>
+                        <span id="wifi-icon" class="material-icons wifi-icon good">wifi</span>                    </div>
                 </div>
             </div>`,
    
