@@ -1969,29 +1969,35 @@ button:focus {
     white-space: nowrap;
 }
 
-/* Wi-Fi status - far right with more space between name and icon */
+/* Wi-Fi status - far right with more space for long names */
 .bar-right {
-    margin-left: auto;            /* Pushes it to the far right */
+    margin-left: auto;               /* Keeps it pushed to the far right */
     display: flex;
     align-items: center;
+    min-width: 220px;                /* ← Ensures enough minimum space for long SSIDs */
+    justify-content: flex-end;       /* Aligns content to the right edge */
 }
 
+/* Main Wi-Fi status container */
 #main-wifi-status {
     display: flex;
     align-items: center;
-    gap: 30px;                    /* ← Increased from 20px → more distance */
+    gap: 30px;                       /* Space between name and icon (as you wanted) */
     font-size: 16px;
-    color: rgb(224, 0, 0);
+    color: black;
     white-space: nowrap;
-    padding-right: 10px;
+    flex-shrink: 0;                  /* Prevents shrinking */
 }
 
+/* Wi-Fi name - increased width to show full long SSIDs */
 #main-wifi-status span:first-child {
-    max-width: 200px;
+    max-width: 320px;                /* ← INCREASED from 200px → now shows very long names */
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis;         /* Still adds "..." only if extremely long */
+    font-weight: 500;                /* Optional: slightly bolder for readability */
 }
 
+/* Wi-Fi icon */
 #main-wifi-status .material-icons {
     font-size: 26px;
     flex-shrink: 0;
