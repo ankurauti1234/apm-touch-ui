@@ -2117,3 +2117,14 @@ button:focus {
     font-weight: 500;
     color: black;
 }
+
+.add-guest-btn {
+    background-color: #ffffff;
+    color: #000000;          /* text + icon color */
+    border: 1px solid #ddd;  /* optional */
+  }
+  
+  .add-guest-btn .material-icons {
+    color: #000000;
+  }
+  
