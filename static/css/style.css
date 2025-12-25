@@ -1981,7 +1981,7 @@ button:focus {
     align-items: center;
     gap: 30px;                    /* ← Increased from 20px → more distance */
     font-size: 16px;
-    color: black;
+    color: rgb(224, 0, 0);
     white-space: nowrap;
 }
 
@@ -2018,7 +2018,7 @@ button:focus {
     padding: 8px 14px;
     background: rgba(0, 0, 0, 0.08);
     border-radius: 10px;
-    color: black;
+    color: rgba(255, 255, 255, 0.939);
 }
 
 .add-guest-btn .material-icons {
