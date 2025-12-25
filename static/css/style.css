@@ -1983,6 +1983,7 @@ button:focus {
     font-size: 16px;
     color: rgb(224, 0, 0);
     white-space: nowrap;
+    padding-right: 10px;
 }
 
 #main-wifi-status span:first-child {
