@@ -1876,3 +1876,39 @@ button:focus {
 #edit-member-popup .button.secondary:hover {
     background: #e9ecef;
 }
+
+
+.wifi-status {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* space between SSID text and icon */
+    margin-left: 16px; /* space from settings button */
+    font-size: 14px;
+    color: white; /* adjust to match your bar */
+}
+
+.wifi-ssid {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wifi-icon {
+    font-size: 24px;
+}
+
+/* Green when strongly connected */
+.wifi-icon.good {
+    color: #4caf50; /* green */
+}
+
+/* Gray when weak */
+.wifi-icon.weak {
+    color: #9e9e9e; /* gray */
+}
+
+/* Red/gray for disconnected */
+.wifi-icon.off {
+    color: #f44336; /* red slash, or keep gray */
+}

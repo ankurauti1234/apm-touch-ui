@@ -55,6 +55,57 @@
     ]
 
    };
+
+   function updateWifiStatus() {
+    fetch('/api/check_wifi')
+        .then(response => response.json())
+        .then(data => {
+            const ssidElement = document.getElementById('wifi-ssid');
+            const iconElement = document.getElementById('wifi-icon');
+
+            if (data.connected && data.ssid) {
+                ssidElement.textContent = data.ssid;
+
+                let iconName = 'wifi';
+                let className = 'good';
+
+                // Signal strength mapping (nmcli SIGNAL is 0-100)
+                if (data.signal >= 80) {
+                    iconName = 'wifi';          // full (or use wifi_strength_4 if you prefer MDI)
+                } else if (data.signal >= 60) {
+                    iconName = 'wifi';          // 3 bars
+                } else if (data.signal >= 40) {
+                    iconName = 'wifi';          // 2 bars - "not that strong"
+                    className = 'weak';         // gray
+                } else {
+                    iconName = 'wifi';          // 1 bar only - weak
+                    className = 'weak';
+                }
+
+                iconElement.textContent = iconName;
+                iconElement.className = 'material-icons wifi-icon ' + className;
+            } else {
+                // Disconnected
+                ssidElement.textContent = '';
+                iconElement.textContent = 'wifi_off';  // wifi logo with slash/dash
+                iconElement.className = 'material-icons wifi-icon off';
+            }
+        })
+        .catch(err => {
+            console.error('WiFi check failed', err);
+            // Optional: show disconnected on error
+            document.getElementById('wifi-ssid').textContent = '';
+            document.getElementById('wifi-icon').textContent = 'wifi_off';
+        });
+}
+
+// Initial update
+updateWifiStatus();
+
+// Poll every 30 seconds (or after connect attempts)
+setInterval(updateWifiStatus, 30000);
+
+// Optional: call it after successful wifi_connect() if you have access to that event
    
    /* ==============================================================
       HTML TEMPLATES (states)
@@ -111,6 +162,13 @@
                     <button class="bar-btn" onclick="showSettingsPopup()">
                         <span class="material-icons">settings</span>
                     </button>
+
+                    <!-- Wi-Fi Status Indicator -->
+                    <div class="wifi-status" id="wifi-status">
+                        <span id="wifi-ssid" class="wifi-ssid"></span>
+                        <span id="wifi-icon" class="material-icons wifi-icon">wifi_off</span>
+                    </div>
+
                     <!-- Add more buttons here if you want -->
                 </div>
             </div>`,

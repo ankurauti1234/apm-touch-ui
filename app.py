@@ -576,26 +576,46 @@ def check_current_state():
 def check_wifi():
     set_current_state("connect_select")
     try:
+        # Get active connections with more fields including signal strength
         ok, out = run_system_command(
-            ["nmcli", "-t", "-f", "TYPE,DEVICE", "connection", "show", "--active"]
+            ["nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL,DEVICE,TYPE", "connection", "show", "--active"]
         )
         if not ok:
-            return jsonify({"success": False}), 200
+            return jsonify({"connected": False}), 200
+
+        best_ssid = None
+        best_signal = 0
 
         for line in out.strip().split("\n"):
             if not line.strip():
                 continue
-            parts = line.split(":", 1)
-            if len(parts) < 2:
+            parts = line.split(":", 4)
+            if len(parts) < 5:
                 continue
-            conn_type, device = parts[0], parts[1]
+            active, ssid, signal_str, device, conn_type = parts
 
-            if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
-                return jsonify({"success": True}), 200
+            if active == "yes" and conn_type == "802-11-wireless" and ssid and (device.startswith("wlan") or device.startswith("wlx")):
+                try:
+                    signal = int(signal_str)
+                    if signal > best_signal:  # pick the strongest if multiple
+                        best_signal = signal
+                        best_ssid = ssid.strip()
+                except:
+                    pass
 
-        return jsonify({"success": False}), 200
-    except Exception:
-        return jsonify({"success": False}), 200
+        if best_ssid:
+            return jsonify({
+                "connected": True,
+                "ssid": best_ssid,
+                "signal": best_signal  # 0-100 typically
+            }), 200
+        else:
+            return jsonify({"connected": False}), 200
+
+    except Exception as e:
+        print(f"[CHECK WIFI ERROR] {e}")
+        return jsonify({"connected": False}), 200
+
 
 
 @app.route("/api/current_wifi", methods=["GET"])
