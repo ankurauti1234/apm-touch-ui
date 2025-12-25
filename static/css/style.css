@@ -1929,92 +1929,87 @@ button:focus {
     font-size: 26px !important;
 }
 
-/* Main dashboard bottom bar - white background */
+/* Thinner bottom bar on main dashboard */
 .layout-reset .bottom-bar,
 .main-dashboard .bottom-bar {
     display: flex !important;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 16px !important;        /* Slightly more horizontal breathing room */
-    min-height: 52px;                    /* Slightly thinner */
-    background: white !important;        /* White background */
-    backdrop-filter: none;               /* Remove blur since white bg looks better without it */
+    padding: 8px 20px !important;        /* Reduced from 12px → thinner */
+    min-height: 56px;                    /* Makes it slimmer */
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
     width: 100%;
     box-sizing: border-box;
     position: fixed;
     bottom: 0;
     left: 0;
     z-index: 100;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);  /* Optional: subtle top shadow for separation */
 }
 
-/* Buttons on the left - tighter overall spacing */
+/* Buttons on the left */
 .bar-left {
     display: flex;
     align-items: center;
-    gap: 18px;                           /* Reduced from 24px → buttons closer together */
+    gap: 24px;                           /* Nice spacing between buttons */
 }
 
-/* Make Add Guest button smaller and horizontal */
+/* Make Add Guest button horizontal: icon left, text right */
 .add-guest-btn {
     display: flex !important;
     align-items: center;
-    flex-direction: row !important;
-    gap: 7px;                            /* Smaller gap between + and text */
-    padding: 8px 14px !important;        /* Smaller padding → smaller button */
-    background: rgba(0, 0, 0, 0.08);      /* Light gray background for subtle highlight */
-    border-radius: 10px;
-    color: black !important;             /* Black text/icon */
+    flex-direction: row !important;      /* Horizontal layout */
+    gap: 8px;                            /* Space between + and text */
+    padding: 10px 16px !important;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
 }
 
 .add-guest-btn .material-icons {
-    font-size: 22px !important;          /* Smaller + icon */
+    font-size: 26px !important;
 }
 
 .add-guest-btn .btn-text {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
-    margin: 0 !important;
-    color: black;
+    margin: 0 !important;                /* Remove any top margin */
 }
 
-/* Regular buttons (Edit & Settings) - smaller and black icons */
+/* Regular buttons (Edit & Settings) stay vertical */
 .bar-btn:not(.add-guest-btn) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
-    padding: 6px;                        /* Smaller touch area */
-    color: black;                        /* Black icons */
+    gap: 4px;
+    padding: 8px;
 }
 
 .bar-btn:not(.add-guest-btn) .material-icons {
-    font-size: 24px;                     /* Smaller than before */
+    font-size: 28px;
 }
 
-/* Center guest count - black text */
+/* Center guest count */
 .bar-center .guest-count {
     font-size: 17px;
     font-weight: 500;
-    color: black;                        /* Black text */
+    color: white;
 }
 
-/* Wi-Fi status on right - black text/icon */
+/* Wi-Fi status on right */
 #main-wifi-status {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 15px;
-    color: black;                        /* Black text */
+    gap: 10px;
+    font-size: 16px;
+    color: white;
 }
 
 #main-wifi-status span:first-child {
-    max-width: 140px;
+    max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 #main-wifi-status .material-icons {
-    font-size: 24px;
-    color: #444;                         /* Dark gray for disconnected, green when connected (handled by JS) */
+    font-size: 26px;
 }
