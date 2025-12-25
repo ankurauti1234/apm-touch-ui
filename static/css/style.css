@@ -2065,7 +2065,7 @@ button:focus {
     flex-direction: row;
     gap: 8px;
     padding: 8px 14px;
-    background: white;               /* ← Changed to solid white */
+    background: rgb(255, 255, 255);               /* ← Changed to solid white */
     border-radius: 10px;
     border: 1px solid rgba(0, 0, 0, 0.12);   /* Optional: subtle border for definition */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Optional: light elevation */
