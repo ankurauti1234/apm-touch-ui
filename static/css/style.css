@@ -1928,3 +1928,94 @@ button:focus {
 .wifi-status .material-icons {
     font-size: 26px !important;
 }
+
+/* Main dashboard bottom bar - full flex layout */
+.layout-reset .bottom-bar,
+.main-dashboard .bottom-bar {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    width: 100%;
+    box-sizing: border-box;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    gap: 16px;
+}
+
+.layout-reset .bar-left,
+.main-dashboard .bar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* space between buttons */
+}
+
+.layout-reset .bar-center,
+.main-dashboard .bar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.layout-reset .bar-center .guest-count,
+.main-dashboard .bar-center .guest-count {
+    font-size: 17px;
+    font-weight: 500;
+    color: white;
+}
+
+.layout-reset .bar-right,
+.main-dashboard .bar-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 160px;
+}
+
+#main-wifi-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    color: white;
+    white-space: nowrap;
+}
+
+#main-wifi-status span:first-child {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#main-wifi-status .material-icons {
+    font-size: 26px;
+}
+
+/* Ensure buttons are visible and properly sized */
+.bar-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+}
+
+.bar-btn .material-icons {
+    font-size: 28px;
+}
+
+.bar-btn .btn-text {
+    font-size: 12px;
+    margin-top: 2px;
+}
