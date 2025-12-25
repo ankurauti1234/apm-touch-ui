@@ -1980,7 +1980,7 @@ button:focus {
 #main-wifi-status {
     display: flex;
     align-items: center;
-    gap: 30px;                    /* ← Increased from 20px → more distance */
+    gap: 50px;                    /* ← Increased from 20px → more distance */
     font-size: 16px;
     color: black;
     white-space: nowrap;
