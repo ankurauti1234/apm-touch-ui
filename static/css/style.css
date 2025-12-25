@@ -1880,7 +1880,7 @@ button:focus {
 .wifi-status-btn {
     display: flex;
     align-items: center;
-    gap: 6px; /* Space between icon and text */
+    gap: 6px;
     font-size: 14px;
 }
 
@@ -1901,5 +1901,5 @@ button:focus {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 120px; /* Adjust based on your bar width */
+    max-width: 120px;
 }
