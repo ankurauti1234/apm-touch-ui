@@ -2067,8 +2067,8 @@ button:focus {
     padding: 8px 14px;
     background: rgb(255, 255, 255);               /* ← Changed to solid white */
     border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.12);   /* Optional: subtle border for definition */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Optional: light elevation */
+    border: 1px solid rgb(242, 242, 242);   /* Optional: subtle border for definition */
+    box-shadow: 0 2px 4px rgb(255, 255, 255); /* Optional: light elevation */
     color: black;                    /* Ensures text/icon color is black */
 }
 
