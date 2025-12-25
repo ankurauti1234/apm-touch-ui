@@ -1991,7 +1991,7 @@ button:focus {
 
 /* Wi-Fi name - increased width to show full long SSIDs */
 #main-wifi-status span:first-child {
-    max-width: 320px;                /* ← INCREASED from 200px → now shows very long names */
+    max-width: 220px;                /* ← INCREASED from 200px → now shows very long names */
     overflow: hidden;
     text-overflow: ellipsis;         /* Still adds "..." only if extremely long */
     font-weight: 500;                /* Optional: slightly bolder for readability */
