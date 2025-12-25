@@ -1876,3 +1876,10 @@ button:focus {
 #edit-member-popup .button.secondary:hover {
     background: #e9ecef;
 }
+.wifi-status {
+    font-size: 15px;
+    opacity: 0.9;
+}
+.wifi-status .material-icons {
+    font-size: 22px !important;
+}
