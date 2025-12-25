@@ -576,47 +576,45 @@ def check_current_state():
 def check_wifi():
     set_current_state("connect_select")
     try:
-        # Get active connections with more fields including signal strength
+        # Get active connections with SSID, SIGNAL, DEVICE, and TYPE
         ok, out = run_system_command(
             ["nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL,DEVICE,TYPE", "connection", "show", "--active"]
         )
         if not ok:
             return jsonify({"connected": False}), 200
 
-        best_ssid = None
-        best_signal = 0
-
         for line in out.strip().split("\n"):
             if not line.strip():
                 continue
-            parts = line.split(":", 4)
+            parts = line.split(":", 4)  # Split into 5 fields
             if len(parts) < 5:
                 continue
+
             active, ssid, signal_str, device, conn_type = parts
 
-            if active == "yes" and conn_type == "802-11-wireless" and ssid and (device.startswith("wlan") or device.startswith("wlx")):
-                try:
-                    signal = int(signal_str)
-                    if signal > best_signal:  # pick the strongest if multiple
-                        best_signal = signal
-                        best_ssid = ssid.strip()
-                except:
-                    pass
+            # Check if this is an active Wi-Fi connection
+            if (active == "yes" and
+                conn_type == "802-11-wireless" and
+                ssid.strip() and  # SSID not empty
+                (device.startswith("wlan") or device.startswith("wlx"))):
 
-        if best_ssid:
-            return jsonify({
-                "connected": True,
-                "ssid": best_ssid,
-                "signal": best_signal  # 0-100 typically
-            }), 200
-        else:
-            return jsonify({"connected": False}), 200
+                try:
+                    signal = int(signal_str) if signal_str else 0
+                except:
+                    signal = 0
+
+                return jsonify({
+                    "connected": True,
+                    "ssid": ssid.strip(),
+                    "signal": signal  # 0-100
+                }), 200
+
+        # No active Wi-Fi found
+        return jsonify({"connected": False}), 200
 
     except Exception as e:
         print(f"[CHECK WIFI ERROR] {e}")
         return jsonify({"connected": False}), 200
-
-
 
 @app.route("/api/current_wifi", methods=["GET"])
 def current_wifi():

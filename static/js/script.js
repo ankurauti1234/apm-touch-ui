@@ -55,53 +55,53 @@
     ]
 
    };
-
-   function updateWifiStatus() {
-    fetch('/api/check_wifi')
-        .then(response => response.json())
-        .then(data => {
-            const ssidElement = document.getElementById('wifi-ssid');
-            const iconElement = document.getElementById('wifi-icon');
-
-            if (data.connected && data.ssid && data.signal !== undefined) {
-                ssidElement.textContent = data.ssid;
-
-                // Always use the same 'wifi' icon, just change color based on strength
-                let className = (data.signal >= 50) ? 'good' : 'weak';  // Adjust threshold: >=50% strong/green, else gray/weak
-
-                iconElement.textContent = 'wifi';
-                iconElement.className = 'material-icons wifi-icon ' + className;
-            } else {
-                // Disconnected: hide SSID, show wifi with slash
-                ssidElement.textContent = '';
-                iconElement.textContent = 'wifi_off';
-                iconElement.className = 'material-icons wifi-icon off';
-            }
-        })
-        .catch(err => {
-            console.error('WiFi check failed', err);
-            document.getElementById('wifi-ssid').textContent = '';
-            document.getElementById('wifi-icon').textContent = 'wifi_off';
-            document.getElementById('wifi-icon').className = 'material-icons wifi-icon off';
-        });
-}
-
-// Call on load and every 30 seconds
-updateWifiStatus();
-setInterval(updateWifiStatus, 30000);
-
-// Initial update
-updateWifiStatus();
-
-// Poll every 30 seconds (or after connect attempts)
-setInterval(updateWifiStatus, 30000);
-
-// Optional: call it after successful wifi_connect() if you have access to that event
    
    /* ==============================================================
       HTML TEMPLATES (states)
       ============================================================== */
-      
+      function updateWifiStatus() {
+        fetch('/api/check_wifi')
+            .then(r => r.json())
+            .then(data => {
+                const ssidEl = document.getElementById('wifi-ssid');
+                const iconEl = document.getElementById('wifi-icon');
+    
+                if (!ssidEl || !iconEl) return;
+    
+                if (data.connected && data.ssid) {
+                    ssidEl.textContent = data.ssid;
+    
+                    // Green if signal >= 50, else gray
+                    const strengthClass = (data.signal >= 50) ? 'good' : 'weak';
+                    iconEl.textContent = 'wifi';
+                    iconEl.className = 'material-icons wifi-icon ' + strengthClass;
+                } else {
+                    ssidEl.textContent = '';
+                    iconEl.textContent = 'wifi_off';
+                    iconEl.className = 'material-icons wifi-icon off';
+                }
+            })
+            .catch(err => {
+                console.error("WiFi status update failed:", err);
+                const ssidEl = document.getElementById('wifi-ssid');
+                const iconEl = document.getElementById('wifi-icon');
+                if (ssidEl) ssidEl.textContent = '';
+                if (iconEl) {
+                    iconEl.textContent = 'wifi_off';
+                    iconEl.className = 'material-icons wifi-icon off';
+                }
+            });
+    }
+    
+    // Run on load
+    updateWifiStatus();
+    
+    // Update every 30 seconds
+    setInterval(updateWifiStatus, 30000);
+    
+    // Optional: Update instantly after successful connect
+    // (You can call updateWifiStatus() inside connectWiFi() success block)
+
    const states = {
        loading: () => `
            <div class="loading"><div class="spinner"></div><p>Loading system...</p></div>`,
@@ -149,14 +149,27 @@ setInterval(updateWifiStatus, 30000);
                </div>
            `}
            <div class="bottom-bar-allpage">
-                <div class="bar-inner">
-                    <button class="bar-btn" onclick="showSettingsPopup()">
-                        <span class="material-icons">settings</span>
-                    </button>
-                    <span id="wifi-ssid" class="wifi-ssid"></span>
-                    <span class="material-icons">wifi</span>                    
-                </div>
-            </div>`,
+    <div class="bar-inner">
+        <button class="bar-btn" onclick="showEditMemberPopup()">
+            <span class="material-icons">edit</span>
+        </button>
+        <button class="bar-btn" onclick="showSettingsPopup()">
+            <span class="material-icons">settings</span>
+        </button>
+
+        <!-- Wi-Fi Status -->
+        <div class="wifi-status">
+            <span id="wifi-ssid" class="wifi-ssid"></span>
+            <span id="wifi-icon" class="material-icons wifi-icon">wifi_off</span>
+        </div>
+
+        <button class="bar-btn" onclick="openDialog()">
+            <span class="material-icons">add</span>
+            <span class="btn-text">Add Guest</span>
+        </button>
+        <span class="guest-count">${guests.length} / 8 Guests</span>
+    </div>
+</div>`,
    
        network_test: (status = null) => `
            <h1>Network Test</h1>

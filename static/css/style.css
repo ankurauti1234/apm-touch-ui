@@ -1882,33 +1882,22 @@ button:focus {
     align-items: center;
     gap: 8px;
     margin-left: 16px;
+    color: white;
     font-size: 14px;
-    color: white; /* match your bar text color */
 }
 
 .wifi-ssid {
-    max-width: 150px;
+    max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 500;
 }
 
 .wifi-icon {
-    font-size: 24px !important; /* ensure size */
-    line-height: 1 !important;   /* fix any alignment issues */
+    font-size: 24px !important;
 }
 
-/* Green when strong/good signal */
-.wifi-icon.good {
-    color: #4caf50;
-}
-
-/* Gray when weak ("not that strong") */
-.wifi-icon.weak {
-    color: #9e9e9e;
-}
-
-/* For disconnected — you can keep gray or make red */
-.wifi-icon.off {
-    color: #9e9e9e; /* or #f44336 for red slash */
-}
+.wifi-icon.good { color: #4caf50; }   /* Green when strong */
+.wifi-icon.weak { color: #9e9e9e; }   /* Gray when weak */
+.wifi-icon.off  { color: #9e9e9e; }   /* Disconnected */
