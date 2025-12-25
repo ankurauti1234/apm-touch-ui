@@ -65,30 +65,28 @@
 
             if (data.connected && data.ssid) {
                 ssidElement.textContent = data.ssid;
-
-                let iconName = 'wifi';
+            
+                let iconName;
                 let className = 'good';
-
-                // Signal strength mapping (nmcli SIGNAL is 0-100)
+            
                 if (data.signal >= 80) {
-                    iconName = 'wifi';          // full (or use wifi_strength_4 if you prefer MDI)
+                    iconName = 'signal_wifi_4_bar';
                 } else if (data.signal >= 60) {
-                    iconName = 'wifi';          // 3 bars
-                } else if (data.signal >= 40) {
-                    iconName = 'wifi';          // 2 bars - "not that strong"
-                    className = 'weak';         // gray
+                    iconName = 'signal_wifi_3_bar';
+                } else if (data.signal >= 30) {  // Adjust thresholds as needed
+                    iconName = 'signal_wifi_2_bar';
+                    className = 'weak';  // gray, "not that strong"
                 } else {
-                    iconName = 'wifi';          // 1 bar only - weak
+                    iconName = 'signal_wifi_1_bar';
                     className = 'weak';
                 }
-
+            
                 iconElement.textContent = iconName;
-                iconElement.className = 'material-icons wifi-icon ' + className;
+                iconElement.className = 'material-symbols-outlined wifi-icon ' + className;
             } else {
-                // Disconnected
                 ssidElement.textContent = '';
-                iconElement.textContent = 'wifi_off';  // wifi logo with slash/dash
-                iconElement.className = 'material-icons wifi-icon off';
+                iconElement.textContent = 'signal_wifi_off';  // nice slash icon
+                iconElement.className = 'material-symbols-outlined wifi-icon off';
             }
         })
         .catch(err => {
@@ -159,11 +157,14 @@ setInterval(updateWifiStatus, 30000);
            `}
            <div class="bottom-bar-allpage">
                 <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
 
                     <!-- Wi-Fi Status Indicator -->
                     <div class="wifi-status" id="wifi-status">
                         <span id="wifi-ssid" class="wifi-ssid"></span>
-                        <span id="wifi-icon" class="material-icons">wifi_off</span>
+                        <span id="wifi-icon" class="material-symbols-outlined wifi-icon">signal_wifi_off</span>
                     </div>
 
                     <!-- Add more buttons here if you want -->
