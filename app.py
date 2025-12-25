@@ -576,30 +576,26 @@ def check_current_state():
 def check_wifi():
     set_current_state("connect_select")
     try:
-        # Get active connections
-        ok, out = run_system_command(["nmcli", "-t", "-f", "TYPE,DEVICE,NAME", "connection", "show", "--active"])
+        ok, out = run_system_command(
+            ["nmcli", "-t", "-f", "TYPE,DEVICE", "connection", "show", "--active"]
+        )
         if not ok:
-            return jsonify({"success": False, "ssid": "Disconnected"}), 200
-
-        ssid = "Disconnected"
-        connected = False
+            return jsonify({"success": False}), 200
 
         for line in out.strip().split("\n"):
             if not line.strip():
                 continue
-            parts = line.split(":", 2)  # Now split into 3 parts
-            if len(parts) < 3:
+            parts = line.split(":", 1)
+            if len(parts) < 2:
                 continue
-            conn_type, device, conn_name = parts[0], parts[1], parts[2]
+            conn_type, device = parts[0], parts[1]
+
             if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
-                connected = True
-                ssid = conn_name.strip() or "Unknown"
-                break  # We only need the first wireless connection
+                return jsonify({"success": True}), 200
 
-        return jsonify({"success": connected, "ssid": ssid}), 200
-
+        return jsonify({"success": False}), 200
     except Exception:
-        return jsonify({"success": False, "ssid": "Disconnected"}), 200
+        return jsonify({"success": False}), 200
 
 
 @app.route("/api/current_wifi", methods=["GET"])

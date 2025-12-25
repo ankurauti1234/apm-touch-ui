@@ -55,45 +55,6 @@
     ]
 
    };
-
-   /* ==============================================================
-   WIFI STATUS INDICATOR IN BOTTOM BAR
-   ============================================================== */
-function updateWifiStatus() {
-    fetch('/api/check_wifi')
-        .then(response => response.json())
-        .then(data => {
-            const icon = document.getElementById('wifi-icon');
-            const ssidText = document.getElementById('wifi-ssid');
-
-            if (!icon || !ssidText) return; // safety
-
-            if (data.success && data.ssid) {
-                icon.textContent = 'wifi';
-                icon.classList.remove('wifi-disconnected');
-                icon.classList.add('wifi-connected');
-                ssidText.textContent = data.ssid;
-            } else {
-                icon.textContent = 'wifi_off';
-                icon.classList.remove('wifi-connected');
-                icon.classList.add('wifi-disconnected');
-                ssidText.textContent = 'Disconnected';
-            }
-        })
-        .catch(err => {
-            console.error('Failed to fetch WiFi status:', err);
-            const icon = document.getElementById('wifi-icon');
-            const ssidText = document.getElementById('wifi-ssid');
-            if (icon) icon.textContent = 'wifi_off';
-            if (ssidText) ssidText.textContent = 'Error';
-        });
-}
-
-// Initial update when page loads
-updateWifiStatus();
-
-// Update every 10 seconds
-setInterval(updateWifiStatus, 10000);
    
    /* ==============================================================
       HTML TEMPLATES (states)
@@ -146,20 +107,13 @@ setInterval(updateWifiStatus, 10000);
                </div>
            `}
            <div class="bottom-bar-allpage">
-            <div class="bar-inner">
-                <button class="bar-btn" onclick="showSettingsPopup()">
-                    <span class="material-icons">settings</span>
-                </button>
-
-                <!-- WiFi Status Button -->
-                <button class="bar-btn wifi-status-btn" id="wifi-status-btn">
-                    <span class="material-icons wifi-icon" id="wifi-icon">wifi_off</span>
-                    <span class="wifi-ssid" id="wifi-ssid">Disconnected</span>
-                </button>
-
-                <!-- Add more buttons here if you want -->
-            </div>
-        </div>`,
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>`,
    
        network_test: (status = null) => `
            <h1>Network Test</h1>
@@ -451,6 +405,7 @@ setInterval(updateWifiStatus, 10000);
    ============================================================== */
    const MAX_GUESTS = 8;
    let guests = []; // { age: 25, gender: "Male" }
+   let currentWiFiStatus = { connected: false, ssid: null, strength: null };
    
    
    function openDialog() {
@@ -858,6 +813,59 @@ async function updateGuestCountFromFile() {
     }
 }
 
+// ... end of guest functions ...
+
+async function updateBottomBarWiFiStatus() {
+    const bottomBars = document.querySelectorAll('.bottom-bar-allpage .bar-inner');
+    if (bottomBars.length === 0) return;
+
+    try {
+        const res = await fetch('/api/current_wifi');
+        const data = await res.json();
+
+        let icon = 'wifi_off';
+        let color = '#999'; // gray
+        let text = 'Disconnected';
+
+        if (data.success && data.ssid) {
+            icon = 'wifi';
+            color = '#4caf50'; // green
+            text = data.ssid;
+
+            currentWiFiStatus = { connected: true, ssid: data.ssid, strength: 'good' };
+        } else {
+            currentWiFiStatus = { connected: false, ssid: null, strength: null };
+        }
+
+        bottomBars.forEach(bar => {
+            let statusEl = bar.querySelector('.wifi-status');
+            if (!statusEl) {
+                statusEl = document.createElement('div');
+                statusEl.className = 'wifi-status';
+                statusEl.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 16px;
+                    color: #fff;
+                    margin-left: auto;
+                    padding-right: 12px;
+                `;
+                bar.appendChild(statusEl);
+            }
+
+            statusEl.innerHTML = `
+                <span style="white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                    ${text}
+                </span>
+                <span class="material-icons" style="font-size: 24px; color: ${color};">${icon}</span>
+            `;
+        });
+    } catch (e) {
+        console.warn("Failed to update Wi-Fi status in bottom bar:", e);
+    }
+}
+
 // Load full list only when opening dialog
 async function loadGuestsForDialog() {
     try {
@@ -1249,6 +1257,7 @@ function showToast(message) {
            if (tmp && progressBar) { tmp.parentNode.insertBefore(progressBar, tmp); tmp.remove(); }
            progressBar.style.display = 'flex';
            updateProgressBar();
+           updateBottomBarWiFiStatus();
        }
    }
    function updateProgressBar() {
@@ -1648,6 +1657,8 @@ function togglePasswordVisibility(e) {
                    const cd = await cur.json();
                    if (currentState == 'main') return; // already in main state
                    if (cd.success) navigate('connect_select', cd.ssid);
+
+                   updateBottomBarWiFiStatus();
                }, 2000);
                loading.style.display = 'none';
            }
@@ -1784,6 +1795,7 @@ function togglePasswordVisibility(e) {
            const cur = await fetch('/api/current_wifi');
            const cd = await cur.json();
            render(cd.success ? cd.ssid : null);
+           updateBottomBarWiFiStatus();
            return;
        }
    

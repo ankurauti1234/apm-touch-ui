@@ -1876,30 +1876,3 @@ button:focus {
 #edit-member-popup .button.secondary:hover {
     background: #e9ecef;
 }
-
-.wifi-status-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-}
-
-.wifi-icon {
-    font-size: 24px !important;
-}
-
-.wifi-connected {
-    color: green !important;
-}
-
-.wifi-disconnected {
-    color: gray !important;
-}
-
-.wifi-ssid {
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 120px;
-}
