@@ -153,12 +153,8 @@ setInterval(updateWifiStatus, 30000);
                     <button class="bar-btn" onclick="showSettingsPopup()">
                         <span class="material-icons">settings</span>
                     </button>
-
-                    <!-- Wi-Fi Status Indicator -->
-                    <div class="wifi-status" id="wifi-status">
-                        <span id="wifi-ssid" class="wifi-ssid"></span>
-                        <span class="material-icons">wifi</span>                    
-                    </div>
+                    <span id="wifi-ssid" class="wifi-ssid"></span>
+                    <span class="material-icons">wifi</span>                    
                 </div>
             </div>`,
    
