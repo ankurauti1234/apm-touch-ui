@@ -415,9 +415,7 @@
                         <span class="guest-count">${guests.length} / 8 Guests</span>
                     </div>
 
-                    <div class="bar-right" id="main-wifi-status">
-                        <!-- Wi-Fi status injected by JS -->
-                    </div>
+                    
                 </div>
            </div> 
        </div>
