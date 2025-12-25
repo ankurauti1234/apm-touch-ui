@@ -1980,14 +1980,14 @@ button:focus {
 #main-wifi-status {
     display: flex;
     align-items: center;
-    gap: 50px;                    /* ← Increased from 20px → more distance */
+    gap: 30px;                    /* ← Increased from 20px → more distance */
     font-size: 16px;
     color: black;
     white-space: nowrap;
 }
 
 #main-wifi-status span:first-child {
-    max-width: 200px;
+    max-width: 400px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
