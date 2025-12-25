@@ -168,10 +168,13 @@
                </button>
            </div>
            <div class="bottom-bar-allpage">
-               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-           </div>
-           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-           </div>`,
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>`,
    
        hhid_input: () => `
            <h1>Enter Household ID</h1>
@@ -200,10 +203,13 @@
                </button>
            </div>
            <div class="bottom-bar-allpage">
-               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-           </div>
-           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-           </div>`,
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>`,
    
            otp_verification: () => `
            <h1>Enter OTP</h1>
@@ -232,10 +238,13 @@
                </button>
            </div>
            <div class="bottom-bar-allpage">
-               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-           </div>
-           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-           </div>
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>
        `,
    
        input_source_detection: () => `
@@ -251,10 +260,13 @@
            </div>
        </div>
        <div class="bottom-bar-allpage">
-           <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-       </div>
-       <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-       </div>
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>
    `,
    
        video_object_detection: () => `
@@ -268,10 +280,13 @@
                </div>
            </div>
            <div class="bottom-bar-allpage">
-               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-           </div>
-           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-           </div>`,
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>`,
    
        finalize: (details) => `
        <div class="summary-container">
@@ -383,17 +398,25 @@
                    `).join('')}
                </div>
                <div class="bottom-bar">
-                   <button class="bar-btn"  onclick="showEditMemberPopup()">
-                       <span class="material-icons">edit</span>
-                   </button>
-                   <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-                   <button class="bar-btn" onclick="openDialog()">
-                        <span class="material-icons">add</span>
-                        <span class="btn-text">Add Guest</span>
-                    </button>
-                    <span class="guest-count">${guests.length} / 8 Guests</span>
-
-               </div>
+                    <div class="bar-left">
+                        <button class="bar-btn" onclick="showEditMemberPopup()">
+                            <span class="material-icons">edit</span>
+                        </button>
+                        <button class="bar-btn" onclick="showSettingsPopup()">
+                            <span class="material-icons">settings</span>
+                        </button>
+                        <button class="bar-btn" onclick="openDialog()">
+                            <span class="material-icons">add</span>
+                            <span class="btn-text">Add Guest</span>
+                        </button>
+                    </div>
+                    <div class="bar-center">
+                        <span class="guest-count">${guests.length} / 8 Guests</span>
+                    </div>
+                    <div class="bar-right" id="main-wifi-status">
+                        <!-- Wi-Fi status will be injected here by JS -->
+                    </div>
+                </div>
                <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
                </div>
            </div> 
