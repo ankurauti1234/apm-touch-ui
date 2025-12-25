@@ -1932,92 +1932,105 @@ button:focus {
 
 
 
-/* Main dashboard bottom bar - white background */
+/* Main dashboard bottom bar - white background, left-aligned content */
 .layout-reset .bottom-bar,
 .main-dashboard .bottom-bar {
     display: flex !important;
-    justify-content: space-between;
+    justify-content: flex-start;         /* All content starts from left */
     align-items: center;
-    padding: 8px 16px !important;        /* Slightly more horizontal breathing room */
-    min-height: 52px;                    /* Slightly thinner */
-    background: white !important;        /* White background */
-    backdrop-filter: none;               /* Remove blur since white bg looks better without it */
+    padding: 8px 24px 8px 32px !important;  /* ← Increased left padding (32px) for breathing room */
+    min-height: 52px;
+    background: white !important;
     width: 100%;
     box-sizing: border-box;
     position: fixed;
     bottom: 0;
     left: 0;
     z-index: 100;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);  /* Optional: subtle top shadow for separation */
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+    gap: 20px;                           /* Space between main groups */
 }
 
-/* Buttons on the left - tighter overall spacing */
+/* All left-side content in one flex container */
 .bar-left {
     display: flex;
     align-items: center;
-    gap: 18px;                           /* Reduced from 24px → buttons closer together */
+    gap: 20px;                           /* Space between buttons and guest count */
+    flex-grow: 1;                        /* Takes available space */
 }
 
-/* Make Add Guest button smaller and horizontal */
-.add-guest-btn {
-    display: flex !important;
-    align-items: center;
-    flex-direction: row !important;
-    gap: 7px;                            /* Smaller gap between + and text */
-    padding: 8px 14px !important;        /* Smaller padding → smaller button */
-    background: rgba(0, 0, 0, 0.08);      /* Light gray background for subtle highlight */
-    border-radius: 10px;
-    color: black !important;             /* Black text/icon */
-}
-
-.add-guest-btn .material-icons {
-    font-size: 22px !important;          /* Smaller + icon */
-}
-
-.add-guest-btn .btn-text {
-    font-size: 14px;
-    font-weight: 500;
-    margin: 0 !important;
-    color: black;
-}
-
-/* Regular buttons (Edit & Settings) - smaller and black icons */
-.bar-btn:not(.add-guest-btn) {
+/* Guest count now part of the left flow (not centered) */
+.bar-center {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 3px;
-    padding: 6px;                        /* Smaller touch area */
-    color: black;                        /* Black icons */
 }
 
-.bar-btn:not(.add-guest-btn) .material-icons {
-    font-size: 24px;                     /* Smaller than before */
-}
-
-/* Center guest count - black text */
 .bar-center .guest-count {
     font-size: 17px;
     font-weight: 500;
-    color: black;                        /* Black text */
+    color: black;
+    white-space: nowrap;
 }
 
-/* Wi-Fi status on right - black text/icon */
+/* Wi-Fi status pushed to the far right */
+.bar-right {
+    margin-left: auto;                   /* Key: pushes it to the right */
+    display: flex;
+    align-items: center;
+}
+
 #main-wifi-status {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 15px;
-    color: black;                        /* Black text */
+    gap: 10px;
+    font-size: 16px;
+    color: black;
+    white-space: nowrap;
+    min-width: 140px;                    /* Ensures space for long SSIDs */
 }
 
 #main-wifi-status span:first-child {
-    max-width: 140px;
+    max-width: 180px;                    /* Increased → longer Wi-Fi names visible */
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 #main-wifi-status .material-icons {
+    font-size: 26px;
+    flex-shrink: 0;
+}
+
+/* Buttons styling (unchanged, just for reference) */
+.bar-btn:not(.add-guest-btn) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px;
+    color: black;
+}
+
+.bar-btn:not(.add-guest-btn) .material-icons {
     font-size: 24px;
-    color: #444;                         /* Dark gray for disconnected, green when connected (handled by JS) */
+}
+
+.add-guest-btn {
+    display: flex !important;
+    align-items: center;
+    flex-direction: row !important;
+    gap: 7px;
+    padding: 8px 14px !important;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    color: black !important;
+}
+
+.add-guest-btn .material-icons {
+    font-size: 22px !important;
+}
+
+.add-guest-btn .btn-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: black;
 }
