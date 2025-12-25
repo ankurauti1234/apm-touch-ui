@@ -156,22 +156,19 @@ setInterval(updateWifiStatus, 30000);
                        <span class="material-icons">cell_tower</span> GSM
                    </button>
                </div>
-           `}`,
-        //    <div class="bottom-bar-allpage">
-        //         <div class="bar-inner">
-        //             <button class="bar-btn" onclick="showSettingsPopup()">
-        //                 <span class="material-icons">settings</span>
-        //             </button>
+           `}
+           <div class="bottom-bar-allpage">
+                <div class="bar-inner">
 
-        //             <!-- Wi-Fi Status Indicator -->
-        //             <div class="wifi-status" id="wifi-status">
-        //                 <span id="wifi-ssid" class="wifi-ssid"></span>
-        //                 <span id="wifi-icon" class="material-icons">wifi_off</span>
-        //             </div>
+                    <!-- Wi-Fi Status Indicator -->
+                    <div class="wifi-status" id="wifi-status">
+                        <span id="wifi-ssid" class="wifi-ssid"></span>
+                        <span id="wifi-icon" class="material-icons">wifi_off</span>
+                    </div>
 
-        //             <!-- Add more buttons here if you want -->
-        //         </div>
-        //     </div>`,
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>`,
    
        network_test: (status = null) => `
            <h1>Network Test</h1>
