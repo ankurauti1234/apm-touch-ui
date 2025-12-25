@@ -543,11 +543,11 @@ async function updateWifiStatus() {
     }
 }
 
-// /* Run once on page load */
-// updateWifiStatus();
+/* Run once on page load */
+updateWifiStatus();
 
-// /* Auto-refresh every 5 seconds */
-// setInterval(updateWifiStatus, 5000);
+/* Auto-refresh every 5 seconds */
+setInterval(updateWifiStatus, 5000);
 
 
 
