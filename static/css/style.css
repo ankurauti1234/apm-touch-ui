@@ -1930,12 +1930,14 @@ button:focus {
 }
 
 /* Main dashboard bottom bar - full flex layout */
+/* Thinner bottom bar on main dashboard */
 .layout-reset .bottom-bar,
 .main-dashboard .bottom-bar {
     display: flex !important;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 20px;
+    padding: 8px 20px !important;        /* Reduced from 12px → thinner */
+    min-height: 56px;                    /* Makes it slimmer */
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(10px);
     width: 100%;
@@ -1944,46 +1946,63 @@ button:focus {
     bottom: 0;
     left: 0;
     z-index: 100;
-    gap: 16px;
 }
 
-.layout-reset .bar-left,
-.main-dashboard .bar-left {
+/* Buttons on the left */
+.bar-left {
     display: flex;
     align-items: center;
-    gap: 20px; /* space between buttons */
+    gap: 24px;                           /* Nice spacing between buttons */
 }
 
-.layout-reset .bar-center,
-.main-dashboard .bar-center {
-    flex: 1;
-    display: flex;
-    justify-content: center;
+/* Make Add Guest button horizontal: icon left, text right */
+.add-guest-btn {
+    display: flex !important;
     align-items: center;
+    flex-direction: row !important;      /* Horizontal layout */
+    gap: 8px;                            /* Space between + and text */
+    padding: 10px 16px !important;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
 }
 
-.layout-reset .bar-center .guest-count,
-.main-dashboard .bar-center .guest-count {
+.add-guest-btn .material-icons {
+    font-size: 26px !important;
+}
+
+.add-guest-btn .btn-text {
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0 !important;                /* Remove any top margin */
+}
+
+/* Regular buttons (Edit & Settings) stay vertical */
+.bar-btn:not(.add-guest-btn) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+}
+
+.bar-btn:not(.add-guest-btn) .material-icons {
+    font-size: 28px;
+}
+
+/* Center guest count */
+.bar-center .guest-count {
     font-size: 17px;
     font-weight: 500;
     color: white;
 }
 
-.layout-reset .bar-right,
-.main-dashboard .bar-right {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    min-width: 160px;
-}
-
+/* Wi-Fi status on right */
 #main-wifi-status {
     display: flex;
     align-items: center;
     gap: 10px;
     font-size: 16px;
     color: white;
-    white-space: nowrap;
 }
 
 #main-wifi-status span:first-child {
@@ -1994,28 +2013,4 @@ button:focus {
 
 #main-wifi-status .material-icons {
     font-size: 26px;
-}
-
-/* Ensure buttons are visible and properly sized */
-.bar-btn {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 10px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-size: 14px;
-}
-
-.bar-btn .material-icons {
-    font-size: 28px;
-}
-
-.bar-btn .btn-text {
-    font-size: 12px;
-    margin-top: 2px;
 }
