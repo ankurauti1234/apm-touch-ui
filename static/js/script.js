@@ -148,28 +148,13 @@
                    </button>
                </div>
            `}
-           <div class="bottom-bar-allpage">
-    <div class="bar-inner">
-        <button class="bar-btn" onclick="showEditMemberPopup()">
-            <span class="material-icons">edit</span>
-        </button>
-        <button class="bar-btn" onclick="showSettingsPopup()">
-            <span class="material-icons">settings</span>
-        </button>
-
-        <!-- Wi-Fi Status -->
-        <div class="wifi-status">
-            <span id="wifi-ssid" class="wifi-ssid"></span>
-            <span id="wifi-icon" class="material-icons wifi-icon">wifi_off</span>
-        </div>
-
-        <button class="bar-btn" onclick="openDialog()">
-            <span class="material-icons">add</span>
-            <span class="btn-text">Add Guest</span>
-        </button>
-        <span class="guest-count">${guests.length} / 8 Guests</span>
-    </div>
-</div>`,
+           <div class="bottom-bar">
+                <button class="bar-btn" onclick="showEditMemberPopup()">
+                    <span class="material-icons">edit</span>
+                </button>
+                <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+                ...
+            </div>`,
    
        network_test: (status = null) => `
            <h1>Network Test</h1>
