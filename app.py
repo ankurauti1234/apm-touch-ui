@@ -576,71 +576,55 @@ def check_current_state():
 def check_wifi():
     set_current_state("connect_select")
     try:
-        # Get active connections with SSID, SIGNAL, DEVICE, and TYPE
         ok, out = run_system_command(
-            ["nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL,DEVICE,TYPE", "connection", "show", "--active"]
+            ["nmcli", "-t", "-f", "TYPE,DEVICE", "connection", "show", "--active"]
+        )
+        if not ok:
+            return jsonify({"success": False}), 200
+
+        for line in out.strip().split("\n"):
+            if not line.strip():
+                continue
+            parts = line.split(":", 1)
+            if len(parts) < 2:
+                continue
+            conn_type, device = parts[0], parts[1]
+
+            if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
+                return jsonify({"success": True}), 200
+
+        return jsonify({"success": False}), 200
+    except Exception:
+        return jsonify({"success": False}), 200
+
+
+@app.route("/api/check_wifi", methods=["GET"])
+def check_wifi():
+    set_current_state("connect_select")
+    try:
+        ok, out = run_system_command(
+            ["nmcli", "-t", "-f", "TYPE,DEVICE,NAME", "connection", "show", "--active"]
         )
         if not ok:
             return jsonify({"connected": False}), 200
 
         for line in out.strip().split("\n"):
-            if not line.strip():
-                continue
-            parts = line.split(":", 4)  # Split into 5 fields
-            if len(parts) < 5:
+            if not line:
                 continue
 
-            active, ssid, signal_str, device, conn_type = parts
+            conn_type, device, name = line.split(":", 2)
 
-            # Check if this is an active Wi-Fi connection
-            if (active == "yes" and
-                conn_type == "802-11-wireless" and
-                ssid.strip() and  # SSID not empty
-                (device.startswith("wlan") or device.startswith("wlx"))):
-
-                try:
-                    signal = int(signal_str) if signal_str else 0
-                except:
-                    signal = 0
-
+            if conn_type == "802-11-wireless" and (
+                device.startswith("wlan") or device.startswith("wlx")
+            ):
                 return jsonify({
                     "connected": True,
-                    "ssid": ssid.strip(),
-                    "signal": signal  # 0-100
+                    "ssid": name
                 }), 200
 
-        # No active Wi-Fi found
         return jsonify({"connected": False}), 200
-
-    except Exception as e:
-        print(f"[CHECK WIFI ERROR] {e}")
+    except Exception:
         return jsonify({"connected": False}), 200
-
-@app.route("/api/current_wifi", methods=["GET"])
-def current_wifi():
-    try:
-        ok, out = run_system_command(
-            ["nmcli", "-t", "-f", "NAME,TYPE,DEVICE", "connection", "show", "--active"]
-        )
-        if not ok:
-            return jsonify({"success": False, "error": "nmcli failed"}), 500
-
-        for line in out.strip().split("\n"):
-            if not line.strip():
-                continue
-            parts = line.split(":", 2)
-            if len(parts) < 3:
-                continue
-
-            name, conn_type, device = parts[0], parts[1], parts[2]
-
-            if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
-                return jsonify({"success": True, "ssid": name}), 200
-
-        return jsonify({"success": False, "error": "No active Wi-Fi connection"}), 404
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/api/wifi/connect", methods=["POST"])

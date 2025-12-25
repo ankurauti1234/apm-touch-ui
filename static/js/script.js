@@ -59,49 +59,7 @@
    /* ==============================================================
       HTML TEMPLATES (states)
       ============================================================== */
-      function updateWifiStatus() {
-        fetch('/api/check_wifi')
-            .then(r => r.json())
-            .then(data => {
-                const ssidEl = document.getElementById('wifi-ssid');
-                const iconEl = document.getElementById('wifi-icon');
-    
-                if (!ssidEl || !iconEl) return;
-    
-                if (data.connected && data.ssid) {
-                    ssidEl.textContent = data.ssid;
-    
-                    // Green if signal >= 50, else gray
-                    const strengthClass = (data.signal >= 50) ? 'good' : 'weak';
-                    iconEl.textContent = 'wifi';
-                    iconEl.className = 'material-icons wifi-icon ' + strengthClass;
-                } else {
-                    ssidEl.textContent = '';
-                    iconEl.textContent = 'wifi_off';
-                    iconEl.className = 'material-icons wifi-icon off';
-                }
-            })
-            .catch(err => {
-                console.error("WiFi status update failed:", err);
-                const ssidEl = document.getElementById('wifi-ssid');
-                const iconEl = document.getElementById('wifi-icon');
-                if (ssidEl) ssidEl.textContent = '';
-                if (iconEl) {
-                    iconEl.textContent = 'wifi_off';
-                    iconEl.className = 'material-icons wifi-icon off';
-                }
-            });
-    }
-    
-    // Run on load
-    updateWifiStatus();
-    
-    // Update every 30 seconds
-    setInterval(updateWifiStatus, 30000);
-    
-    // Optional: Update instantly after successful connect
-    // (You can call updateWifiStatus() inside connectWiFi() success block)
-
+      
    const states = {
        loading: () => `
            <div class="loading"><div class="spinner"></div><p>Loading system...</p></div>`,
@@ -148,17 +106,23 @@
                    </button>
                </div>
            `}
-           <div class="bottom-bar">
-                <button class="bar-btn" onclick="showEditMemberPopup()">
-                    <span class="material-icons">edit</span>
-                </button>
-                <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-                <div class="wifi-status">
-                    <span id="wifi-ssid" class="wifi-ssid"></span>
-                    <span id="wifi-icon" class="material-icons wifi-icon">wifi_off</span>
+           <div class="bottom-bar-allpage">
+                <div class="bar-inner">
+
+                    <!-- WiFi Status -->
+                    <div id="wifi-status" class="wifi-status">
+                        <span id="wifi-icon" class="material-icons">wifi_off</span>
+                        <span id="wifi-name">Disconnected</span>
+                    </div>
+
+                    <!-- Settings Button -->
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+
                 </div>
-                ...
-            </div>`,
+            </div>
+            `,
    
        network_test: (status = null) => `
            <h1>Network Test</h1>
@@ -555,6 +519,36 @@
     // loadGuestsForDialog();  // ← Load full list when opening
     // updateGuestCountFromFile(); // ← Also update count
 }
+
+async function updateWifiStatus() {
+    try {
+        const res = await fetch("/api/check_wifi");
+        const data = await res.json();
+
+        const wifiStatus = document.getElementById("wifi-status");
+        const wifiIcon = document.getElementById("wifi-icon");
+        const wifiName = document.getElementById("wifi-name");
+
+        if (data.connected) {
+            wifiStatus.classList.add("connected");
+            wifiIcon.textContent = "wifi";
+            wifiName.textContent = data.ssid || "Connected";
+        } else {
+            wifiStatus.classList.remove("connected");
+            wifiIcon.textContent = "wifi_off";
+            wifiName.textContent = "Disconnected";
+        }
+    } catch (err) {
+        console.error("WiFi status error:", err);
+    }
+}
+
+/* Run once on page load */
+updateWifiStatus();
+
+/* Auto-refresh every 5 seconds */
+setInterval(updateWifiStatus, 5000);
+
 
 
 function numpadPress(digit) {
