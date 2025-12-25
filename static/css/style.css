@@ -1936,7 +1936,7 @@ button:focus {
     display: flex !important;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 20px !important;        /* Reduced from 12px → thinner */
+    padding: 8px 10px !important;        /* Reduced from 12px → thinner */
     min-height: 56px;                    /* Makes it slimmer */
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(10px);
