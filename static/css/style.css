@@ -1987,9 +1987,10 @@ button:focus {
 }
 
 #main-wifi-status span:first-child {
-    max-width: 400px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: none;                     /* ← Remove limit completely */
+    overflow: visible;                   /* Optional: allow overflow if needed */
+    text-overflow: clip;                 /* No "..." */
+    white-space: nowrap;
 }
 
 #main-wifi-status .material-icons {
