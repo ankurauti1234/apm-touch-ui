@@ -2014,7 +2014,7 @@ button:focus {
     margin-left: auto;
     display: flex;
     align-items: center;
-    min-width: 260px;                /* Increased a bit for longer names */
+    min-width: 460px;                /* Increased a bit for longer names */
     justify-content: flex-end;
 }
 

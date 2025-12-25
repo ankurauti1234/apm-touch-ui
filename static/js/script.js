@@ -397,7 +397,7 @@
                        <div class="member-card-grid empty"><div class="name-tag">—</div></div>
                    `).join('')}
                </div>
-               <div class="bottom-bar-allpage">
+               <div class="bottom-bar">
                     <div class="bar-left">
                         <button class="bar-btn" onclick="showEditMemberPopup()">
                             <span class="material-icons">edit</span>
@@ -415,7 +415,7 @@
                         <span class="guest-count">${guests.length} / 8 Guests</span>
                     </div>
 
-                    <div class="bar-inner" id="main-wifi-status">
+                    <div class="bar-right" id="main-wifi-status">
                         <!-- Wi-Fi status injected by JS -->
                     </div>
                 </div>
