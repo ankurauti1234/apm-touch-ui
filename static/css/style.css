@@ -1929,34 +1929,34 @@ button:focus {
     font-size: 26px !important;
 }
 
-/* Main dashboard bottom bar - clean left-to-right flow */
+/* Main dashboard bottom bar - white background, left-aligned content */
 .layout-reset .bottom-bar,
 .main-dashboard .bottom-bar {
     display: flex !important;
-    justify-content: flex-start;         /* Everything starts from left */
+    justify-content: flex-start;         /* All content starts from left */
     align-items: center;
-    padding: 8px 24px 8px 32px !important;  /* Generous left padding for breathing room */
+    padding: 8px 24px 8px 32px !important;  /* ← Increased left padding (32px) for breathing room */
     min-height: 52px;
-    background: white;
+    background: white !important;
     width: 100%;
     box-sizing: border-box;
     position: fixed;
     bottom: 0;
     left: 0;
     z-index: 100;
-    gap: 28px;                           /* Main spacing between groups */
     box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+    gap: 20px;                           /* Space between main groups */
 }
 
-/* All left content (buttons + guest count) in one flowing group */
+/* All left-side content in one flex container */
 .bar-left {
     display: flex;
     align-items: center;
-    gap: 26px;                           /* Space between Edit, Settings, Add Guest, and guest count */
-    flex-grow: 1;                        /* Allows it to take available space */
+    gap: 20px;                           /* Space between buttons and guest count */
+    flex-grow: 1;                        /* Takes available space */
 }
 
-/* Guest count follows naturally after Add Guest button */
+/* Guest count now part of the left flow (not centered) */
 .bar-center {
     display: flex;
     align-items: center;
@@ -1969,9 +1969,9 @@ button:focus {
     white-space: nowrap;
 }
 
-/* Wi-Fi status pushed all the way to the right */
+/* Wi-Fi status pushed to the far right */
 .bar-right {
-    margin-left: auto;                   /* Critical: forces it to the far right */
+    margin-left: auto;                   /* Key: pushes it to the right */
     display: flex;
     align-items: center;
 }
@@ -1979,14 +1979,15 @@ button:focus {
 #main-wifi-status {
     display: flex;
     align-items: center;
-    gap: 20px;                           /* Space between Wi-Fi name and icon (as you requested) */
+    gap: 10px;
     font-size: 16px;
     color: black;
     white-space: nowrap;
+    min-width: 140px;                    /* Ensures space for long SSIDs */
 }
 
 #main-wifi-status span:first-child {
-    max-width: 200px;                    /* Plenty of room for long SSIDs */
+    max-width: 180px;                    /* Increased → longer Wi-Fi names visible */
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -1996,7 +1997,7 @@ button:focus {
     flex-shrink: 0;
 }
 
-/* Button styling - compact and clean */
+/* Buttons styling (unchanged, just for reference) */
 .bar-btn:not(.add-guest-btn) {
     display: flex;
     flex-direction: column;
@@ -2011,18 +2012,18 @@ button:focus {
 }
 
 .add-guest-btn {
-    display: flex;
+    display: flex !important;
     align-items: center;
-    flex-direction: row;
-    gap: 8px;
-    padding: 8px 14px;
+    flex-direction: row !important;
+    gap: 7px;
+    padding: 8px 14px !important;
     background: rgba(0, 0, 0, 0.08);
     border-radius: 10px;
-    color: black;
+    color: black !important;
 }
 
 .add-guest-btn .material-icons {
-    font-size: 22px;
+    font-size: 22px !important;
 }
 
 .add-guest-btn .btn-text {
