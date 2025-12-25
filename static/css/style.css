@@ -1969,39 +1969,118 @@ button:focus {
     white-space: nowrap;
 }
 
-/* Wi-Fi status - far right with more space for long names */
-.bar-right {
-    margin-left: auto;               /* Keeps it pushed to the far right */
+/* Main dashboard bottom bar - optimized layout */
+.layout-reset .bottom-bar,
+.main-dashboard .bottom-bar {
+    display: flex !important;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 8px 24px 8px 32px !important;
+    min-height: 52px;
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    gap: 28px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+}
+
+/* Left group: buttons + guest count very close to Add Guest */
+.bar-left {
     display: flex;
     align-items: center;
-    min-width: 220px;                /* ← Ensures enough minimum space for long SSIDs */
-    justify-content: flex-end;       /* Aligns content to the right edge */
+    gap: 20px;
+}
+
+/* Guest count - follows immediately after Add Guest button */
+.bar-center {
+    display: flex;
+    align-items: center;
+    margin-left: -4px;
+}
+
+.bar-center .guest-count {
+    font-size: 17px;
+    font-weight: 500;
+    color: black;
+    white-space: nowrap;
+}
+
+/* Wi-Fi status - far right with plenty of space */
+.bar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    min-width: 260px;                /* Increased a bit for longer names */
+    justify-content: flex-end;
 }
 
 /* Main Wi-Fi status container */
 #main-wifi-status {
     display: flex;
     align-items: center;
-    gap: 30px;                       /* Space between name and icon (as you wanted) */
+    gap: 30px;
     font-size: 16px;
     color: black;
     white-space: nowrap;
-    flex-shrink: 0;                  /* Prevents shrinking */
+    flex-shrink: 0;
 }
 
-/* Wi-Fi name - increased width to show full long SSIDs */
+/* Wi-Fi name - significantly increased width for full long SSIDs */
 #main-wifi-status span:first-child {
-    max-width: 350px;                    /* ← INCREASED significantly → full long SSIDs visible */
+    max-width: 450px;                /* ← FURTHER INCREASED – shows even very long SSIDs fully */
     overflow: hidden;
-    text-overflow: ellipsis;             /* Only adds "..." if extremely long (rare) */
+    text-overflow: ellipsis;
     font-weight: 500;
-    text-align: right;                   /* Aligns long names nicely to the right */
+    text-align: right;
 }
 
 /* Wi-Fi icon */
 #main-wifi-status .material-icons {
     font-size: 26px;
     flex-shrink: 0;
+}
+
+/* Regular buttons (Edit, Settings) */
+.bar-btn:not(.add-guest-btn) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px;
+    color: black;
+}
+
+.bar-btn:not(.add-guest-btn) .material-icons {
+    font-size: 24px;
+}
+
+/* Add Guest button - now white background with black text */
+.add-guest-btn {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 8px;
+    padding: 8px 14px;
+    background: white;               /* ← Changed to solid white */
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.12);   /* Optional: subtle border for definition */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Optional: light elevation */
+    color: black;                    /* Ensures text/icon color is black */
+}
+
+.add-guest-btn .material-icons {
+    font-size: 22px;
+    color: black;
+}
+
+.add-guest-btn .btn-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: black;                    /* ← Explicitly black text */
 }
 
 /* Buttons - unchanged but kept for reference */
