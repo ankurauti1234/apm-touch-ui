@@ -55,6 +55,45 @@
     ]
 
    };
+
+   /* ==============================================================
+   WIFI STATUS INDICATOR IN BOTTOM BAR
+   ============================================================== */
+function updateWifiStatus() {
+    fetch('/api/check_wifi')
+        .then(response => response.json())
+        .then(data => {
+            const icon = document.getElementById('wifi-icon');
+            const ssidText = document.getElementById('wifi-ssid');
+
+            if (!icon || !ssidText) return; // safety
+
+            if (data.success && data.ssid) {
+                icon.textContent = 'wifi';
+                icon.classList.remove('wifi-disconnected');
+                icon.classList.add('wifi-connected');
+                ssidText.textContent = data.ssid;
+            } else {
+                icon.textContent = 'wifi_off';
+                icon.classList.remove('wifi-connected');
+                icon.classList.add('wifi-disconnected');
+                ssidText.textContent = 'Disconnected';
+            }
+        })
+        .catch(err => {
+            console.error('Failed to fetch WiFi status:', err);
+            const icon = document.getElementById('wifi-icon');
+            const ssidText = document.getElementById('wifi-ssid');
+            if (icon) icon.textContent = 'wifi_off';
+            if (ssidText) ssidText.textContent = 'Error';
+        });
+}
+
+// Initial update when page loads
+updateWifiStatus();
+
+// Update every 10 seconds
+setInterval(updateWifiStatus, 10000);
    
    /* ==============================================================
       HTML TEMPLATES (states)
@@ -107,22 +146,20 @@
                </div>
            `}
            <div class="bottom-bar-allpage">
-                <div class="bar-inner">
+            <div class="bar-inner">
+                <button class="bar-btn" onclick="showSettingsPopup()">
+                    <span class="material-icons">settings</span>
+                </button>
 
-                    <!-- WiFi Status -->
-                    <div id="wifi-status" class="wifi-status">
-                        <span id="wifi-icon" class="material-icons">wifi_off</span>
-                        <span id="wifi-name">Disconnected</span>
-                    </div>
+                <!-- WiFi Status Button -->
+                <button class="bar-btn wifi-status-btn" id="wifi-status-btn">
+                    <span class="material-icons wifi-icon" id="wifi-icon">wifi_off</span>
+                    <span class="wifi-ssid" id="wifi-ssid">Disconnected</span>
+                </button>
 
-                    <!-- Settings Button -->
-                    <button class="bar-btn" onclick="showSettingsPopup()">
-                        <span class="material-icons">settings</span>
-                    </button>
-
-                </div>
+                <!-- Add more buttons here if you want -->
             </div>
-            `,
+        </div>`,
    
        network_test: (status = null) => `
            <h1>Network Test</h1>
@@ -519,36 +556,6 @@
     // loadGuestsForDialog();  // ← Load full list when opening
     // updateGuestCountFromFile(); // ← Also update count
 }
-
-async function updateWifiStatus() {
-    try {
-        const res = await fetch("/api/check_wifi");
-        const data = await res.json();
-
-        const wifiStatus = document.getElementById("wifi-status");
-        const wifiIcon = document.getElementById("wifi-icon");
-        const wifiName = document.getElementById("wifi-name");
-
-        if (data.connected) {
-            wifiStatus.classList.add("connected");
-            wifiIcon.textContent = "wifi";
-            wifiName.textContent = data.ssid || "Connected";
-        } else {
-            wifiStatus.classList.remove("connected");
-            wifiIcon.textContent = "wifi_off";
-            wifiName.textContent = "Disconnected";
-        }
-    } catch (err) {
-        console.error("WiFi status error:", err);
-    }
-}
-
-/* Run once on page load */
-updateWifiStatus();
-
-/* Auto-refresh every 5 seconds */
-setInterval(updateWifiStatus, 5000);
-
 
 
 function numpadPress(digit) {

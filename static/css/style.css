@@ -1877,18 +1877,29 @@ button:focus {
     background: #e9ecef;
 }
 
-.wifi-status {
+.wifi-status-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 6px; /* Space between icon and text */
     font-size: 14px;
-    color: #ff5252; /* red by default */
 }
 
-.wifi-status.connected {
-    color: #4caf50; /* green */
+.wifi-icon {
+    font-size: 24px !important;
 }
 
-#wifi-icon {
-    font-size: 20px;
+.wifi-connected {
+    color: green !important;
+}
+
+.wifi-disconnected {
+    color: gray !important;
+}
+
+.wifi-ssid {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px; /* Adjust based on your bar width */
 }

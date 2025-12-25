@@ -577,29 +577,55 @@ def check_wifi():
     set_current_state("connect_select")
     try:
         ok, out = run_system_command(
-            ["nmcli", "-t", "-f", "TYPE,DEVICE,NAME", "connection", "show", "--active"]
+            ["nmcli", "-t", "-f", "TYPE,DEVICE", "connection", "show", "--active"]
         )
         if not ok:
-            return jsonify({"connected": False}), 200
+            return jsonify({"success": False}), 200
 
         for line in out.strip().split("\n"):
-            if not line:
+            if not line.strip():
                 continue
+            parts = line.split(":", 1)
+            if len(parts) < 2:
+                continue
+            conn_type, device = parts[0], parts[1]
 
-            conn_type, device, name = line.split(":", 2)
+            if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
+                return jsonify({"success": True}), 200
 
-            if conn_type == "802-11-wireless" and (
-                device.startswith("wlan") or device.startswith("wlx")
-            ):
-                return jsonify({
-                    "connected": True,
-                    "ssid": name
-                }), 200
-
-        return jsonify({"connected": False}), 200
+        return jsonify({"success": False}), 200
     except Exception:
-        return jsonify({"connected": False}), 200
+        return jsonify({"success": False}), 200
 
+
+@app.route("/api/check_wifi", methods=["GET"])
+def check_wifi():
+    set_current_state("connect_select")
+    try:
+        # Get active connections
+        ok, out = run_system_command(["nmcli", "-t", "-f", "TYPE,DEVICE,NAME", "connection", "show", "--active"])
+        if not ok:
+            return jsonify({"success": False, "ssid": "Disconnected"}), 200
+
+        ssid = "Disconnected"
+        connected = False
+
+        for line in out.strip().split("\n"):
+            if not line.strip():
+                continue
+            parts = line.split(":", 2)  # Now split into 3 parts
+            if len(parts) < 3:
+                continue
+            conn_type, device, conn_name = parts[0], parts[1], parts[2]
+            if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
+                connected = True
+                ssid = conn_name.strip() or "Unknown"
+                break  # We only need the first wireless connection
+
+        return jsonify({"success": connected, "ssid": ssid}), 200
+
+    except Exception:
+        return jsonify({"success": False, "ssid": "Disconnected"}), 200
 
 @app.route("/api/wifi/connect", methods=["POST"])
 def wifi_connect():
