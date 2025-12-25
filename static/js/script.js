@@ -1802,7 +1802,8 @@ function togglePasswordVisibility(e) {
        /* ---------- NETWORK TEST (file-based) ---------- */
        if (state === 'network_test') {
            connectivityMode = param;               // 'wifi' | 'gsm'
-           render();                               // show spinner
+           render();
+           updateBottomBarWiFiStatus();                               // show spinner
            setTimeout(async () => {
                const api = connectivityMode === 'wifi' ? '/api/check_wifi' :
                    connectivityMode === 'gsm' ? '/api/check_gsm' : null;
@@ -1822,6 +1823,7 @@ function togglePasswordVisibility(e) {
        if (state === 'input_source_detection') {
            render(); // show loading spinner
            setTimeout(startInputSourceRetry, 800);
+           updateBottomBarWiFiStatus();
            return;
        }
    
@@ -1829,6 +1831,7 @@ function togglePasswordVisibility(e) {
        if (state === 'video_object_detection') {
            render(); // show loading
            setTimeout(startVideoDetectionRetry, 1200);  // ← Now uses auto-retry!
+           updateBottomBarWiFiStatus();
            return;
        }
    
