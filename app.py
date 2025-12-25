@@ -945,6 +945,9 @@ def submit_hhid():
         return jsonify({"success": data.get("success", False)}), 200
     except requests.exceptions.Timeout:
         return jsonify({"success": False, "error": "Timeout"}), 504
+    except requests.exceptions.ConnectionError as e:
+        # Handles "Max retries exceeded" and other connection-related issues (common with AWS endpoints)
+        return jsonify({"success": False, "error": "Connection failed: please try again later"}), 503
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
