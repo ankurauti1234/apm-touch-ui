@@ -1983,7 +1983,7 @@ button:focus {
     display: flex;
     align-items: center;
     gap: 15px;
-    font-size: 16px;
+    font-size: 20px;
     color: black;
     white-space: nowrap;
     min-width: 140px;                    /* Ensures space for long SSIDs */
