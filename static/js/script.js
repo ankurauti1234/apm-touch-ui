@@ -153,6 +153,10 @@
                     <span class="material-icons">edit</span>
                 </button>
                 <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+                <div class="wifi-status">
+                    <span id="wifi-ssid" class="wifi-ssid"></span>
+                    <span id="wifi-icon" class="material-icons wifi-icon">wifi_off</span>
+                </div>
                 ...
             </div>`,
    
