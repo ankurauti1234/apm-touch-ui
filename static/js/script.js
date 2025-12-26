@@ -1776,34 +1776,47 @@ function togglePasswordVisibility(e) {
        } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; loading.style.display = 'none'; }
        loading.style.display = 'none';
    }
+
    async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
     const loading = document.getElementById('wifi-loading');
 
     try {
         loading.style.display = 'block';
+        err.style.display = 'none';
+
         const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
         const d = await r.json();
 
         err.className = d.success ? 'success' : 'error';
-        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.message || d.error || 'Disconnected'}`;
+        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> 
+                         ${d.success ? 'Wi-Fi disconnected successfully' : d.error || 'Disconnect failed'}`;
         err.style.display = 'flex';
 
         if (d.success) {
-            // SUCCESS → immediately refresh the connect_select screen to remove the connected panel
-            setTimeout(async () => {
-                closeWiFiPopup();                    // close popup first
-                await navigate('connect_select');    // ← this will re-render and show Wi-Fi/GSM buttons again
+            // Just close popup and refresh UI — DO NOT navigate away
+            setTimeout(() => {
+                closeWiFiPopup();
+
+                // Optional: refresh connectivity status indicators in dashboard/settings
+                // Example: if you have a function to update network status
+                // updateNetworkStatus();  
+
+                // Or trigger a soft refresh of current page
+                // refreshCurrentPage();  
             }, 1200);
         }
+
     } catch (e) {
-        err.innerHTML = '<span class="material-icons">error</span> Disconnect failed';
+        console.error("Disconnect error:", e);
+        err.innerHTML = '<span class="material-icons">error</span> Disconnect failed (network error)';
         err.className = 'error';
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
     }
 }
+
    function closeWiFiPopup() {
     lowerWiFiPopup();   // ← ADD THIS
     ['wifi-popup', 'wifi-overlay'].forEach(id => {
