@@ -1497,43 +1497,91 @@ class BrowserWindow(QtWidgets.QMainWindow):
             super().wheelEvent(event)
 
 
+LAST_BOOT_ID_FILE = "/var/lib/meter_last_boot_id.txt"
+
+def get_current_boot_id():
+    """Read current boot_id from kernel"""
+    try:
+        with open('/proc/sys/kernel/random/boot_id', 'r') as f:
+            return f.read().strip()
+    except Exception as e:
+        print(f"[BOOT_ID] Error reading current boot_id: {e}")
+        return None
+
+def is_fresh_boot():
+    """Check if current boot_id is different from last saved one"""
+    current = get_current_boot_id()
+    if not current:
+        return False  # Safe fallback
+
+    if not os.path.exists(LAST_BOOT_ID_FILE):
+        print("[BOOT_ID] No previous boot_id found — treating as fresh boot")
+        return True
+
+    try:
+        with open(LAST_BOOT_ID_FILE, 'r') as f:
+            last = f.read().strip()
+        if current != last:
+            print(f"[BOOT_ID] Boot ID changed: {last} → {current} — fresh boot detected")
+            return True
+        else:
+            print("[BOOT_ID] Same boot_id — not a fresh boot (process restart?)")
+            return False
+    except Exception as e:
+        print(f"[BOOT_ID] Error reading last boot_id: {e}")
+        return True  # Safe: assume fresh if can't read
+
+def save_current_boot_id():
+    """Save current boot_id for next comparison"""
+    current = get_current_boot_id()
+    if current:
+        try:
+            with open(LAST_BOOT_ID_FILE, "w") as f:
+                f.write(current)
+            print(f"[BOOT_ID] Saved current boot_id: {current}")
+        except Exception as e:
+            print(f"[BOOT_ID] Failed to save boot_id: {e}")
 # ----------------------------------------------------------------------
 # 10. Main
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
     init_db()
 
-    # 1. Members: reset + queue fresh Type 3
-    deactivate_all_members_and_publish()
+    if is_fresh_boot():
+        print("[BOOT] Fresh boot confirmed — resetting viewing session")
 
-    # 2. Guests: clear + queue fresh Type 4
-    clear_guests_and_publish()
+        # Reset members + queue fresh Type 3
+        deactivate_all_members_and_publish()
 
-    # 3. CLEAR ALL OLD EVENTS — but ALWAYS keep the fresh ones we just queued
-    with _q_lock:
-        # Find how many fresh events we successfully queued
-        fresh_count = 0
-        if load_hhid():  # Only if HHID exists
-            fresh_count = 2  # We tried to queue both Type 3 and Type 4
-        else:
-            fresh_count = 0  # Setup not done yet
+        # Clear guests + queue fresh Type 4
+        clear_guests_and_publish()
 
-        current_size = len(_pub_q)
+        # Clear any stale queued events
+        with _q_lock:
+            old_size = len(_pub_q)
+            _pub_q.clear()
+            if old_size > 0:
+                print(f"[BOOT] Cleared {old_size} stale pre-shutdown events")
 
-        if current_size > fresh_count:
-            # Keep only the last 'fresh_count' items (the ones we just added)
-            _pub_q[:] = _pub_q[-fresh_count:]
-            removed = current_size - fresh_count
-            print(f"[BOOT] Cleared {removed} stale events, kept {fresh_count} fresh boot events")
-        else:
-            print(f"[BOOT] Queue has {current_size} item(s) — all fresh or empty")
+        # Re-queue fresh events after clear
+        deactivate_all_members_and_publish()
+        clear_guests_and_publish()
 
-    # Start MQTT, Flask, etc.
+    else:
+        print("[BOOT] Not a fresh boot — preserving queue for offline events")
+
+    # Always save current boot_id at the end
+    save_current_boot_id()
+
+    # Start MQTT
     threading.Thread(target=init_mqtt, daemon=True).start()
     time.sleep(2)
+
+    # Start Flask
     threading.Thread(target=run_flask, daemon=True).start()
     time.sleep(1.5)
 
+    # Qt UI
     qt_app = QtWidgets.QApplication(sys.argv)
     win = BrowserWindow()
     win.show()
