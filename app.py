@@ -109,6 +109,83 @@ def init_db():
         """)
         conn.commit()
 
+def deactivate_all_members_and_publish():
+    """On boot: reset members to inactive and QUEUE a fresh Type 3 event"""
+    try:
+        hhid = load_hhid()
+        if not hhid:
+            print("[BOOT] No HHID configured yet — skipping member reset")
+            return
+
+        # Reset all members to inactive in DB
+        with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            cur.execute("UPDATE members SET active = 0 WHERE meter_id = ? AND hhid = ?", (METER_ID, hhid))
+            count = cur.rowcount
+            conn.commit()
+        print(f"[BOOT] Deactivated {count} members in database")
+
+        # Build fresh Type 3 payload (all inactive)
+        data = load_members_data()
+        members = [
+            {
+                "member_id": m.get("member_code", ""),
+                "age": calculate_age(m["dob"]),
+                "gender": m["gender"],
+                "active": m.get("active", False)
+            }
+            for m in data.get("members", [])
+            if "dob" in m and "gender" in m and calculate_age(m["dob"]) is not None
+        ]
+
+        payload = {
+            "DEVICE_ID": METER_ID,
+            "TS": str(int(time.time())),
+            "Type": 3,
+            "Details": {"members": members}
+        }
+
+        # DIRECTLY enqueue it — bypasses any early direct-publish attempt
+        _enqueue(payload)
+        print("[BOOT] Fresh 'all inactive' Type 3 event QUEUED — will be sent when MQTT connects")
+
+    except Exception as e:
+        print(f"[BOOT] Error in deactivate_all_members_and_publish: {e}")
+
+def clear_guests_and_publish():
+    """On boot: remove all guests and queue a fresh Type 4 event (no guests)"""
+    try:
+        hhid = load_hhid()
+        if not hhid:
+            print("[BOOT] No HHID yet — skipping guest clear")
+            return
+
+        with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            # Delete all guests for this meter and household
+            cur.execute("DELETE FROM guests WHERE meter_id = ? AND hhid = ?", (METER_ID, hhid))
+            deleted_count = cur.rowcount
+            conn.commit()
+
+        print(f"[BOOT] Removed {deleted_count} guests from database")
+
+        # Build fresh Type 4 payload — empty guests list
+        payload = {
+            "DEVICE_ID": METER_ID,
+            "TS": str(int(time.time())),
+            "Type": 4,
+            "Details": {
+                "guests": []   # Empty list = no guests
+            }
+        }
+
+        # Directly enqueue it
+        _enqueue(payload)
+        print("[BOOT] Fresh 'no guests' Type 4 event QUEUED")
+
+    except Exception as e:
+        print(f"[BOOT] Error in clear_guests_and_publish: {e}")
+
 def get_meter_id():
     device_id_file = DEVICE_CONFIG["device_id_file"]
     
@@ -945,6 +1022,9 @@ def submit_hhid():
         return jsonify({"success": data.get("success", False)}), 200
     except requests.exceptions.Timeout:
         return jsonify({"success": False, "error": "Timeout"}), 504
+    except requests.exceptions.ConnectionError as e:
+        # Handles "Max retries exceeded" and other connection-related issues (common with AWS endpoints)
+        return jsonify({"success": False, "error": "Connection failed: please try again later"}), 503
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -1417,21 +1497,91 @@ class BrowserWindow(QtWidgets.QMainWindow):
             super().wheelEvent(event)
 
 
+LAST_BOOT_ID_FILE = "/var/lib/meter_last_boot_id.txt"
+
+def get_current_boot_id():
+    """Read current boot_id from kernel"""
+    try:
+        with open('/proc/sys/kernel/random/boot_id', 'r') as f:
+            return f.read().strip()
+    except Exception as e:
+        print(f"[BOOT_ID] Error reading current boot_id: {e}")
+        return None
+
+def is_fresh_boot():
+    """Check if current boot_id is different from last saved one"""
+    current = get_current_boot_id()
+    if not current:
+        return False  # Safe fallback
+
+    if not os.path.exists(LAST_BOOT_ID_FILE):
+        print("[BOOT_ID] No previous boot_id found — treating as fresh boot")
+        return True
+
+    try:
+        with open(LAST_BOOT_ID_FILE, 'r') as f:
+            last = f.read().strip()
+        if current != last:
+            print(f"[BOOT_ID] Boot ID changed: {last} → {current} — fresh boot detected")
+            return True
+        else:
+            print("[BOOT_ID] Same boot_id — not a fresh boot (process restart?)")
+            return False
+    except Exception as e:
+        print(f"[BOOT_ID] Error reading last boot_id: {e}")
+        return True  # Safe: assume fresh if can't read
+
+def save_current_boot_id():
+    """Save current boot_id for next comparison"""
+    current = get_current_boot_id()
+    if current:
+        try:
+            with open(LAST_BOOT_ID_FILE, "w") as f:
+                f.write(current)
+            print(f"[BOOT_ID] Saved current boot_id: {current}")
+        except Exception as e:
+            print(f"[BOOT_ID] Failed to save boot_id: {e}")
 # ----------------------------------------------------------------------
 # 10. Main
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
-    # Init DB
     init_db()
-    # Start MQTT (robust, auto-reconnect, queued)
-    threading.Thread(target=init_mqtt, daemon=True).start()
-    time.sleep(2)
 
-    # Start Flask
+    # === 1. Start MQTT thread FIRST and give it time to initialize ===
+    mqtt_thread = threading.Thread(target=init_mqtt, daemon=True)
+    mqtt_thread.start()
+    time.sleep(3)  # Critical: give MQTT time to start, connect, and possibly flush old queue
+
+    # === 2. Detect fresh boot using boot_id ===
+    if is_fresh_boot():
+        print("[BOOT] Fresh boot detected — resetting viewing session")
+
+        # Reset DB state
+        deactivate_all_members_and_publish()  # queues fresh Type 3 (may be flushed already)
+        clear_guests_and_publish()            # queues fresh Type 4
+
+        # === 3. NOW FORCE CLEAR THE QUEUE completely ===
+        with _q_lock:
+            old_size = len(_pub_q)
+            _pub_q.clear()
+            print(f"[BOOT] Fully cleared queue ({old_size} old/stale events removed)")
+
+        # === 4. Re-queue fresh events — these will be the ONLY ones ===
+        deactivate_all_members_and_publish()
+        clear_guests_and_publish()
+        print("[BOOT] Re-queued fresh Type 3 and Type 4 events — clean state")
+
+    else:
+        print("[BOOT] Same boot — preserving existing queue (offline events safe)")
+
+    # === 5. Save boot_id for next time ===
+    save_current_boot_id()
+
+    # === 6. Start Flask ===
     threading.Thread(target=run_flask, daemon=True).start()
     time.sleep(1.5)
 
-    # Start Qt
+    # === 7. Start Qt UI ===
     qt_app = QtWidgets.QApplication(sys.argv)
     win = BrowserWindow()
     win.show()
