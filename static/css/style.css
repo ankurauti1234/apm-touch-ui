@@ -2179,7 +2179,7 @@ button:focus {
     align-items: center;
     gap: 3px;
     padding: 8px 10px;                    /* Bigger touch area */
-    background: rgb(92, 92, 92); /* Subtle background to make white icon pop */
+    background: rgb(255, 255, 255); /* Subtle background to make white icon pop */
     border-radius: 14px;
     transition: background 0.2s ease;
 }
