@@ -562,7 +562,7 @@ ul li {
     justify-content: flex-end;
     /* box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1); */
     z-index: 998;
-    height: 2.3rem;
+    height: 3.3rem;
     background-color: hsl(var(--background));
     transition: transform 0.3s ease;
     transform: translateY(0);
@@ -1968,15 +1968,14 @@ button:focus {
     color: black;
     white-space: nowrap;
 }
-
-/* Main dashboard bottom bar - optimized layout */
+/* Main dashboard bottom bar - more compact */
 .layout-reset .bottom-bar,
 .main-dashboard .bottom-bar {
     display: flex !important;
     justify-content: flex-start;
     align-items: center;
-    padding: 8px 24px 8px 32px !important;
-    min-height: 52px;
+    padding: 6px 24px 6px 32px !important;   /* Reduced vertical padding */
+    min-height: 48px;                        /* ← Decreased overall height */
     background: white;
     width: 100%;
     box-sizing: border-box;
@@ -1988,14 +1987,14 @@ button:focus {
     box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
 }
 
-/* Left group: buttons + guest count very close to Add Guest */
+/* Left group */
 .bar-left {
     display: flex;
     align-items: center;
     gap: 20px;
 }
 
-/* Guest count - follows immediately after Add Guest button */
+/* Guest count */
 .bar-center {
     display: flex;
     align-items: center;
@@ -2009,16 +2008,15 @@ button:focus {
     white-space: nowrap;
 }
 
-/* Wi-Fi status - far right with plenty of space */
+/* Wi-Fi status - far right */
 .bar-right {
     margin-left: auto;
     display: flex;
     align-items: center;
-    min-width: 460px;                /* Increased a bit for longer names */
+    min-width: 260px;
     justify-content: flex-end;
 }
 
-/* Main Wi-Fi status container */
 #main-wifi-status {
     display: flex;
     align-items: center;
@@ -2029,47 +2027,45 @@ button:focus {
     flex-shrink: 0;
 }
 
-/* Wi-Fi name - significantly increased width for full long SSIDs */
 #main-wifi-status span:first-child {
-    max-width: 450px;                /* ← FURTHER INCREASED – shows even very long SSIDs fully */
+    max-width: 450px;
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: 500;
     text-align: right;
 }
 
-/* Wi-Fi icon */
 #main-wifi-status .material-icons {
     font-size: 26px;
     flex-shrink: 0;
 }
 
-/* Regular buttons (Edit, Settings) */
+/* Edit and Settings buttons - smaller icons and slightly reduced padding */
 .bar-btn:not(.add-guest-btn) {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    padding: 6px;
+    padding: 4px;                    /* ← Slightly reduced padding for compactness */
     color: black;
 }
 
 .bar-btn:not(.add-guest-btn) .material-icons {
-    font-size: 24px;
+    font-size: 20px;                 /* ← Decreased icon size */
 }
 
-/* Add Guest button - now white background with black text */
+/* Add Guest button - white background, black text (unchanged from previous) */
 .add-guest-btn {
     display: flex;
     align-items: center;
     flex-direction: row;
     gap: 8px;
     padding: 8px 14px;
-    background: rgb(255, 255, 255);               /* ← Changed to solid white */
+    background: white;
     border-radius: 10px;
-    border: 1px solid rgb(242, 242, 242);   /* Optional: subtle border for definition */
-    box-shadow: 0 2px 4px rgb(255, 255, 255); /* Optional: light elevation */
-    color: black;                    /* Ensures text/icon color is black */
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    color: black;
 }
 
 .add-guest-btn .material-icons {
@@ -2080,51 +2076,5 @@ button:focus {
 .add-guest-btn .btn-text {
     font-size: 14px;
     font-weight: 500;
-    color: black;                    /* ← Explicitly black text */
-}
-
-/* Buttons - unchanged but kept for reference */
-.bar-btn:not(.add-guest-btn) {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    padding: 6px;
     color: black;
 }
-
-.bar-btn:not(.add-guest-btn) .material-icons {
-    font-size: 24px;
-}
-
-.add-guest-btn {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-    gap: 8px;
-    padding: 8px 14px;
-    background: rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
-    color: rgb(255, 255, 255);
-}
-
-.add-guest-btn .material-icons {
-    font-size: 22px;
-}
-
-.add-guest-btn .btn-text {
-    font-size: 14px;
-    font-weight: 500;
-    color: black;
-}
-
-.add-guest-btn {
-    margin-top: 8px;
-    background-color: #ffffff;
-    color: #000000;          /* text + icon color *//* optional */
-  }
-  
-  .add-guest-btn .material-icons {
-    color: #000000;
-  }
-  
