@@ -110,32 +110,47 @@ def init_db():
         conn.commit()
 
 def deactivate_all_members_and_publish():
-    """On boot: mark all members as inactive and publish the current (empty) viewing state via MQTT"""
+    """On boot: reset members to inactive and QUEUE a fresh Type 3 event"""
     try:
         hhid = load_hhid()
         if not hhid:
-            print("[BOOT] No HHID configured yet — skipping member deactivation and publish")
+            print("[BOOT] No HHID configured yet — skipping member reset")
             return
 
+        # Reset all members to inactive in DB
         with sqlite3.connect(DB_PATH) as conn:
             cur = conn.cursor()
-            # Set all members to inactive
-            cur.execute("""
-                UPDATE members 
-                SET active = 0 
-                WHERE meter_id = ? AND hhid = ?
-            """, (METER_ID, hhid))
-            updated_count = cur.rowcount
+            cur.execute("UPDATE members SET active = 0 WHERE meter_id = ? AND hhid = ?", (METER_ID, hhid))
+            count = cur.rowcount
             conn.commit()
+        print(f"[BOOT] Deactivated {count} members in database")
 
-        print(f"[BOOT] Deactivated {updated_count} members on startup")
+        # Build fresh Type 3 payload (all inactive)
+        data = load_members_data()
+        members = [
+            {
+                "member_id": m.get("member_code", ""),
+                "age": calculate_age(m["dob"]),
+                "gender": m["gender"],
+                "active": m.get("active", False)
+            }
+            for m in data.get("members", [])
+            if "dob" in m and "gender" in m and calculate_age(m["dob"]) is not None
+        ]
 
-        # Now immediately publish the current (all inactive) member state
-        publish_member_event()
-        print("[BOOT] Published Type 3 MQTT event with all members inactive")
+        payload = {
+            "DEVICE_ID": METER_ID,
+            "TS": str(int(time.time())),
+            "Type": 3,
+            "Details": {"members": members}
+        }
+
+        # DIRECTLY enqueue it — bypasses any early direct-publish attempt
+        _enqueue(payload)
+        print("[BOOT] Fresh 'all inactive' Type 3 event QUEUED — will be sent when MQTT connects")
 
     except Exception as e:
-        print(f"[BOOT] Error during member deactivation/publish: {e}")
+        print(f"[BOOT] Error in deactivate_all_members_and_publish: {e}")
 
 def get_meter_id():
     device_id_file = DEVICE_CONFIG["device_id_file"]
@@ -1459,15 +1474,17 @@ if __name__ == "__main__":
 
         # === CLEAR MQTT QUEUE ON BOOT to avoid sending stale pre-shutdown member events ===
     with _q_lock:
-        old_queue_size = len(_pub_q)
-        _pub_q.clear()
-    if old_queue_size > 0:
-        print(f"[BOOT] Cleared {old_queue_size} stale queued MQTT events (pre-shutdown member states)")
-    # ===========================================================================
-    
-    # Start MQTT (robust, auto-reconnect, queued)
-    threading.Thread(target=init_mqtt, daemon=True).start()
-    time.sleep(2)
+            old_size = len(_pub_q)
+            if old_size > 1:  # >1 because we just added the fresh one
+                # Keep only the last (most recent) event — which is our fresh one
+                _pub_q[:] = _pub_q[-1:]
+                removed = old_size - 1
+                print(f"[BOOT] Cleared {removed} stale pre-shutdown events, kept fresh boot event")
+            elif old_size == 0:
+                print("[BOOT] Queue was empty — nothing to clear")
+        # Start MQTT (robust, auto-reconnect, queued)
+        threading.Thread(target=init_mqtt, daemon=True).start()
+        time.sleep(2)
 
     # Start Flask
     threading.Thread(target=run_flask, daemon=True).start()
