@@ -111,6 +111,9 @@
                     <button class="bar-btn" onclick="showSettingsPopup()">
                         <span class="material-icons">settings</span>
                     </button>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                        <span class="material-icons">info</span>
+                    </button>
                     <!-- Add more buttons here if you want -->
                 </div>
             </div>`,
@@ -146,6 +149,9 @@
                     <button class="bar-btn" onclick="showSettingsPopup()">
                         <span class="material-icons">settings</span>
                     </button>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                        <span class="material-icons">info</span>
+                    </button>
                     <!-- Add more buttons here if you want -->
                 </div>
             </div>`,
@@ -171,6 +177,9 @@
                 <div class="bar-inner">
                     <button class="bar-btn" onclick="showSettingsPopup()">
                         <span class="material-icons">settings</span>
+                    </button>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                        <span class="material-icons">info</span>
                     </button>
                     <!-- Add more buttons here if you want -->
                 </div>
