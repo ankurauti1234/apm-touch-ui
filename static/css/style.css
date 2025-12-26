@@ -2060,6 +2060,7 @@ button:focus {
     align-items: center;
     flex-direction: row;
     gap: 8px;
+    padding: 4px 10px;
     background: white;
     border-radius: 10px;
     border: 1px solid rgba(0, 0, 0, 0.12);
