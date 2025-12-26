@@ -1547,41 +1547,35 @@ def save_current_boot_id():
 if __name__ == "__main__":
     init_db()
 
-    # Start MQTT thread FIRST
+    # Start MQTT thread
     threading.Thread(target=init_mqtt, daemon=True).start()
 
-    # NO long sleep — act immediately to prevent old events from flushing
-    # Optional: tiny sleep only if thread needs to start (rarely needed)
-    # time.sleep(0.5)  # At most 0.5 sec, not 15!
+    # Tiny delay — lets thread start but prevents early flush in most cases
+    time.sleep(0.5)
 
     if is_fresh_boot():
         print("[BOOT] Fresh boot detected — resetting viewing session")
 
-        # Reset DB and queue temporary fresh events
         deactivate_all_members_and_publish()
         clear_guests_and_publish()
 
-        # IMMEDIATELY clear queue — before MQTT can send old ones
         with _q_lock:
             old_size = len(_pub_q)
             _pub_q.clear()
-            print(f"[BOOT] Immediately cleared queue ({old_size} old events prevented)")
+            print(f"[BOOT] Cleared queue ({old_size} old events prevented)")
 
-        # Re-queue fresh clean events
         deactivate_all_members_and_publish()
         clear_guests_and_publish()
-        print("[BOOT] Re-queued fresh Type 3 and Type 4 — only clean state will be sent")
+        print("[BOOT] Re-queued fresh events — clean state guaranteed")
 
     else:
-        print("[BOOT] Same boot — preserving queue for offline events")
+        print("[BOOT] Same boot — preserving queue")
 
     save_current_boot_id()
 
-    # Start Flask
     threading.Thread(target=run_flask, daemon=True).start()
-    time.sleep(1.5)  # This small one is fine
+    time.sleep(1.5)
 
-    # Qt UI
     qt_app = QtWidgets.QApplication(sys.argv)
     win = BrowserWindow()
     win.show()
