@@ -1550,7 +1550,7 @@ if __name__ == "__main__":
     # === 1. Start MQTT thread FIRST and give it time to initialize ===
     mqtt_thread = threading.Thread(target=init_mqtt, daemon=True)
     mqtt_thread.start()
-    time.sleep(10)  # Critical: give MQTT time to start, connect, and possibly flush old queue
+    time.sleep(15)  # Critical: give MQTT time to start, connect, and possibly flush old queue
 
     # === 2. Detect fresh boot using boot_id ===
     if is_fresh_boot():
