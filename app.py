@@ -1547,41 +1547,41 @@ def save_current_boot_id():
 if __name__ == "__main__":
     init_db()
 
+    # === 1. Start MQTT thread FIRST and give it time to initialize ===
+    mqtt_thread = threading.Thread(target=init_mqtt, daemon=True)
+    mqtt_thread.start()
+    time.sleep(3)  # Critical: give MQTT time to start, connect, and possibly flush old queue
+
+    # === 2. Detect fresh boot using boot_id ===
     if is_fresh_boot():
-        print("[BOOT] Fresh boot confirmed — resetting viewing session")
+        print("[BOOT] Fresh boot detected — resetting viewing session")
 
-        # Reset members + queue fresh Type 3
-        deactivate_all_members_and_publish()
+        # Reset DB state
+        deactivate_all_members_and_publish()  # queues fresh Type 3 (may be flushed already)
+        clear_guests_and_publish()            # queues fresh Type 4
 
-        # Clear guests + queue fresh Type 4
-        clear_guests_and_publish()
-
-        # Clear any stale queued events
+        # === 3. NOW FORCE CLEAR THE QUEUE completely ===
         with _q_lock:
             old_size = len(_pub_q)
             _pub_q.clear()
-            if old_size > 0:
-                print(f"[BOOT] Cleared {old_size} stale pre-shutdown events")
+            print(f"[BOOT] Fully cleared queue ({old_size} old/stale events removed)")
 
-        # Re-queue fresh events after clear
+        # === 4. Re-queue fresh events — these will be the ONLY ones ===
         deactivate_all_members_and_publish()
         clear_guests_and_publish()
+        print("[BOOT] Re-queued fresh Type 3 and Type 4 events — clean state")
 
     else:
-        print("[BOOT] Not a fresh boot — preserving queue for offline events")
+        print("[BOOT] Same boot — preserving existing queue (offline events safe)")
 
-    # Always save current boot_id at the end
+    # === 5. Save boot_id for next time ===
     save_current_boot_id()
 
-    # Start MQTT
-    threading.Thread(target=init_mqtt, daemon=True).start()
-    time.sleep(2)
-
-    # Start Flask
+    # === 6. Start Flask ===
     threading.Thread(target=run_flask, daemon=True).start()
     time.sleep(1.5)
 
-    # Qt UI
+    # === 7. Start Qt UI ===
     qt_app = QtWidgets.QApplication(sys.argv)
     win = BrowserWindow()
     win.show()
