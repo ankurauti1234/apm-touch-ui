@@ -2868,3 +2868,7 @@ function initEditMemberLift() {
    }
    init();
    //1036 HHID
+   // Start polling as soon as the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    startWiFiStatusPolling();
+});
