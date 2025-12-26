@@ -2190,7 +2190,7 @@ button:focus {
 
 /* The actual info icon - larger and forced white */
 .bar-btn[onclick="showMeterIdPopup()"] .material-icons {
-    font-size: 28px !important;           /* ← Much larger (you can adjust: 26px to 32px) */
+    font-size: 24px !important;           /* ← Much larger (you can adjust: 26px to 32px) */
     color: rgb(0, 0, 0) !important;              /* ← Pure white */
     margin-top: 6px;                      /* Fine-tune vertical position if needed */
 }
