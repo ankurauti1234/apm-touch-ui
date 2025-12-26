@@ -152,6 +152,40 @@ def deactivate_all_members_and_publish():
     except Exception as e:
         print(f"[BOOT] Error in deactivate_all_members_and_publish: {e}")
 
+def clear_guests_and_publish():
+    """On boot: remove all guests and queue a fresh Type 4 event (no guests)"""
+    try:
+        hhid = load_hhid()
+        if not hhid:
+            print("[BOOT] No HHID yet — skipping guest clear")
+            return
+
+        with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            # Delete all guests for this meter and household
+            cur.execute("DELETE FROM guests WHERE meter_id = ? AND hhid = ?", (METER_ID, hhid))
+            deleted_count = cur.rowcount
+            conn.commit()
+
+        print(f"[BOOT] Removed {deleted_count} guests from database")
+
+        # Build fresh Type 4 payload — empty guests list
+        payload = {
+            "DEVICE_ID": METER_ID,
+            "TS": str(int(time.time())),
+            "Type": 4,
+            "Details": {
+                "guests": []   # Empty list = no guests
+            }
+        }
+
+        # Directly enqueue it
+        _enqueue(payload)
+        print("[BOOT] Fresh 'no guests' Type 4 event QUEUED")
+
+    except Exception as e:
+        print(f"[BOOT] Error in clear_guests_and_publish: {e}")
+
 def get_meter_id():
     device_id_file = DEVICE_CONFIG["device_id_file"]
     
@@ -1471,6 +1505,7 @@ if __name__ == "__main__":
     init_db()
 
     deactivate_all_members_and_publish()
+    clear_guests_and_publish()
 
         # === CLEAR MQTT QUEUE ON BOOT to avoid sending stale pre-shutdown member events ===
     with _q_lock:
