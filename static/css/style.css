@@ -2052,6 +2052,7 @@ button:focus {
 
 .bar-btn:not(.add-guest-btn) .material-icons {
     font-size: 20px;                 /* ← Decreased icon size */
+    margin-top: 10px;                 /* ← ADDED: pushes icon down for more top spacing */
 }
 
 /* Add Guest button - white background, black text (unchanged from previous) */
