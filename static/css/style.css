@@ -440,7 +440,7 @@ ul li {
    ═══════════════════════════════════════════════════════════════════════ */
 .main-dashboard {
     margin: 0;
-    padding-bottom: 70px !important;   /* Adjust this value if needed */
+    padding-bottom: 50px !important;   /* Adjust this value if needed */
     padding: 0;
     width: 100vw;
     height: 100vh;
