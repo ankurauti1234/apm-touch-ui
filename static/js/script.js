@@ -409,6 +409,9 @@
                             <span class="material-icons">add</span>
                             <span class="btn-text">Add Guest</span>
                         </button>
+                        <button class="bar-btn" onclick="showMeterIdPopup()">
+                            <span class="material-icons">info</span>
+                        </button>
                     </div>
 
                     <div class="bar-center">
@@ -424,6 +427,37 @@
        <div id="screensaver"></div>`;
        },
    };
+
+   function showMeterIdPopup() {
+    // Replace 'YOUR_METER_ID_HERE' with your actual meter ID variable
+    // Common sources: window.meterId, localStorage.getItem('meterId'), or from your backend
+    const meterId = window.meterId || localStorage.getItem('meterId') || 'METER-123456';
+
+    // Create popup dynamically
+    const popup = document.createElement('div');
+    popup.className = 'meter-id-popup';
+    popup.innerHTML = `
+        <div class="popup-content">
+            <div class="popup-header">
+                <span class="material-icons">memory</span>
+                <h3>Meter ID</h3>
+            </div>
+            <div class="meter-id-display">${meterId}</div>
+            <button class="popup-close-btn" onclick="this.closest('.meter-id-popup').remove()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Auto-remove when clicking outside
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+            popup.remove();
+        }
+    });
+}
 
    async function updateMainDashboardWiFiStatus() {
     const statusEl = document.getElementById('main-wifi-status');
