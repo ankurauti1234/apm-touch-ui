@@ -440,6 +440,7 @@ ul li {
    ═══════════════════════════════════════════════════════════════════════ */
 .main-dashboard {
     margin: 0;
+    padding-bottom: 50px !important;   /* Adjust this value if needed */
     padding: 0;
     width: 100vw;
     height: 100vh;
@@ -456,6 +457,7 @@ ul li {
     grid-template-rows: repeat(2, 1fr);
     gap: 0.75rem;
     padding: 0.75rem;
+    padding-bottom: 10px;
     width: 100%;
     height: 100%;
     box-sizing: border-box;
@@ -1875,4 +1877,321 @@ button:focus {
 
 #edit-member-popup .button.secondary:hover {
     background: #e9ecef;
+}
+.wifi-status {
+    font-size: 15px;
+    opacity: 0.9;
+}
+.wifi-status .material-icons {
+    font-size: 22px !important;
+}
+
+/* Fix bottom bar to properly show left buttons + right Wi-Fi status */
+.bottom-bar-allpage {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;  /* or whatever your current bg is */
+    backdrop-filter: blur(10px);
+    padding: 12px 16px;
+    z-index: 100;
+    pointer-events: auto;
+}
+
+.bottom-bar-allpage .bar-inner {
+    display: flex !important;
+    justify-content: space-between;   /* ← This pushes settings to left, Wi-Fi to right */
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    gap: 16px;
+    overflow: visible !important;
+}
+
+.wifi-status {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    color: white;
+    white-space: nowrap;
+    opacity: 0.95;
+    margin-left: auto;                /* Ensures it stays on the far right */
+    padding-right: 8px;
+}
+
+.wifi-status span:first-child {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wifi-status .material-icons {
+    font-size: 26px !important;
+}
+
+/* Main dashboard bottom bar - optimized layout */
+.layout-reset .bottom-bar,
+.main-dashboard .bottom-bar {
+    display: flex !important;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 8px 24px 8px 32px !important;
+    min-height: 52px;
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    gap: 28px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+}
+
+/* Left group: buttons + guest count very close to Add Guest */
+.bar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;                    /* Space between Edit, Settings, Add Guest */
+}
+
+/* Guest count - make it follow immediately after Add Guest button */
+.bar-center {
+    display: flex;
+    align-items: center;
+    margin-left: -4px;            /* Pulls it closer to Add Guest button */
+}
+
+.bar-center .guest-count {
+    font-size: 17px;
+    font-weight: 500;
+    color: black;
+    white-space: nowrap;
+}
+/* Main dashboard bottom bar - more compact */
+.layout-reset .bottom-bar,
+.main-dashboard .bottom-bar {
+    display: flex !important;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 6px 20px 6px 28px !important;   /* Reduced vertical padding */
+    min-height: 44px;                        /* ← Decreased overall height */
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    gap: 16px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+}
+
+/* Left group */
+.bar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Guest count */
+.bar-center {
+    display: flex;
+    align-items: center;
+    margin-left: -4px;
+}
+
+.bar-center .guest-count {
+    font-size: 15px;
+    font-weight: 500;
+    color: black;
+    white-space: nowrap;
+}
+
+/* Wi-Fi status - far right */
+.bar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    min-width: 260px;
+    justify-content: flex-end;
+}
+
+#main-wifi-status {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    font-size: 20px;
+    color: black;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+#main-wifi-status span:first-child {
+    max-width: 450px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+    text-align: right;
+}
+
+#main-wifi-status .material-icons {
+    font-size: 26px;
+    flex-shrink: 0;
+}
+
+/* Edit and Settings buttons - smaller icons and slightly reduced padding */
+.bar-btn:not(.add-guest-btn) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 2px;                    /* ← Slightly reduced padding for compactness */
+    color: black;
+}
+
+.bar-btn:not(.add-guest-btn) .material-icons {
+    font-size: 20px;                 /* ← Decreased icon size */
+    margin-top: 15px;                 /* ← ADDED: pushes icon down for more top spacing */
+}
+
+/* Add Guest button - white background, black text (unchanged from previous) */
+.add-guest-btn {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 8px;
+    padding: 4px 10px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    color: black;
+    margin-top: 10px;
+}
+
+.add-guest-btn .material-icons {
+    font-size: 22px;
+    color: black;
+}
+
+.add-guest-btn .btn-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: black;
+}
+
+
+/* Meter ID Popup - clean and modern */
+.meter-id-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.meter-id-popup .popup-content {
+    background: white;
+    border-radius: 18px;
+    padding: 28px;
+    width: 90%;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    position: relative;
+    animation: popupScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.meter-id-popup .popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.meter-id-popup .popup-header .material-icons {
+    font-size: 28px;
+    color: #1976d2;
+}
+
+.meter-id-popup .meter-id-display {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1976d2;
+    background: #f0f7ff;
+    padding: 20px;
+    border-radius: 14px;
+    margin: 16px 0;
+    letter-spacing: 2px;
+    word-break: break-all;
+}
+
+.meter-id-popup .popup-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #f0f0f0;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.meter-id-popup .popup-close-btn:hover {
+    background: #e0e0e0;
+    transform: scale(1.1);
+}
+
+@keyframes popupScale {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Specifically target the Info button (larger + white icon) */
+.bar-btn[onclick="showMeterIdPopup()"] {
+    display: flex;
+    flex-direction:  column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 5px;                    /* Bigger touch area */
+    background: rgb(255, 255, 255); /* Subtle background to make white icon pop */
+    border-radius: 14px;
+    transition: background 0.2s ease;
+    margin-top: 10px;
+}
+
+.bar-btn[onclick="showMeterIdPopup()"]:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* The actual info icon - larger and forced white */
+.bar-btn[onclick="showMeterIdPopup()"] .material-icons {
+    font-size: 24px !important;           /* ← Much larger (you can adjust: 26px to 32px) */
+    color: rgb(0, 0, 0) !important;              /* ← Pure white */
+    margin-top: 6px;                      /* Fine-tune vertical position if needed */
 }

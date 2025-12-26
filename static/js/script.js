@@ -111,6 +111,9 @@
                     <button class="bar-btn" onclick="showSettingsPopup()">
                         <span class="material-icons">settings</span>
                     </button>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                        <span class="material-icons">info</span>
+                    </button>
                     <!-- Add more buttons here if you want -->
                 </div>
             </div>`,
@@ -142,10 +145,16 @@
                <div class="loading"><div class="spinner"></div><p>Testing connection...</p></div>
            `}
            <div class="bottom-bar-allpage">
-               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-           </div>
-           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-           </div>`,
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                        <span class="material-icons">info</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>`,
    
        display_meter: () => `
            <h1>Meter ID</h1>
@@ -165,10 +174,16 @@
                </button>
            </div>
            <div class="bottom-bar-allpage">
-               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-           </div>
-           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-           </div>`,
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                        <span class="material-icons">info</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>`,
    
        hhid_input: () => `
            <h1>Enter Household ID</h1>
@@ -197,10 +212,16 @@
                </button>
            </div>
            <div class="bottom-bar-allpage">
-               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-           </div>
-           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-           </div>`,
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                        <span class="material-icons">info</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>`,
    
            otp_verification: () => `
            <h1>Enter OTP</h1>
@@ -229,10 +250,16 @@
                </button>
            </div>
            <div class="bottom-bar-allpage">
-               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-           </div>
-           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-           </div>
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                        <span class="material-icons">info</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>
        `,
    
        input_source_detection: () => `
@@ -248,10 +275,16 @@
            </div>
        </div>
        <div class="bottom-bar-allpage">
-           <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-       </div>
-       <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-       </div>
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                        <span class="material-icons">info</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>
    `,
    
        video_object_detection: () => `
@@ -265,10 +298,16 @@
                </div>
            </div>
            <div class="bottom-bar-allpage">
-               <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-           </div>
-           <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-           </div>`,
+                <div class="bar-inner">
+                    <button class="bar-btn" onclick="showSettingsPopup()">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                        <span class="material-icons">info</span>
+                    </button>
+                    <!-- Add more buttons here if you want -->
+                </div>
+            </div>`,
    
        finalize: (details) => `
        <div class="summary-container">
@@ -380,24 +419,97 @@
                    `).join('')}
                </div>
                <div class="bottom-bar">
-                   <button class="bar-btn"  onclick="showEditMemberPopup()">
-                       <span class="material-icons">edit</span>
-                   </button>
-                   <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-                   <button class="bar-btn" onclick="openDialog()">
-                        <span class="material-icons">add</span>
-                        <span class="btn-text">Add Guest</span>
-                    </button>
-                    <span class="guest-count">${guests.length} / 8 Guests</span>
+                    <div class="bar-left">
+                        <button class="bar-btn" onclick="showEditMemberPopup()">
+                            <span class="material-icons">edit</span>
+                        </button>
+                        <button class="bar-btn" onclick="showSettingsPopup()">
+                            <span class="material-icons">settings</span>
+                        </button>
+                        <button class="bar-btn add-guest-btn" onclick="openDialog()">
+                            <span class="material-icons">add</span>
+                            <span class="btn-text">Add Guest</span>
+                        </button>
+                    </div>
 
-               </div>
-               <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-               </div>
+                    <div class="bar-center">
+                        <span class="guest-count">${guests.length} / 8 Guests</span>
+                    </div>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                            <span class="material-icons">info</span>
+                        </button>
+
+                    <div class="bar-right" id="main-wifi-status">
+                        <!-- Wi-Fi status injected by JS -->
+                    </div>
+                </div>
            </div> 
        </div>
        <div id="screensaver"></div>`;
        },
    };
+
+   function showMeterIdPopup() {
+    // Use the existing meterId variable
+    if (!meterId || meterId.trim() === '') {
+        meterId = 'Not Available'; // Fallback if empty
+    }
+
+    // Create the popup
+    const popup = document.createElement('div');
+    popup.className = 'meter-id-popup';
+    popup.innerHTML = `
+        <div class="popup-content">
+            <div class="popup-header">
+                <span class="material-icons">memory</span>
+                <h3>Meter ID</h3>
+            </div>
+            <div class="meter-id-display">${meterId}</div>
+            <button class="popup-close-btn" onclick="this.closest('.meter-id-popup').remove()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Close when clicking outside the content
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+            popup.remove();
+        }
+    });
+}
+
+   async function updateMainDashboardWiFiStatus() {
+    const statusEl = document.getElementById('main-wifi-status');
+    if (!statusEl) return;
+
+    try {
+        const res = await fetch('/api/current_wifi');
+        const data = await res.json();
+
+        let icon = 'wifi_off';
+        let color = '#999'; // gray
+        let text = 'Disconnected';
+
+        if (data.success && data.ssid) {
+            icon = 'wifi';
+            color = '#4caf50'; // green
+            text = data.ssid;
+        }
+
+        statusEl.innerHTML = `
+            <span style="max-width:350px;overflow:hidden;text-overflow:ellipsis;">${text}</span>
+            <span class="material-icons" style="color:${color};">${icon}</span>
+        `;
+    } catch (e) {
+        statusEl.innerHTML = `
+            <span>Disconnected</span>
+            <span class="material-icons" style="color:#999;">wifi_off</span>
+        `;
+    }
+}
 
    //ADD Guest option
 /* ==============================================================
@@ -405,6 +517,7 @@
    ============================================================== */
    const MAX_GUESTS = 8;
    let guests = []; // { age: 25, gender: "Male" }
+   let currentWiFiStatus = { connected: false, ssid: null, strength: null };
    
    
    function openDialog() {
@@ -812,6 +925,83 @@ async function updateGuestCountFromFile() {
     }
 }
 
+// ... end of guest functions ...
+
+async function updateBottomBarWiFiStatus() {
+    const bottomBars = document.querySelectorAll('.bottom-bar-allpage .bar-inner');
+    if (bottomBars.length === 0) return;
+
+    try {
+        const res = await fetch('/api/current_wifi');
+        const data = await res.json();
+
+        let icon = 'wifi_off';
+        let color = '#999'; // gray
+        let text = 'Disconnected';
+
+        if (data.success && data.ssid) {
+            icon = 'wifi';
+            color = '#4caf50'; // green
+            text = data.ssid;
+
+            currentWiFiStatus = { connected: true, ssid: data.ssid, strength: 'good' };
+        } else {
+            currentWiFiStatus = { connected: false, ssid: null, strength: null };
+        }
+
+        bottomBars.forEach(bar => {
+            let statusEl = bar.querySelector('.wifi-status');
+            if (!statusEl) {
+                statusEl = document.createElement('div');
+                statusEl.className = 'wifi-status';
+                statusEl.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 16px;
+                    color: black;
+                    margin-left: auto;
+                    padding-right: 12px;
+                `;
+                bar.appendChild(statusEl);
+            }
+
+            statusEl.innerHTML = `
+                <span style="white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                    ${text}
+                </span>
+                <span class="material-icons" style="font-size: 24px; color: ${color};">${icon}</span>
+            `;
+        });
+    } catch (e) {
+        console.warn("Failed to update Wi-Fi status in bottom bar:", e);
+    }
+}
+
+let wifiPollingInterval = null;
+
+function startWiFiStatusPolling() {
+    // Clear any existing interval
+    if (wifiPollingInterval) clearInterval(wifiPollingInterval);
+
+    // Immediate update for both UI elements
+    updateBottomBarWiFiStatus();
+    updateMainDashboardWiFiStatus();
+
+    // Then update both every 12 seconds
+    wifiPollingInterval = setInterval(() => {
+        updateBottomBarWiFiStatus();
+        updateMainDashboardWiFiStatus();
+    }, 12000); // 12 seconds — adjust if needed (e.g., 10000 for 10s)
+}
+
+function stopWiFiStatusPolling() {
+    if (wifiPollingInterval) {
+        clearInterval(wifiPollingInterval);
+        wifiPollingInterval = null;
+    }
+}
+
 // Load full list only when opening dialog
 async function loadGuestsForDialog() {
     try {
@@ -1193,6 +1383,8 @@ function showToast(message) {
    
                // initBrightnessControl(); // <<< run brightness only on main page
            }, 10);
+
+           updateMainDashboardWiFiStatus();
    
        } else {
            container.innerHTML = `
@@ -1203,6 +1395,7 @@ function showToast(message) {
            if (tmp && progressBar) { tmp.parentNode.insertBefore(progressBar, tmp); tmp.remove(); }
            progressBar.style.display = 'flex';
            updateProgressBar();
+           updateBottomBarWiFiStatus();
        }
    }
    function updateProgressBar() {
@@ -1602,40 +1795,55 @@ function togglePasswordVisibility(e) {
                    const cd = await cur.json();
                    if (currentState == 'main') return; // already in main state
                    if (cd.success) navigate('connect_select', cd.ssid);
+
+                   updateBottomBarWiFiStatus();
                }, 2000);
                loading.style.display = 'none';
            }
        } catch { err.innerHTML = '<span class="material-icons">error</span> Connection failed'; err.style.display = 'flex'; loading.style.display = 'none'; }
        loading.style.display = 'none';
    }
+
    async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
     const loading = document.getElementById('wifi-loading');
 
     try {
         loading.style.display = 'block';
+        err.style.display = 'none';
+
         const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
         const d = await r.json();
 
         err.className = d.success ? 'success' : 'error';
-        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.message || d.error || 'Disconnected'}`;
+        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> 
+                         ${d.success ? 'Wi-Fi disconnected successfully' : d.error || 'Disconnect failed'}`;
         err.style.display = 'flex';
 
         if (d.success) {
-            // SUCCESS → immediately refresh the connect_select screen to remove the connected panel
-            setTimeout(async () => {
-                closeWiFiPopup();                    // close popup first
-                await navigate('connect_select');    // ← this will re-render and show Wi-Fi/GSM buttons again
+            // Just close popup and refresh UI — DO NOT navigate away
+            setTimeout(() => {
+                closeWiFiPopup();
+
+                // Optional: refresh connectivity status indicators in dashboard/settings
+                // Example: if you have a function to update network status
+                // updateNetworkStatus();  
+
+                // Or trigger a soft refresh of current page
+                // refreshCurrentPage();  
             }, 1200);
         }
+
     } catch (e) {
-        err.innerHTML = '<span class="material-icons">error</span> Disconnect failed';
+        console.error("Disconnect error:", e);
+        err.innerHTML = '<span class="material-icons">error</span> Disconnect failed (network error)';
         err.className = 'error';
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
     }
 }
+
    function closeWiFiPopup() {
     lowerWiFiPopup();   // ← ADD THIS
     ['wifi-popup', 'wifi-overlay'].forEach(id => {
@@ -1738,6 +1946,7 @@ function togglePasswordVisibility(e) {
            const cur = await fetch('/api/current_wifi');
            const cd = await cur.json();
            render(cd.success ? cd.ssid : null);
+           updateBottomBarWiFiStatus();
            return;
        }
    
@@ -2662,3 +2871,7 @@ function initEditMemberLift() {
    }
    init();
    //1036 HHID
+   // Start polling as soon as the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    startWiFiStatusPolling();
+});
