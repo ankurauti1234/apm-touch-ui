@@ -1975,7 +1975,7 @@ button:focus {
     justify-content: flex-start;
     align-items: center;
     padding: 6px 24px 6px 32px !important;   /* Reduced vertical padding */
-    min-height: 48px;                        /* ← Decreased overall height */
+    min-height: 28px;                        /* ← Decreased overall height */
     background: white;
     width: 100%;
     box-sizing: border-box;
