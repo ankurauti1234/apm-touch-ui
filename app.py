@@ -1456,6 +1456,15 @@ if __name__ == "__main__":
     init_db()
 
     deactivate_all_members_and_publish()
+
+        # === CLEAR MQTT QUEUE ON BOOT to avoid sending stale pre-shutdown member events ===
+    with _q_lock:
+        old_queue_size = len(_pub_q)
+        _pub_q.clear()
+    if old_queue_size > 0:
+        print(f"[BOOT] Cleared {old_queue_size} stale queued MQTT events (pre-shutdown member states)")
+    # ===========================================================================
+    
     # Start MQTT (robust, auto-reconnect, queued)
     threading.Thread(target=init_mqtt, daemon=True).start()
     time.sleep(2)
