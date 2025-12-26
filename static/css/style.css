@@ -2178,7 +2178,7 @@ button:focus {
     flex-direction:  column;
     align-items: center;
     gap: 3px;
-    padding: 8px 10px;                    /* Bigger touch area */
+    padding: 8px 5px;                    /* Bigger touch area */
     background: rgb(255, 255, 255); /* Subtle background to make white icon pop */
     border-radius: 14px;
     transition: background 0.2s ease;
