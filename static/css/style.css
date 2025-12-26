@@ -2021,7 +2021,7 @@ button:focus {
     display: flex;
     align-items: center;
     gap: 30px;
-    font-size: 16px;
+    font-size: 10px;
     color: black;
     white-space: nowrap;
     flex-shrink: 0;
@@ -2036,7 +2036,7 @@ button:focus {
 }
 
 #main-wifi-status .material-icons {
-    font-size: 26px;
+    font-size: 16px;
     flex-shrink: 0;
 }
 
