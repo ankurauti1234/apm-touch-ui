@@ -109,6 +109,34 @@ def init_db():
         """)
         conn.commit()
 
+def deactivate_all_members_and_publish():
+    """On boot: mark all members as inactive and publish the current (empty) viewing state via MQTT"""
+    try:
+        hhid = load_hhid()
+        if not hhid:
+            print("[BOOT] No HHID configured yet — skipping member deactivation and publish")
+            return
+
+        with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            # Set all members to inactive
+            cur.execute("""
+                UPDATE members 
+                SET active = 0 
+                WHERE meter_id = ? AND hhid = ?
+            """, (METER_ID, hhid))
+            updated_count = cur.rowcount
+            conn.commit()
+
+        print(f"[BOOT] Deactivated {updated_count} members on startup")
+
+        # Now immediately publish the current (all inactive) member state
+        publish_member_event()
+        print("[BOOT] Published Type 3 MQTT event with all members inactive")
+
+    except Exception as e:
+        print(f"[BOOT] Error during member deactivation/publish: {e}")
+
 def get_meter_id():
     device_id_file = DEVICE_CONFIG["device_id_file"]
     
@@ -1426,6 +1454,8 @@ class BrowserWindow(QtWidgets.QMainWindow):
 if __name__ == "__main__":
     # Init DB
     init_db()
+
+    deactivate_all_members_and_publish()
     # Start MQTT (robust, auto-reconnect, queued)
     threading.Thread(target=init_mqtt, daemon=True).start()
     time.sleep(2)
