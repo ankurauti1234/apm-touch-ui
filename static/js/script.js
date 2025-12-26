@@ -975,6 +975,30 @@ async function updateBottomBarWiFiStatus() {
     }
 }
 
+let wifiPollingInterval = null;
+
+function startWiFiStatusPolling() {
+    // Clear any existing interval
+    if (wifiPollingInterval) clearInterval(wifiPollingInterval);
+
+    // Immediate update for both UI elements
+    updateBottomBarWiFiStatus();
+    updateMainDashboardWiFiStatus();
+
+    // Then update both every 12 seconds
+    wifiPollingInterval = setInterval(() => {
+        updateBottomBarWiFiStatus();
+        updateMainDashboardWiFiStatus();
+    }, 12000); // 12 seconds — adjust if needed (e.g., 10000 for 10s)
+}
+
+function stopWiFiStatusPolling() {
+    if (wifiPollingInterval) {
+        clearInterval(wifiPollingInterval);
+        wifiPollingInterval = null;
+    }
+}
+
 // Load full list only when opening dialog
 async function loadGuestsForDialog() {
     try {
