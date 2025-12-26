@@ -409,14 +409,14 @@
                             <span class="material-icons">add</span>
                             <span class="btn-text">Add Guest</span>
                         </button>
-                        <button class="bar-btn" onclick="showMeterIdPopup()">
-                            <span class="material-icons">info</span>
-                        </button>
                     </div>
 
                     <div class="bar-center">
                         <span class="guest-count">${guests.length} / 8 Guests</span>
                     </div>
+                    <button class="bar-btn" onclick="showMeterIdPopup()">
+                            <span class="material-icons">info</span>
+                        </button>
 
                     <div class="bar-right" id="main-wifi-status">
                         <!-- Wi-Fi status injected by JS -->
