@@ -2179,7 +2179,7 @@ button:focus {
     align-items: center;
     gap: 3px;
     padding: 8px 10px;                    /* Bigger touch area */
-    background: rgba(255, 255, 255, 0.15); /* Subtle background to make white icon pop */
+    background: rgb(92, 92, 92); /* Subtle background to make white icon pop */
     border-radius: 14px;
     transition: background 0.2s ease;
 }
@@ -2191,6 +2191,6 @@ button:focus {
 /* The actual info icon - larger and forced white */
 .bar-btn[onclick="showMeterIdPopup()"] .material-icons {
     font-size: 28px !important;           /* ← Much larger (you can adjust: 26px to 32px) */
-    color: white !important;              /* ← Pure white */
+    color: rgb(0, 0, 0) !important;              /* ← Pure white */
     margin-top: 6px;                      /* Fine-tune vertical position if needed */
 }
