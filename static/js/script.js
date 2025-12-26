@@ -398,27 +398,17 @@
                    `).join('')}
                </div>
                <div class="bottom-bar">
-                    <div class="bar-left">
-                        <button class="bar-btn" onclick="showEditMemberPopup()">
-                            <span class="material-icons">edit</span>
-                        </button>
-                        <button class="bar-btn" onclick="showSettingsPopup()">
-                            <span class="material-icons">settings</span>
-                        </button>
-                        <button class="bar-btn add-guest-btn" onclick="openDialog()">
-                            <span class="material-icons">add</span>
-                            <span class="btn-text">Add Guest</span>
-                        </button>
-                    </div>
+                   <button class="bar-btn"  onclick="showEditMemberPopup()">
+                       <span class="material-icons">edit</span>
+                   </button>
+                   <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+                   <button class="bar-btn" onclick="openDialog()">
+                        <span class="material-icons">add</span>
+                        <span class="btn-text">Add Guest</span>
+                    </button>
+                    <span class="guest-count">${guests.length} / 8 Guests</span>
 
-                    <div class="bar-center">
-                        <span class="guest-count">${guests.length} / 8 Guests</span>
-                    </div>
-
-                    <div class="bar-right" id="main-wifi-status">
-                        <!-- Wi-Fi status injected by JS -->
-                    </div>
-                </div>
+               </div>
 
            </div> 
        </div>
