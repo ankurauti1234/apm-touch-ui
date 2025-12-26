@@ -1501,32 +1501,39 @@ class BrowserWindow(QtWidgets.QMainWindow):
 # 10. Main
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
-    # Init DB
     init_db()
 
+    # 1. Members: reset + queue fresh Type 3
     deactivate_all_members_and_publish()
+
+    # 2. Guests: clear + queue fresh Type 4
     clear_guests_and_publish()
 
-        # === CLEAR MQTT QUEUE ON BOOT to avoid sending stale pre-shutdown member events ===
+    # 3. CLEAR ALL OLD EVENTS — but ALWAYS keep the fresh ones we just queued
     with _q_lock:
-            old_size = len(_pub_q)
-            if old_size > 1:  # >1 because we just added the fresh one
-                # Keep only the last (most recent) event — which is our fresh one
-                _pub_q[:] = _pub_q[-1:]
-                removed = old_size - 1
-                print(f"[BOOT] Cleared {removed} stale pre-shutdown events, kept fresh boot event")
-            elif old_size == 0:
-                print("[BOOT] Queue was empty — nothing to clear")
+        # Find how many fresh events we successfully queued
+        fresh_count = 0
+        if load_hhid():  # Only if HHID exists
+            fresh_count = 2  # We tried to queue both Type 3 and Type 4
+        else:
+            fresh_count = 0  # Setup not done yet
 
-    # Start MQTT (robust, auto-reconnect, queued)
+        current_size = len(_pub_q)
+
+        if current_size > fresh_count:
+            # Keep only the last 'fresh_count' items (the ones we just added)
+            _pub_q[:] = _pub_q[-fresh_count:]
+            removed = current_size - fresh_count
+            print(f"[BOOT] Cleared {removed} stale events, kept {fresh_count} fresh boot events")
+        else:
+            print(f"[BOOT] Queue has {current_size} item(s) — all fresh or empty")
+
+    # Start MQTT, Flask, etc.
     threading.Thread(target=init_mqtt, daemon=True).start()
     time.sleep(2)
-
-    # Start Flask
     threading.Thread(target=run_flask, daemon=True).start()
     time.sleep(1.5)
 
-    # Start Qt
     qt_app = QtWidgets.QApplication(sys.argv)
     win = BrowserWindow()
     win.show()
