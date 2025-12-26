@@ -429,11 +429,12 @@
    };
 
    function showMeterIdPopup() {
-    // Replace 'YOUR_METER_ID_HERE' with your actual meter ID variable
-    // Common sources: window.meterId, localStorage.getItem('meterId'), or from your backend
-    const meterId = window.meterId || localStorage.getItem('meterId') || 'METER-123456';
+    // Use the existing meterId variable
+    if (!meterId || meterId.trim() === '') {
+        meterId = 'Not Available'; // Fallback if empty
+    }
 
-    // Create popup dynamically
+    // Create the popup
     const popup = document.createElement('div');
     popup.className = 'meter-id-popup';
     popup.innerHTML = `
@@ -451,7 +452,7 @@
 
     document.body.appendChild(popup);
 
-    // Auto-remove when clicking outside
+    // Close when clicking outside the content
     popup.addEventListener('click', (e) => {
         if (e.target === popup) {
             popup.remove();
