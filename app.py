@@ -1482,9 +1482,10 @@ if __name__ == "__main__":
                 print(f"[BOOT] Cleared {removed} stale pre-shutdown events, kept fresh boot event")
             elif old_size == 0:
                 print("[BOOT] Queue was empty — nothing to clear")
-        # Start MQTT (robust, auto-reconnect, queued)
-        threading.Thread(target=init_mqtt, daemon=True).start()
-        time.sleep(2)
+
+    # Start MQTT (robust, auto-reconnect, queued)
+    threading.Thread(target=init_mqtt, daemon=True).start()
+    time.sleep(2)
 
     # Start Flask
     threading.Thread(target=run_flask, daemon=True).start()
