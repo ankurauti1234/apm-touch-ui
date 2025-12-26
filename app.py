@@ -1547,41 +1547,41 @@ def save_current_boot_id():
 if __name__ == "__main__":
     init_db()
 
-    # === 1. Start MQTT thread FIRST and give it time to initialize ===
-    mqtt_thread = threading.Thread(target=init_mqtt, daemon=True)
-    mqtt_thread.start()
-    time.sleep(15)  # Critical: give MQTT time to start, connect, and possibly flush old queue
+    # Start MQTT thread FIRST
+    threading.Thread(target=init_mqtt, daemon=True).start()
 
-    # === 2. Detect fresh boot using boot_id ===
+    # NO long sleep — act immediately to prevent old events from flushing
+    # Optional: tiny sleep only if thread needs to start (rarely needed)
+    # time.sleep(0.5)  # At most 0.5 sec, not 15!
+
     if is_fresh_boot():
         print("[BOOT] Fresh boot detected — resetting viewing session")
 
-        # Reset DB state
-        deactivate_all_members_and_publish()  # queues fresh Type 3 (may be flushed already)
-        clear_guests_and_publish()            # queues fresh Type 4
+        # Reset DB and queue temporary fresh events
+        deactivate_all_members_and_publish()
+        clear_guests_and_publish()
 
-        # === 3. NOW FORCE CLEAR THE QUEUE completely ===
+        # IMMEDIATELY clear queue — before MQTT can send old ones
         with _q_lock:
             old_size = len(_pub_q)
             _pub_q.clear()
-            print(f"[BOOT] Fully cleared queue ({old_size} old/stale events removed)")
+            print(f"[BOOT] Immediately cleared queue ({old_size} old events prevented)")
 
-        # === 4. Re-queue fresh events — these will be the ONLY ones ===
+        # Re-queue fresh clean events
         deactivate_all_members_and_publish()
         clear_guests_and_publish()
-        print("[BOOT] Re-queued fresh Type 3 and Type 4 events — clean state")
+        print("[BOOT] Re-queued fresh Type 3 and Type 4 — only clean state will be sent")
 
     else:
-        print("[BOOT] Same boot — preserving existing queue (offline events safe)")
+        print("[BOOT] Same boot — preserving queue for offline events")
 
-    # === 5. Save boot_id for next time ===
     save_current_boot_id()
 
-    # === 6. Start Flask ===
+    # Start Flask
     threading.Thread(target=run_flask, daemon=True).start()
-    time.sleep(1.5)
+    time.sleep(1.5)  # This small one is fine
 
-    # === 7. Start Qt UI ===
+    # Qt UI
     qt_app = QtWidgets.QApplication(sys.argv)
     win = BrowserWindow()
     win.show()
