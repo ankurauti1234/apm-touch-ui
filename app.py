@@ -348,7 +348,7 @@ def _flush_queue():
         _pub_q.clear()
     for pl in to_send:
         try:
-            _mqtt_log(f"FLUSHING: {pl}")
+            print(f"[DEBUG] Flushing and sending payload: {pl}")  # <<< ADD THIS
             client.publish(MQTT_TOPIC, json.dumps(pl))
         except Exception as e:
             _mqtt_log(f"Publish failed during flush: {e}")
@@ -362,7 +362,8 @@ def _flush_queue():
 # ----------------------------------------------------------------------
 def on_connect(client_, userdata, flags, rc, *args):
     if rc == 0:
-        _mqtt_log("CONNECTED → flushing queue")
+        _mqtt_log("CONNECTED — flushing queue")
+        print("[DEBUG] on_connect triggered — starting flush")  # <<< ADD THIS
         _flush_queue()
     else:
         _mqtt_log(f"CONNECT FAILED rc={rc}")
@@ -1547,41 +1548,52 @@ def save_current_boot_id():
 if __name__ == "__main__":
     init_db()
 
-    # === 1. Start MQTT thread FIRST and give it time to initialize ===
-    mqtt_thread = threading.Thread(target=init_mqtt, daemon=True)
-    mqtt_thread.start()
-    time.sleep(3)  # Critical: give MQTT time to start, connect, and possibly flush old queue
+    # Start MQTT thread FIRST
+    threading.Thread(target=init_mqtt, daemon=True).start()
 
-    # === 2. Detect fresh boot using boot_id ===
+    # Debug: Queue size before any boot logic
+    with _q_lock:
+        print(f"[DEBUG] Queue size before boot logic: {len(_pub_q)}")
+
     if is_fresh_boot():
         print("[BOOT] Fresh boot detected — resetting viewing session")
 
-        # Reset DB state
-        deactivate_all_members_and_publish()  # queues fresh Type 3 (may be flushed already)
-        clear_guests_and_publish()            # queues fresh Type 4
+        deactivate_all_members_and_publish()
+        clear_guests_and_publish()
 
-        # === 3. NOW FORCE CLEAR THE QUEUE completely ===
+        # Debug: Queue size before clear
+        with _q_lock:
+            print(f"[DEBUG] Queue size before clear: {len(_pub_q)}")
+
+        # IMMEDIATELY clear queue
         with _q_lock:
             old_size = len(_pub_q)
             _pub_q.clear()
-            print(f"[BOOT] Fully cleared queue ({old_size} old/stale events removed)")
+            print(f"[BOOT] Immediately cleared queue ({old_size} old events prevented)")
 
-        # === 4. Re-queue fresh events — these will be the ONLY ones ===
+        # Debug: Queue size after clear
+        with _q_lock:
+            print(f"[DEBUG] Queue size after clear: {len(_pub_q)}")
+
+        # Re-queue fresh clean events
         deactivate_all_members_and_publish()
         clear_guests_and_publish()
-        print("[BOOT] Re-queued fresh Type 3 and Type 4 events — clean state")
+        print("[BOOT] Re-queued fresh Type 3 and Type 4 — clean state")
+
+        # Debug: Queue size after re-queue
+        with _q_lock:
+            print(f"[DEBUG] Queue size after re-queue: {len(_pub_q)}")
 
     else:
-        print("[BOOT] Same boot — preserving existing queue (offline events safe)")
+        print("[BOOT] Same boot — preserving queue")
 
-    # === 5. Save boot_id for next time ===
     save_current_boot_id()
 
-    # === 6. Start Flask ===
+    # Start Flask
     threading.Thread(target=run_flask, daemon=True).start()
     time.sleep(1.5)
 
-    # === 7. Start Qt UI ===
+    # Qt UI
     qt_app = QtWidgets.QApplication(sys.argv)
     win = BrowserWindow()
     win.show()
