@@ -256,8 +256,11 @@ async function connectWiFi() {
     } finally {
         loading.style.display = 'none';
         // Immediate update for both UI elements
-        updateBottomBarWiFiStatus();
-        updateMainDashboardWiFiStatus();
+        if (currentState === 'main') {
+            updateMainDashboardWiFiStatus();
+        } else {
+            updateBottomBarWiFiStatus();
+        }
     }
 }
 
@@ -288,8 +291,11 @@ async function disconnectWiFi() {
     } finally {
         loading.style.display = 'none';
         // Immediate update for both UI elements
-        updateBottomBarWiFiStatus();
-        updateMainDashboardWiFiStatus();
+        if (currentState === 'main') {
+            updateMainDashboardWiFiStatus();
+        } else {
+            updateBottomBarWiFiStatus();
+        }
     }
 }
 
