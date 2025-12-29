@@ -43,7 +43,7 @@ function render(details = null) {
         }
         progressBar.style.display = 'flex';
         updateProgressBar();
-        updateBottomBarWiFiStatus();
+        // updateBottomBarWiFiStatus();
     }
 }
 

@@ -314,7 +314,7 @@ if (!document.getElementById('wifi-spinner-style')) {
     ============================================================== */
 
 async function updateMainDashboardWiFiStatus() {
-    const statusEl = document.getElementById('main-wifi-status');
+    const statusEl = document.getElementById('bar-btn-wifi');
     if (!statusEl) return;
 
     try {
@@ -322,76 +322,78 @@ async function updateMainDashboardWiFiStatus() {
         const data = await res.json();
 
         let icon = 'wifi_off';
-        let color = '#999'; // gray
+        let color = '#000000ff'; // black
+        let backgroundColor = '#999'; // grey
         let text = 'Disconnected';
 
         if (data.success && data.ssid) {
             icon = 'wifi';
-            color = '#4caf50'; // green
+            color = '#ffffffff'; // white
+            backgroundColor = '#1565c0'; // blue
             text = data.ssid;
         }
 
         statusEl.innerHTML = `
             <span style="max-width:350px;overflow:hidden;text-overflow:ellipsis;">${text}</span>
-            <span class="material-icons" style="color:${color};">${icon}</span>
+            <span class="material-icons" style="color:${color}; background-color:${backgroundColor};">${icon}</span>
         `;
     } catch (e) {
         statusEl.innerHTML = `
             <span>Disconnected</span>
-            <span class="material-icons" style="color:#999;">wifi_off</span>
+            <span class="material-icons" style="color:${color}; background-color:${backgroundColor};">wifi_off</span>
         `;
     }
 }
-async function updateBottomBarWiFiStatus() {
-    const bottomBars = document.querySelectorAll('.bottom-bar-allpage .bar-inner');
-    if (bottomBars.length === 0) return;
+// async function updateBottomBarWiFiStatus() {
+//     const bottomBars = document.querySelectorAll('.bottom-bar-allpage .bar-inner');
+//     if (bottomBars.length === 0) return;
 
-    try {
-        const res = await fetch('/api/current_wifi');
-        const data = await res.json();
+//     try {
+//         const res = await fetch('/api/current_wifi');
+//         const data = await res.json();
 
-        let icon = 'wifi_off';
-        let color = '#999'; // gray
-        let text = 'Disconnected';
+//         let icon = 'wifi_off';
+//         let color = '#999'; // gray
+//         let text = 'Disconnected';
 
-        if (data.success && data.ssid) {
-            icon = 'wifi';
-            color = '#4caf50'; // green
-            text = data.ssid;
+//         if (data.success && data.ssid) {
+//             icon = 'wifi';
+//             color = '#4caf50'; // green
+//             text = data.ssid;
 
-            currentWiFiStatus = { connected: true, ssid: data.ssid, strength: 'good' };
-        } else {
-            currentWiFiStatus = { connected: false, ssid: null, strength: null };
-        }
+//             currentWiFiStatus = { connected: true, ssid: data.ssid, strength: 'good' };
+//         } else {
+//             currentWiFiStatus = { connected: false, ssid: null, strength: null };
+//         }
 
-        bottomBars.forEach(bar => {
-            let statusEl = bar.querySelector('.wifi-status');
-            if (!statusEl) {
-                statusEl = document.createElement('div');
-                statusEl.className = 'wifi-status';
-                statusEl.style.cssText = `
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 16px;
-                    color: black;
-                    margin-left: auto;
-                    padding-right: 12px;
-                `;
-                bar.appendChild(statusEl);
-            }
+//         bottomBars.forEach(bar => {
+//             let statusEl = bar.querySelector('.wifi-status');
+//             if (!statusEl) {
+//                 statusEl = document.createElement('div');
+//                 statusEl.className = 'wifi-status';
+//                 statusEl.style.cssText = `
+//                     display: flex;
+//                     align-items: center;
+//                     gap: 8px;
+//                     font-size: 16px;
+//                     color: black;
+//                     margin-left: auto;
+//                     padding-right: 12px;
+//                 `;
+//                 bar.appendChild(statusEl);
+//             }
 
-            statusEl.innerHTML = `
-                <span style="white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-                    ${text}
-                </span>
-                <span class="material-icons" style="font-size: 24px; color: ${color};">${icon}</span>
-            `;
-        });
-    } catch (e) {
-        console.warn("Failed to update Wi-Fi status in bottom bar:", e);
-    }
-}
+//             statusEl.innerHTML = `
+//                 <span style="white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+//                     ${text}
+//                 </span>
+//                 <span class="material-icons" style="font-size: 24px; color: ${color};">${icon}</span>
+//             `;
+//         });
+//     } catch (e) {
+//         console.warn("Failed to update Wi-Fi status in bottom bar:", e);
+//     }
+// }
 
 
 
@@ -402,12 +404,12 @@ function startWiFiStatusPolling() {
     if (wifiPollingInterval) clearInterval(wifiPollingInterval);
 
     // Immediate update for both UI elements
-    updateBottomBarWiFiStatus();
+    // updateBottomBarWiFiStatus();
     updateMainDashboardWiFiStatus();
 
     // Then update both every 12 seconds
     wifiPollingInterval = setInterval(() => {
-        updateBottomBarWiFiStatus();
+        // updateBottomBarWiFiStatus();
         updateMainDashboardWiFiStatus();
     }, 12000); // 12 seconds — adjust if needed (e.g., 10000 for 10s)
 }
