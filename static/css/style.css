@@ -748,15 +748,15 @@ ul li {
 
 #bottom-bar-left {
     position: fixed;
-    bottom: 5px;
-    left: 5px;
+    bottom: 2px;
+    left: 2px;
     scale: 1.5;
 }
 
 #bottom-bar-right {
     position: fixed;
     bottom: 0px;
-    right: 5px;
+    right: 0px;
     scale: 1.2;
 }
 

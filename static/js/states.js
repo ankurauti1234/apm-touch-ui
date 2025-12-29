@@ -56,6 +56,7 @@ const states = {
                     <span class="material-icons">settings</span>
                 </button>
             </div>
+            
             <!-- Bottom Right -->
             <div id="bottom-bar-right"></div>
         </div>`,
@@ -86,8 +87,16 @@ const states = {
         ` : `
             <div class="loading"><div class="spinner"></div><p>Testing connection...</p></div>
         `}
-        <div class="bottom-bar-allpage">
-            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        <div id="bottom-bar-allpage">
+            <!-- Bottom Left -->
+            <div id="bottom-bar-left">
+                <button class="bar-btn" onclick="showSettingsPopup()">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+            
+            <!-- Bottom Right -->
+            <div id="bottom-bar-right"></div>
         </div>
         <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>`,
@@ -109,8 +118,16 @@ const states = {
                 <span class="material-icons">arrow_back</span> Back
             </button>
         </div>
-        <div class="bottom-bar-allpage">
-            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        <div id="bottom-bar-allpage">
+            <!-- Bottom Left -->
+            <div id="bottom-bar-left">
+                <button class="bar-btn" onclick="showSettingsPopup()">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+            
+            <!-- Bottom Right -->
+            <div id="bottom-bar-right"></div>
         </div>
         <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>`,
@@ -141,8 +158,16 @@ const states = {
                 <span class="material-icons">arrow_back</span> Back
             </button>
         </div>
-        <div class="bottom-bar-allpage">
-            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        <div id="bottom-bar-allpage">
+            <!-- Bottom Left -->
+            <div id="bottom-bar-left">
+                <button class="bar-btn" onclick="showSettingsPopup()">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+            
+            <!-- Bottom Right -->
+            <div id="bottom-bar-right"></div>
         </div>
         <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>`,
@@ -173,8 +198,16 @@ const states = {
                 <span class="material-icons">refresh</span> Resend OTP
             </button>
         </div>
-        <div class="bottom-bar-allpage">
-            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        <div id="bottom-bar-allpage">
+            <!-- Bottom Left -->
+            <div id="bottom-bar-left">
+                <button class="bar-btn" onclick="showSettingsPopup()">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+            
+            <!-- Bottom Right -->
+            <div id="bottom-bar-right"></div>
         </div>
         <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>
@@ -209,8 +242,16 @@ const states = {
             <div class="button-group">
             </div>
         </div>
-        <div class="bottom-bar-allpage">
-            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
+        <div id="bottom-bar-allpage">
+            <!-- Bottom Left -->
+            <div id="bottom-bar-left">
+                <button class="bar-btn" onclick="showSettingsPopup()">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+            
+            <!-- Bottom Right -->
+            <div id="bottom-bar-right"></div>
         </div>
         <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>`,
