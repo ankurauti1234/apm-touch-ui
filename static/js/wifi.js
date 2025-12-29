@@ -314,7 +314,7 @@ if (!document.getElementById('wifi-spinner-style')) {
     ============================================================== */
 
 async function updateMainDashboardWiFiStatus() {
-    const statusEl = document.getElementById('bar-btn-wifi');
+    const statusEl = document.getElementById('bar-wifi-status');
     if (!statusEl) return;
 
     try {
@@ -323,7 +323,7 @@ async function updateMainDashboardWiFiStatus() {
 
         let icon = 'wifi_off';
         let color = '#000000ff'; // black
-        let backgroundColor = '#999'; // grey
+        let backgroundColor = '#68757a'; // grey
         let text = 'Disconnected';
 
         if (data.success && data.ssid) {
@@ -334,13 +334,17 @@ async function updateMainDashboardWiFiStatus() {
         }
 
         statusEl.innerHTML = `
-            <span style="max-width:350px;overflow:hidden;text-overflow:ellipsis;">${text}</span>
-            <span class="material-icons" style="color:${color}; background-color:${backgroundColor};">${icon}</span>
+            <button class="bar-btn" id="bar-btn-wifi" style="color:${color}; background-color:${backgroundColor};" onclick="showWiFiPopup()">
+                <span style="max-width:350px;overflow:hidden;text-overflow:ellipsis;">${text} &nbsp;</span>
+                <span class="material-icons">${icon}</span>
+            </button>
         `;
     } catch (e) {
         statusEl.innerHTML = `
-            <span>Disconnected</span>
-            <span class="material-icons" style="color:${color}; background-color:${backgroundColor};">wifi_off</span>
+            <button class="bar-btn" id="bar-btn-wifi" style="color:${color}; background-color:${backgroundColor};" onclick="showWiFiPopup()">
+                <span>Disconnected &nbsp;</span>
+                <span class="material-icons">wifi_off</span>
+            </button>
         `;
     }
 }
@@ -424,3 +428,38 @@ function stopWiFiStatusPolling() {
 document.addEventListener('DOMContentLoaded', () => {
     startWiFiStatusPolling();
 });
+
+
+
+// show Meter ID popup
+function showMeterIdPopup() {
+    // Use the existing meterId variable
+    if (!meterId || meterId.trim() === '') {
+        meterId = 'Not Available'; // Fallback if empty
+    }
+
+    // Create the popup
+    const popup = document.createElement('div');
+    popup.className = 'meter-id-popup';
+    popup.innerHTML = `
+        <div class="popup-content">
+            <div class="popup-header">
+                <span class="material-icons">memory</span>
+                <h3>Meter ID</h3>
+            </div>
+            <div class="meter-id-display">${meterId}</div>
+            <button class="popup-close-btn" onclick="this.closest('.meter-id-popup').remove()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Close when clicking outside the content
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+            popup.remove();
+        }
+    });
+}

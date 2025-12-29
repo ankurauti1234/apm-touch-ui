@@ -325,13 +325,13 @@ const states = {
             <div class="bottom-bar">
                 <div class="bar-left">
                     <button class="bar-btn" id="bar-btn-settings" onclick="showSettingsPopup()">
-                        <span class="material-icons ">settings</span>
+                        <span class="material-icons" style="font-size:1.7rem;">settings</span>
                     </button>
                     <button class="bar-btn" id="bar-btn-edit_member" onclick="showEditMemberPopup()">
-                        <span class="material-icons">edit</span>
+                        <span class="material-icons" style="font-size:1.7rem;">edit</span>
                     </button>
-                    <button class="bar-btn" id="bar-btn-details" onclick="showEditMemberPopup()">
-                        <span class="material-icons">info</span>
+                    <button class="bar-btn" id="bar-btn-details" onclick="showMeterIdPopup()">
+                        <span class="material-icons" style="font-size:1.7rem;">info</span>
                     </button>
                 </div>
                 <div class="bar-right">
@@ -340,10 +340,9 @@ const states = {
                         <span class="btn-text">Add Guest &nbsp;</span>
                         <span class="guest-count">${guests.length} / 8</span>
                     </button>
-                    <button class="bar-btn" id="bar-btn-wifi" onclick="showWiFiPopup()">
-                        <span class="btn-text">Disconnected &nbsp;</span>
-                        <span class="material-icons ">wifi</span>
-                    </button>
+                    <div id="bar-wifi-status">
+                    
+                    </div>
                 </div>
             </div>
             <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
