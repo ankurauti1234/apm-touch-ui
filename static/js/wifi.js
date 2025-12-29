@@ -349,7 +349,7 @@ async function updateMainDashboardWiFiStatus() {
     }
 }
 async function updateBottomBarWiFiStatus() {
-    const bottomBars = document.querySelectorAll('.bottom-bar-allpage .bar-inner');
+    const bottomBars = document.getElementsByClassName('bottom-bar-allpage');
     if (bottomBars.length === 0) return;
 
     try {
