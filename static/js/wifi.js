@@ -255,8 +255,7 @@ async function connectWiFi() {
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
-        // Immediate update for both UI elements
-        updateBottomBarWiFiStatus();
+        // Immediate update after connection attempt
         updateMainDashboardWiFiStatus();
     }
 }
@@ -287,8 +286,7 @@ async function disconnectWiFi() {
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
-        // Immediate update for both UI elements
-        updateBottomBarWiFiStatus();
+        // Immediate update after disconnection
         updateMainDashboardWiFiStatus();
     }
 }
