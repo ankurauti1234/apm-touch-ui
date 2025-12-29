@@ -31,9 +31,22 @@ function render(details = null) {
     } else {
         // All other states – wrapped in card + progress bar
         container.innerHTML = `
-            <div class="container"><div class="card">
-                <div id="progress-bar-temp"></div>${html}
-            </div></div>`;
+            <div class="container">
+                <div class="card">
+                    <div id="progress-bar-temp"></div>${html}
+                </div>
+                <div id="bottom-bar-allpage">
+                    <!-- Bottom Left -->
+                    <div id="bottom-bar-left">
+                        <button class="bar-btn" onclick="showSettingsPopup()">
+                            <span class="material-icons">settings</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Bottom Right -->
+                    <div id="bottom-bar-right"></div>
+                </div>
+            </div>`;
 
         // Move progress bar into place
         const tmp = container.querySelector('#progress-bar-temp');
