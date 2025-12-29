@@ -39,7 +39,10 @@ function render(details = null) {
                     <!-- Bottom Left -->
                     <div id="bottom-bar-left">
                         <button class="bar-btn" onclick="showSettingsPopup()">
-                            <span class="material-icons">settings</span>
+                            <span class="material-icons" style="font-size:1.7rem;">settings</span>
+                        </button>
+                        <button class="bar-btn" onclick="showMeterIdPopup()">
+                            <span class="material-icons" style="font-size:1.7rem;">info</span>
                         </button>
                     </div>
                     
