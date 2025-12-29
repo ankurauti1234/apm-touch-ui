@@ -357,12 +357,14 @@ async function updateBottomBarWiFiStatus() {
         const data = await res.json();
 
         let icon = 'wifi_off';
-        let color = '#999'; // gray
+        let color = '#000000ff'; // black
+        let backgroundColor = '#68757a'; // grey
         let text = 'Disconnected';
 
         if (data.success && data.ssid) {
             icon = 'wifi';
-            color = '#4caf50'; // green
+            color = '#ffffffff'; // white
+            backgroundColor = '#1565c0'; // blue
             text = data.ssid;
 
             currentWiFiStatus = { connected: true, ssid: data.ssid, strength: 'good' };
@@ -370,32 +372,45 @@ async function updateBottomBarWiFiStatus() {
             currentWiFiStatus = { connected: false, ssid: null, strength: null };
         }
 
-        bottomBars.forEach(bar => {
-            let statusEl = bar.querySelector('.wifi-status');
-            if (!statusEl) {
-                statusEl = document.createElement('div');
-                statusEl.className = 'wifi-status';
-                statusEl.style.cssText = `
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 16px;
-                    color: black;
-                    margin-left: auto;
-                    padding-right: 12px;
-                `;
-                bar.appendChild(statusEl);
-            }
+        bottomBars.innerHTML = `
+            <button class="bar-btn" id="bar-btn-wifi" style="color:${color}; background-color:${backgroundColor};" onclick="showWiFiPopup()">
+                <span style="max-width:350px;overflow:hidden;text-overflow:ellipsis;">${text} &nbsp;</span>
+                <span class="material-icons">${icon}</span>
+            </button>
+        `;
 
-            statusEl.innerHTML = `
-                <span style="white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-                    ${text}
-                </span>
-                <span class="material-icons" style="font-size: 24px; color: ${color};">${icon}</span>
-            `;
-        });
+        // bottomBars.forEach(bar => {
+        //     let statusEl = bar.querySelector('.bottom-bar-allpage');
+        //     if (!statusEl) {
+        //         statusEl = document.createElement('div');
+        //         statusEl.className = 'wifi-status';
+        //         statusEl.style.cssText = `
+        //             display: flex;
+        //             align-items: center;
+        //             gap: 8px;
+        //             font-size: 16px;
+        //             color: black;
+        //             margin-left: auto;
+        //             padding-right: 12px;
+        //         `;
+        //         bar.appendChild(statusEl);
+        //     }
+
+        //     statusEl.innerHTML = `
+        //         <span style="white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+        //             ${text}
+        //         </span>
+        //         <span class="material-icons" style="font-size: 24px; color: ${color};">${icon}</span>
+        //     `;
+        // });
     } catch (e) {
-        console.warn("Failed to update Wi-Fi status in bottom bar:", e);
+        statusEl.innerHTML = `
+            <button class="bar-btn" id="bar-btn-wifi" style="color:${color}; background-color:${backgroundColor};" onclick="showWiFiPopup()">
+                <span>Disconnected &nbsp;</span>
+                <span class="material-icons">wifi_off</span>
+            </button>
+        `;
+        // console.warn("Failed to update Wi-Fi status in bottom bar:", e);
     }
 }
 
