@@ -323,15 +323,28 @@ const states = {
                 `).join('')}
             </div>
             <div class="bottom-bar">
-                <button class="bar-btn" onclick="showEditMemberPopup()">
-                    <span class="material-icons">edit</span>
-                </button>
-                <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-                <button class="bar-btn" onclick="openDialog()">
-                     <span class="material-icons">add</span>
-                     <span class="btn-text">Add Guest</span>
-                 </button>
-                 <span class="guest-count">${guests.length} / 8 Guests</span>
+                <div class="bar-left">
+                    <button class="bar-btn" id="bar-btn-settings" onclick="showSettingsPopup()">
+                        <span class="material-icons ">settings</span>
+                    </button>
+                    <button class="bar-btn" id="bar-btn-edit_member" onclick="showEditMemberPopup()">
+                        <span class="material-icons">edit</span>
+                    </button>
+                    <button class="bar-btn" id="bar-btn-details" onclick="showEditMemberPopup()">
+                        <span class="material-icons">info</span>
+                    </button>
+                </div>
+                <div class="bar-right">
+                    <button class="bar-btn" id="bar-btn-add_guest" onclick="openDialog()">
+                        <span class="material-icons">add</span>
+                        <span class="btn-text">Add Guest &nbsp;</span>
+                        <span class="guest-count">${guests.length} / 8</span>
+                    </button>
+                    <button class="bar-btn" id="bar-btn-wifi" onclick="showWiFiPopup()">
+                        <span class="btn-text">Disconnected &nbsp;</span>
+                        <span class="material-icons ">wifi</span>
+                    </button>
+                </div>
             </div>
             <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
             </div>

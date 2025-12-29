@@ -193,7 +193,7 @@ function updateGuestCounter() {
     if (header) header.textContent = count;
 
     const bottom = document.querySelector('.guest-count');
-    if (bottom) bottom.textContent = `${count} / 8 Guests`;
+    if (bottom) bottom.textContent = `${count} / 8`;
 
     const btn = document.getElementById('add-guest-btn');
     if (btn) {
@@ -220,7 +220,7 @@ async function loadGuestsFromServer() {
 
 function renderGuestCountInMain() {
     const el = document.querySelector('.guest-count');
-    if (el) el.textContent = `${guests.length} / 8 Guests`;
+    if (el) el.textContent = `${guests.length} / 8`;
 }
 
 async function updateGuestCountFromFile() {
@@ -230,7 +230,7 @@ async function updateGuestCountFromFile() {
         if (data.success) {
             const count = data.count;
             const bottom = document.querySelector('.guest-count');
-            if (bottom) bottom.textContent = `${count} / 8 Guests`;
+            if (bottom) bottom.textContent = `${count} / 8`;
 
             const header = document.getElementById('guest-counter-header');
             if (header) header.textContent = count;

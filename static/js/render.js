@@ -26,6 +26,8 @@ function render(details = null) {
             });
         }, 10);
 
+        updateMainDashboardWiFiStatus();
+
     } else {
         // All other states – wrapped in card + progress bar
         container.innerHTML = `
@@ -41,6 +43,7 @@ function render(details = null) {
         }
         progressBar.style.display = 'flex';
         updateProgressBar();
+        updateBottomBarWiFiStatus();
     }
 }
 
