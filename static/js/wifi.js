@@ -349,70 +349,62 @@ async function updateMainDashboardWiFiStatus() {
     }
 }
 async function updateBottomBarWiFiStatus() {
-    const bottomBars = document.getElementsByClassName('bottom-bar-allpage');
-    if (bottomBars.length === 0) return;
+    const bottomBars = document.getElementById("bottom-bar-right");
+    if (!bottomBars) return;
+
+    let icon = "wifi_off";
+    let color = "#68757a";          // black
+    let text = "Disconnected";
 
     try {
-        const res = await fetch('/api/current_wifi');
+        const res = await fetch("/api/current_wifi");
+        if (!res.ok) throw new Error("Network error");
+
         const data = await res.json();
 
-        let icon = 'wifi_off';
-        let color = '#000000ff'; // black
-        let backgroundColor = '#68757a'; // grey
-        let text = 'Disconnected';
-
         if (data.success && data.ssid) {
-            icon = 'wifi';
-            color = '#ffffffff'; // white
-            backgroundColor = '#1565c0'; // blue
+            icon = "wifi";
+            color = "#1565c0";         // blue
             text = data.ssid;
-
-            currentWiFiStatus = { connected: true, ssid: data.ssid, strength: 'good' };
-        } else {
-            currentWiFiStatus = { connected: false, ssid: null, strength: null };
         }
-
-        bottomBars.innerHTML = `
-            <button class="bar-btn" id="bar-btn-wifi" style="color:${color}; background-color:${backgroundColor};" onclick="showWiFiPopup()">
-                <span style="max-width:350px;overflow:hidden;text-overflow:ellipsis;">${text} &nbsp;</span>
-                <span class="material-icons">${icon}</span>
-            </button>
-        `;
-
-        // bottomBars.forEach(bar => {
-        //     let statusEl = bar.querySelector('.bottom-bar-allpage');
-        //     if (!statusEl) {
-        //         statusEl = document.createElement('div');
-        //         statusEl.className = 'wifi-status';
-        //         statusEl.style.cssText = `
-        //             display: flex;
-        //             align-items: center;
-        //             gap: 8px;
-        //             font-size: 16px;
-        //             color: black;
-        //             margin-left: auto;
-        //             padding-right: 12px;
-        //         `;
-        //         bar.appendChild(statusEl);
-        //     }
-
-        //     statusEl.innerHTML = `
-        //         <span style="white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-        //             ${text}
-        //         </span>
-        //         <span class="material-icons" style="font-size: 24px; color: ${color};">${icon}</span>
-        //     `;
-        // });
     } catch (e) {
-        statusEl.innerHTML = `
-            <button class="bar-btn" id="bar-btn-wifi" style="color:${color}; background-color:${backgroundColor};" onclick="showWiFiPopup()">
-                <span>Disconnected &nbsp;</span>
-                <span class="material-icons">wifi_off</span>
-            </button>
-        `;
-        // console.warn("Failed to update Wi-Fi status in bottom bar:", e);
+        // intentionally fall back to Disconnected state
+        console.warn("Wi-Fi status fetch failed:", e);
     }
+
+    // Ensure Wi-Fi button exists
+    let wifiBtn = document.getElementById("bar-btn-wifi");
+
+    if (!wifiBtn) {
+        bottomBars.insertAdjacentHTML(
+            "beforeend",
+            `
+            <button class="bar-btn" id="bar-btn-wifi" onclick="showWiFiPopup()">
+                <span class="wifi-text"></span>
+                <span> &nbsp; </span>
+                <span class="material-icons"></span>
+            </button>
+            `
+        );
+        wifiBtn = document.getElementById("bar-btn-wifi");
+    }
+
+    // Update button content
+    const textEl = wifiBtn.querySelector(".wifi-text");
+    const iconEl = wifiBtn.querySelector(".material-icons");
+
+    wifiBtn.style.color = color;
+
+    textEl.textContent = `${text} `;
+    textEl.style.maxWidth = "350px";
+    textEl.style.overflow = "hidden";
+    textEl.style.textOverflow = "ellipsis";
+    textEl.style.whiteSpace = "nowrap";
+    textEl.style.display = "inline-block";
+
+    iconEl.textContent = icon;
 }
+
 
 
 

@@ -746,10 +746,27 @@ ul li {
     /* Fine-tune vertical position if needed */
 }
 
-/* .bottom-bar-allpage.lifted {
-    transform: translateY(-280px);   
-} */
- 
+#bottom-bar-left {
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+    scale: 1.5;
+}
+
+#bottom-bar-right {
+    position: fixed;
+    bottom: 0px;
+    right: 5px;
+    scale: 1.2;
+}
+
+/* .bar-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
 /* GUEST DIALOG STYLES */
 /* GUEST DIALOG – FINAL VERSION – ROCK SOLID */
 #guest-overlay {

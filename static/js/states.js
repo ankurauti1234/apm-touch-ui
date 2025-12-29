@@ -49,11 +49,15 @@ const states = {
                 </button>
             </div>
         `}
-        <div class="bottom-bar-allpage">
-            <button class="bar-btn" onclick="showSettingsPopup()">
-                <span class="material-icons">settings</span>
-            </button>
-            <!-- Add more buttons here if you want -->
+        <div id="bottom-bar-allpage">
+            <!-- Bottom Left -->
+            <div id="bottom-bar-left">
+                <button class="bar-btn" onclick="showSettingsPopup()">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+            <!-- Bottom Right -->
+            <div id="bottom-bar-right"></div>
         </div>`,
 
     network_test: (status = null) => `
