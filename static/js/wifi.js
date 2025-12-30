@@ -334,31 +334,31 @@ if (!document.getElementById('wifi-spinner-style')) {
             const data = await res.json();
     
             let icon = 'wifi_off';
-            let iconColor = '#000000ff';     // black for disconnected
+            let iconColor = '#000000ff';     // black when disconnected
             let textColor = '#000000ff';     // always black text
-            let backgroundColor = '#68757a'; // grey background
+            let backgroundColor = '#f1f3f4';  // ← Light gray – common for "Add Guest" style buttons
             let text = 'Disconnected';
     
             if (data.success && data.ssid) {
                 icon = 'wifi';
-                iconColor = '#4caf50';       // GREEN only for icon when connected
-                backgroundColor = '#1565c0'; // blue background when connected
+                iconColor = '#4caf50';       // Green icon when connected
                 text = data.ssid;
+                // background stays the same neutral color for consistency
             }
     
             statusEl.innerHTML = `
                 <button class="bar-btn" id="bar-btn-wifi" style="background-color:${backgroundColor};" onclick="showWiFiPopup()">
-                    <span style="color:${textColor}; max-width:350px; overflow:hidden; text-overflow:ellipsis; display:inline-block;">
+                    <span style="color:${textColor}; max-width:350px; overflow:hidden; text-overflow:ellipsis; display:inline-block; vertical-align:middle;">
                         ${text} &nbsp;
                     </span>
-                    <span class="material-icons" style="color:${iconColor};">${icon}</span>
+                    <span class="material-icons" style="color:${iconColor}; font-size:28px; vertical-align:middle;">${icon}</span>
                 </button>
             `;
         } catch (e) {
             statusEl.innerHTML = `
-                <button class="bar-btn" id="bar-btn-wifi" style="background-color:#68757a;" onclick="showWiFiPopup()">
-                    <span style="color:#000000ff;">Disconnected &nbsp;</span>
-                    <span class="material-icons" style="color:#000000ff;">wifi_off</span>
+                <button class="bar-btn" id="bar-btn-wifi" style="background-color:#f1f3f4;" onclick="showWiFiPopup()">
+                    <span style="color:#000000ff; vertical-align:middle;">Disconnected &nbsp;</span>
+                    <span class="material-icons" style="color:#000000ff; font-size:28px; vertical-align:middle;">wifi_off</span>
                 </button>
             `;
         }
