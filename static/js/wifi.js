@@ -325,97 +325,102 @@ if (!document.getElementById('wifi-spinner-style')) {
     Wi-Fi Status Updating in Main Dashboard and Bottom Bar
     ============================================================== */
 
-async function updateMainDashboardWiFiStatus() {
-    const statusEl = document.getElementById('bar-wifi-status');
-    if (!statusEl) return;
-
-    try {
-        const res = await fetch('/api/current_wifi');
-        const data = await res.json();
-
-        let icon = 'wifi_off';
-        let color = '#000000ff'; // black for disconnected
-        let backgroundColor = '#68757a'; // grey background
-        let text = 'Disconnected';
-
-        if (data.success && data.ssid) {
-            icon = 'wifi';
-            color = '#4caf50';      // GREEN for connected
-            backgroundColor = '#1565c0'; // keep blue background or change if desired
-            text = data.ssid;
+    async function updateMainDashboardWiFiStatus() {
+        const statusEl = document.getElementById('bar-wifi-status');
+        if (!statusEl) return;
+    
+        try {
+            const res = await fetch('/api/current_wifi');
+            const data = await res.json();
+    
+            let icon = 'wifi_off';
+            let iconColor = '#000000ff';     // black for disconnected
+            let textColor = '#000000ff';     // always black text
+            let backgroundColor = '#68757a'; // grey background
+            let text = 'Disconnected';
+    
+            if (data.success && data.ssid) {
+                icon = 'wifi';
+                iconColor = '#4caf50';       // GREEN only for icon when connected
+                backgroundColor = '#1565c0'; // blue background when connected
+                text = data.ssid;
+            }
+    
+            statusEl.innerHTML = `
+                <button class="bar-btn" id="bar-btn-wifi" style="background-color:${backgroundColor};" onclick="showWiFiPopup()">
+                    <span style="color:${textColor}; max-width:350px; overflow:hidden; text-overflow:ellipsis; display:inline-block;">
+                        ${text} &nbsp;
+                    </span>
+                    <span class="material-icons" style="color:${iconColor};">${icon}</span>
+                </button>
+            `;
+        } catch (e) {
+            statusEl.innerHTML = `
+                <button class="bar-btn" id="bar-btn-wifi" style="background-color:#68757a;" onclick="showWiFiPopup()">
+                    <span style="color:#000000ff;">Disconnected &nbsp;</span>
+                    <span class="material-icons" style="color:#000000ff;">wifi_off</span>
+                </button>
+            `;
         }
-
-        statusEl.innerHTML = `
-            <button class="bar-btn" id="bar-btn-wifi" style="color:${color}; background-color:${backgroundColor};" onclick="showWiFiPopup()">
-                <span style="max-width:350px;overflow:hidden;text-overflow:ellipsis;">${text} &nbsp;</span>
-                <span class="material-icons">${icon}</span>
-            </button>
-        `;
-    } catch (e) {
-        statusEl.innerHTML = `
-            <button class="bar-btn" id="bar-btn-wifi" style="color:#000000ff; background-color:#68757a;" onclick="showWiFiPopup()">
-                <span>Disconnected &nbsp;</span>
-                <span class="material-icons">wifi_off</span>
-            </button>
-        `;
     }
-}
 
-async function updateBottomBarWiFiStatus() {
-    const bottomBars = document.getElementById("bottom-bar-right");
-    if (!bottomBars) return;
-
-    let icon = "wifi_off";
-    let color = "#070808";          // dark gray/black for disconnected
-    let text = "Disconnected";
-
-    try {
-        const res = await fetch("/api/current_wifi");
-        if (!res.ok) throw new Error("Network error");
-
-        const data = await res.json();
-
-        if (data.success && data.ssid) {
-            icon = "wifi";
-            color = "#4caf50";         // GREEN for connected
-            text = data.ssid;
+    async function updateBottomBarWiFiStatus() {
+        const bottomBars = document.getElementById("bottom-bar-right");
+        if (!bottomBars) return;
+    
+        let icon = "wifi_off";
+        let iconColor = "#070808";      // dark for disconnected
+        let textColor = "#070808";      // always dark text
+        let text = "Disconnected";
+    
+        try {
+            const res = await fetch("/api/current_wifi");
+            if (!res.ok) throw new Error("Network error");
+    
+            const data = await res.json();
+    
+            if (data.success && data.ssid) {
+                icon = "wifi";
+                iconColor = "#4caf50";     // GREEN only for icon
+                text = data.ssid;
+            }
+        } catch (e) {
+            console.warn("Wi-Fi status fetch failed:", e);
         }
-    } catch (e) {
-        console.warn("Wi-Fi status fetch failed:", e);
+    
+        // Ensure Wi-Fi button exists
+        let wifiBtn = document.getElementById("bar-btn-wifi");
+    
+        if (!wifiBtn) {
+            bottomBars.insertAdjacentHTML(
+                "beforeend",
+                `
+                <button class="bar-btn" id="bar-btn-wifi" onclick="showWiFiPopup()">
+                    <span class="wifi-text"></span>
+                    <span> &nbsp; </span>
+                    <span class="material-icons"></span>
+                </button>
+                `
+            );
+            wifiBtn = document.getElementById("bar-btn-wifi");
+        }
+    
+        const textEl = wifiBtn.querySelector(".wifi-text");
+        const iconEl = wifiBtn.querySelector(".material-icons");
+    
+        // Text stays dark/black, icon gets special color
+        textEl.style.color = textColor;
+        iconEl.style.color = iconColor;
+    
+        textEl.textContent = `${text} `;
+        textEl.style.maxWidth = "350px";
+        textEl.style.overflow = "hidden";
+        textEl.style.textOverflow = "ellipsis";
+        textEl.style.whiteSpace = "nowrap";
+        textEl.style.display = "inline-block";
+    
+        iconEl.textContent = icon;
     }
-
-    // Ensure Wi-Fi button exists
-    let wifiBtn = document.getElementById("bar-btn-wifi");
-
-    if (!wifiBtn) {
-        bottomBars.insertAdjacentHTML(
-            "beforeend",
-            `
-            <button class="bar-btn" id="bar-btn-wifi" onclick="showWiFiPopup()">
-                <span class="wifi-text"></span>
-                <span> &nbsp; </span>
-                <span class="material-icons"></span>
-            </button>
-            `
-        );
-        wifiBtn = document.getElementById("bar-btn-wifi");
-    }
-
-    // Update content
-    const textEl = wifiBtn.querySelector(".wifi-text");
-    const iconEl = wifiBtn.querySelector(".material-icons");
-
-    wifiBtn.style.color = color;  // this changes both text and icon color
-
-    textEl.textContent = `${text} `;
-    textEl.style.maxWidth = "350px";
-    textEl.style.overflow = "hidden";
-    textEl.style.textOverflow = "ellipsis";
-    textEl.style.whiteSpace = "nowrap";
-    textEl.style.display = "inline-block";
-
-    iconEl.textContent = icon;
-}
 
 
 let wifiPollingInterval = null;
