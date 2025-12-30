@@ -2171,3 +2171,20 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
     -moz-appearance: textfield;
 }
+
+/* Base position for icons */
+.icon-left, .icon-right {
+    position: absolute;
+    top: 10px; /* adjust vertical position */
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+/* Lifted positions when keyboard is shown */
+.icon-left.lifted {
+    left: 0;        /* hug the left edge */
+}
+
+.icon-right.lifted {
+    right: 0;       /* hug the right edge */
+}
