@@ -30,7 +30,28 @@ function render(details = null) {
 
     } else {
         // All other states – wrapped in card + progress bar
-        container.innerHTML = `
+        if(currentState === "finalize"){
+            container.innerHTML = `
+            <div class="container">
+                <div class="card">
+                    <div id="progress-bar-temp"></div>${html}
+                </div>
+                <div id="bottom-bar-allpage">
+                    <!-- Bottom Left -->
+                    <div id="bottom-bar-left">
+                        <button class="bar-btn" onclick="showSettingsPopup()">
+                            <span class="material-icons" style="font-size:1.7rem;">settings</span>
+                        </button>
+                        <button class="bar-btn" onclick="showMeterIdPopup()">
+                            <span class="material-icons" style="font-size:1.7rem;">info</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Bottom Right -->
+                </div>
+            </div>`;
+        } else { 
+            container.innerHTML = `
             <div class="container">
                 <div class="card">
                     <div id="progress-bar-temp"></div>${html}
@@ -50,6 +71,7 @@ function render(details = null) {
                     <div id="bottom-bar-right"></div>
                 </div>
             </div>`;
+        }
 
         // Move progress bar into place
         const tmp = container.querySelector('#progress-bar-temp');
