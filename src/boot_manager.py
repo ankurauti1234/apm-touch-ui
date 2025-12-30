@@ -5,7 +5,7 @@ import threading
 from src.config import DB_PATH, METER_ID  # Adjust import based on your project structure
 from src.config import load_hhid
 from src.users.members import load_members_data
-from mqtt import _enqueue, _pub_q, _q_lock, calculate_age  # Assuming you have a mqtt module
+from src.mqtt import _enqueue, _pub_q, _q_lock, calculate_age  # Assuming you have a mqtt module
 
 LAST_BOOT_ID_FILE = "/var/lib/meter_last_boot_id.txt"
 
