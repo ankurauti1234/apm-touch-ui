@@ -24,6 +24,7 @@ function showKeyboard(el) {
     leftIcons.forEach(icon => icon.classList.add('lifted'));
     rightIcons.forEach(icon => icon.classList.add('lifted'));
 
+
     // Do NOT show keyboard when guest dialog is open (uses its own numpad)
     if (document.getElementById('guest-overlay')) {
         return;
@@ -216,6 +217,7 @@ function hideKeyboard() {
 
     leftIcons.forEach(icon => icon.classList.remove('lifted'));
     rightIcons.forEach(icon => icon.classList.remove('lifted'));
+
 
     document.querySelector('.container')?.classList.remove('lifted');
     document.querySelector('.bottom-bar-allpage')?.classList.remove('lifted');

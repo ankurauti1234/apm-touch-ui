@@ -2172,21 +2172,21 @@ input[type="number"] {
     -moz-appearance: textfield;
 }
 
-/* Virtual keyboard icon positions */
+/* Base positions */
 .icon-left, .icon-right {
-    position: absolute; /* default position */
-    top: 10px;
+    position: absolute; /* normal state */
+    top: 10px;          /* adjust vertical position */
     transition: all 0.3s ease;
     z-index: 1000;
 }
 
-/* Lifted positions when keyboard is active */
+/* When keyboard is up */
 .icon-left.lifted {
-    position: fixed;  /* relative to viewport so it goes to edge */
-    left: 5px;        /* adjust gap from left screen edge */
+    position: fixed;    /* relative to viewport */
+    left: 0;            /* far left edge */
 }
 
 .icon-right.lifted {
-    position: fixed;  /* relative to viewport so it goes to edge */
-    right: 5px;       /* adjust gap from right screen edge */
+    position: fixed;    /* relative to viewport */
+    right: 0;           /* far right edge */
 }
