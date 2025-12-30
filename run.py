@@ -69,6 +69,17 @@ class BrowserWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    import sys
+    import time
+    import threading
+    from PyQt5.QtWidgets import QApplication  # or: from PySide6.QtWidgets import QApplication
+
+    # === REQUIRED IMPORTS (these were missing) ===
+    from src.mqtt import start_mqtt          # adjust path/name if different
+    from src.db import init_db               # adjust path if init_db is elsewhere
+    from src.flask_app import app            # adjust path to your Flask app instance
+    from src.ui import BrowserWindow         # adjust path to your BrowserWindow class
+
     print("Starting MQTT...")
     start_mqtt()
     time.sleep(2)
@@ -76,7 +87,7 @@ if __name__ == "__main__":
     print("Initializing database...")
     init_db()
 
-    # === ADDED: Fresh boot detection and reset ===
+    # === Fresh boot check (you wanted this added) ===
     print("Checking for fresh boot...")
     from src.boot_manager import perform_fresh_boot_reset
     perform_fresh_boot_reset()
