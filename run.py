@@ -1,21 +1,24 @@
 # run.py — FINAL WORKING VERSION
 import os
 import sys
-import time
 import threading
+import time
 
 # Force correct working directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from src.app import app
-from src.mqtt import start_mqtt
-from src.config import init_db
-
+from PyQt5.QtCore import QCoreApplication, Qt, QUrl
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineView
 # PyQt5
 from PyQt5.QtWidgets import QApplication, QMainWindow, QShortcut
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
-from PyQt5.QtCore import QUrl, Qt, QCoreApplication
-from PyQt5.QtGui import QKeySequence
+
+from src.app import app
+from src.config import init_db
+from src.mqtt import start_mqtt
+
+# === NEW: Import the fresh boot reset function ===
+from src.boot_manager import perform_fresh_boot_reset
 
 # Qt sandbox settings for restricted environments
 os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
@@ -75,6 +78,10 @@ if __name__ == "__main__":
 
     print("Initializing database...")
     init_db()
+
+    # === NEW: Fresh boot detection and reset ===
+    print("Checking for fresh boot...")
+    perform_fresh_boot_reset()   # This handles everything cleanly
 
     print("Starting Flask...")
     threading.Thread(target=lambda: app.run(
