@@ -17,6 +17,13 @@ function showKeyboard(el) {
     if (containerCard) containerCard.classList.add('lifted');
     if (bottomBar) bottomBar.classList.add('lifted');
 
+    // Move icons to corners
+    const leftIcons = document.querySelectorAll('.icon-left');
+    const rightIcons = document.querySelectorAll('.icon-right');
+
+    leftIcons.forEach(icon => icon.classList.add('lifted'));
+    rightIcons.forEach(icon => icon.classList.add('lifted'));
+
     // Do NOT show keyboard when guest dialog is open (uses its own numpad)
     if (document.getElementById('guest-overlay')) {
         return;
@@ -198,6 +205,17 @@ function hideKeyboard() {
         kb.classList.add('hiding');
         setTimeout(() => kb.remove(), 300);
     }
+    const containerCard = document.querySelector('.container');
+    const bottomBar = document.querySelector('.bottom-bar-allpage');
+    if (containerCard) containerCard.classList.remove('lifted');
+    if (bottomBar) bottomBar.classList.remove('lifted');
+
+    // Reset icon positions
+    const leftIcons = document.querySelectorAll('.icon-left');
+    const rightIcons = document.querySelectorAll('.icon-right');
+
+    leftIcons.forEach(icon => icon.classList.remove('lifted'));
+    rightIcons.forEach(icon => icon.classList.remove('lifted'));
 
     document.querySelector('.container')?.classList.remove('lifted');
     document.querySelector('.bottom-bar-allpage')?.classList.remove('lifted');
