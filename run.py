@@ -69,21 +69,60 @@ class BrowserWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-    print("Starting MQTT...")
-    start_mqtt()
-    time.sleep(2)
+    import sys
+    import time
+    import threading
+    from PyQt5.QtWidgets import QApplication  # or PySide6, depending on your setup
 
+    # === Add project root to path so imports work cleanly ===
+    import os
+    import sys
+    sys.path.insert(0, os.path.dirname(__file__))        # Root (for config.py, etc.)
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))  # For src/ package
+
+    # === 1. Start MQTT first ===
+    print("Starting MQTT...")
+    from src.mqtt import start_mqtt  # adjust path if your function is named init_mqtt
+    start_mqtt()  # or init_mqtt()
+    time.sleep(3)  # Give MQTT time to connect and possibly flush old messages
+
+    # === 2. Initialize database ===
     print("Initializing database...")
+    from src.db import init_db  # adjust import based on where init_db is
     init_db()
 
-    print("Starting Flask...")
-    threading.Thread(target=lambda: app.run(
-        host="0.0.0.0", port=5000, debug=False, use_reloader=False, threaded=True
-    ), daemon=True).start()
-    time.sleep(2)
+    # === 3. Perform fresh boot detection and reset ===
+    print("Checking for fresh boot...")
+    from src.boot_manager import perform_fresh_boot_reset
+    perform_fresh_boot_reset()
+    # This handles:
+    # - Detecting real reboot vs process restart
+    # - Resetting members/guests on fresh boot
+    # - Clearing stale queue
+    # - Re-queuing fresh clean events
+    # - Saving current boot_id
 
+    # === 4. Start Flask server ===
+    print("Starting Flask...")
+    from src.flask_app import app  # adjust import to where your Flask app is defined
+    threading.Thread(
+        target=lambda: app.run(
+            host="0.0.0.0",
+            port=5000,
+            debug=False,
+            use_reloader=False,
+            threaded=True
+        ),
+        daemon=True
+    ).start()
+    time.sleep(2)  # Let Flask start up
+
+    # === 5. Start Qt UI ===
     print("Starting UI...")
     qt_app = QApplication(sys.argv)
+    from src.ui import BrowserWindow  # adjust import as needed
     win = BrowserWindow()
     win.show()
+
+    print("Application fully started!")
     sys.exit(qt_app.exec_())
