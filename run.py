@@ -1,21 +1,24 @@
 # run.py — FINAL WORKING VERSION
 import os
 import sys
-import time
 import threading
+import time
 
 # Force correct working directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from src.app import app
-from src.mqtt import start_mqtt
-from src.config import init_db
-
+from PyQt5.QtCore import QCoreApplication, Qt, QUrl
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineView
 # PyQt5
 from PyQt5.QtWidgets import QApplication, QMainWindow, QShortcut
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
-from PyQt5.QtCore import QUrl, Qt, QCoreApplication
-from PyQt5.QtGui import QKeySequence
+
+from src.app import app
+from src.config import init_db
+from src.mqtt import start_mqtt
+
+# === NEW: Import the fresh boot reset function ===
+from src.boot_manager import perform_fresh_boot_reset
 
 # Qt sandbox settings for restricted environments
 os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
@@ -69,17 +72,6 @@ class BrowserWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-    import sys
-    import time
-    import threading
-    from PyQt5.QtWidgets import QApplication  # or: from PySide6.QtWidgets import QApplication
-
-    # === REQUIRED IMPORTS (these were missing) ===
-    from src.mqtt import start_mqtt          # adjust path/name if different
-    from src.db import init_db               # adjust path if init_db is elsewhere
-    from src.flask_app import app            # adjust path to your Flask app instance
-    from src.ui import BrowserWindow         # adjust path to your BrowserWindow class
-
     print("Starting MQTT...")
     start_mqtt()
     time.sleep(2)
@@ -87,10 +79,9 @@ if __name__ == "__main__":
     print("Initializing database...")
     init_db()
 
-    # === Fresh boot check (you wanted this added) ===
+    # === NEW: Fresh boot detection and reset ===
     print("Checking for fresh boot...")
-    from src.boot_manager import perform_fresh_boot_reset
-    perform_fresh_boot_reset()
+    perform_fresh_boot_reset()   # This handles everything cleanly
 
     print("Starting Flask...")
     threading.Thread(target=lambda: app.run(
