@@ -13,6 +13,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineView
 # PyQt5
 from PyQt5.QtWidgets import QApplication, QMainWindow, QShortcut
 
+
+
 from src.app import app
 from src.config import init_db
 from src.mqtt import start_mqtt
