@@ -334,14 +334,14 @@ async function updateMainDashboardWiFiStatus() {
         const data = await res.json();
 
         let icon = 'wifi_off';
-        let color = '#000000ff'; // black
-        let backgroundColor = '#68757a'; // grey
+        let color = '#000000ff'; // black for disconnected
+        let backgroundColor = '#68757a'; // grey background
         let text = 'Disconnected';
 
         if (data.success && data.ssid) {
             icon = 'wifi';
-            color = '#ffffffff'; // white
-            backgroundColor = '#1565c0'; // blue
+            color = '#4caf50';      // GREEN for connected
+            backgroundColor = '#1565c0'; // keep blue background or change if desired
             text = data.ssid;
         }
 
@@ -353,19 +353,20 @@ async function updateMainDashboardWiFiStatus() {
         `;
     } catch (e) {
         statusEl.innerHTML = `
-            <button class="bar-btn" id="bar-btn-wifi" style="color:${color}; background-color:${backgroundColor};" onclick="showWiFiPopup()">
+            <button class="bar-btn" id="bar-btn-wifi" style="color:#000000ff; background-color:#68757a;" onclick="showWiFiPopup()">
                 <span>Disconnected &nbsp;</span>
                 <span class="material-icons">wifi_off</span>
             </button>
         `;
     }
 }
+
 async function updateBottomBarWiFiStatus() {
     const bottomBars = document.getElementById("bottom-bar-right");
     if (!bottomBars) return;
 
     let icon = "wifi_off";
-    let color = "#68757a";          // black
+    let color = "#070808";          // dark gray/black for disconnected
     let text = "Disconnected";
 
     try {
@@ -376,11 +377,10 @@ async function updateBottomBarWiFiStatus() {
 
         if (data.success && data.ssid) {
             icon = "wifi";
-            color = "#1565c0";         // blue
+            color = "#4caf50";         // GREEN for connected
             text = data.ssid;
         }
     } catch (e) {
-        // intentionally fall back to Disconnected state
         console.warn("Wi-Fi status fetch failed:", e);
     }
 
@@ -401,11 +401,11 @@ async function updateBottomBarWiFiStatus() {
         wifiBtn = document.getElementById("bar-btn-wifi");
     }
 
-    // Update button content
+    // Update content
     const textEl = wifiBtn.querySelector(".wifi-text");
     const iconEl = wifiBtn.querySelector(".material-icons");
 
-    wifiBtn.style.color = color;
+    wifiBtn.style.color = color;  // this changes both text and icon color
 
     textEl.textContent = `${text} `;
     textEl.style.maxWidth = "350px";
@@ -416,8 +416,6 @@ async function updateBottomBarWiFiStatus() {
 
     iconEl.textContent = icon;
 }
-
-
 
 
 let wifiPollingInterval = null;
