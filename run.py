@@ -25,6 +25,8 @@ os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox"
 os.environ["XDG_RUNTIME_DIR"] = "/tmp/runtime-root"
 os.makedirs("/tmp/runtime-root", exist_ok=True)
 os.chmod("/tmp/runtime-root", 700)
+os.environ["QT_QPA_PLATFORM"] = "xcb"  # or "offscreen" if no display needed
+os.environ["DISPLAY"] = ":0"  # if X server is running
 
 
 class BrowserWindow(QMainWindow):
