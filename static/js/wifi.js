@@ -411,6 +411,7 @@ if (!document.getElementById('wifi-spinner-style')) {
         // Text stays dark/black, icon gets special color
         textEl.style.color = textColor;
         iconEl.style.color = iconColor;
+        iconEl.style.fontSize = "28px";
     
         textEl.textContent = `${text} `;
         textEl.style.maxWidth = "350px";
