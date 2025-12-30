@@ -2188,5 +2188,5 @@ input[type="number"] {
 
 .icon-right.lifted {
     position: fixed;    /* relative to viewport */
-    right: 0;           /* far right edge */
+    right: -20px;           /* far right edge */
 }
