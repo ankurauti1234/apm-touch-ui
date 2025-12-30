@@ -2183,10 +2183,10 @@ input[type="number"] {
 /* When keyboard is up */
 .icon-left.lifted {
     position: fixed;    /* relative to viewport */
-    left: 20;            /* far left edge */
+    left: 0;            /* far left edge */
 }
 
 .icon-right.lifted {
     position: fixed;    /* relative to viewport */
-    right: -20px;           /* far right edge */
+    right: 0px;           /* far right edge */
 }
