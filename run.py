@@ -82,8 +82,8 @@ if __name__ == "__main__":
     init_db()
 
     # === NEW: Fresh boot detection and reset ===
-    print("Checking for fresh boot...")
-    perform_fresh_boot_reset()   # This handles everything cleanly
+    # print("Checking for fresh boot...")
+    # perform_fresh_boot_reset()   # This handles everything cleanly
 
     print("Starting Flask...")
     threading.Thread(target=lambda: app.run(
