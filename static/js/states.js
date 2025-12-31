@@ -292,46 +292,51 @@ const states = {
         const empty = max - shown.length;
 
         return `
-    <div class="layout-reset">
-        <div class="main-dashboard fixed-layout">
-            <div class="members-grid">
-                ${shown.map((m, i) => `
-                    <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
-                         onclick="toggleMember(${i})"
-                         style="--bg-image:url('${avatar(m.gender, m.dob)}')">
-                        <div class="name-tag">${m.member_code || '??'}</div>
-                    </div>`).join('')}
-                ${Array(empty).fill().map(() => `
-                    <div class="member-card-grid empty"><div class="name-tag">—</div></div>
-                `).join('')}
-            </div>
-            <div class="bottom-bar">
-                <div class="bar-left">
-                    <button class="bar-btn" id="bar-btn-settings" onclick="showSettingsPopup()">
-                        <span class="material-icons" style="font-size:1.7rem;">settings</span>
-                    </button>
-                    <button class="bar-btn" id="bar-btn-edit_member" onclick="showEditMemberPopup()">
-                        <span class="material-icons" style="font-size:1.7rem;">edit</span>
-                    </button>
-                    <button class="bar-btn" id="bar-btn-details" onclick="showMeterIdPopup()">
-                        <span class="material-icons" style="font-size:1.7rem;">info</span>
-                    </button>
+        <div class="layout-reset">
+            <div class="main-dashboard fixed-layout">
+                <!-- Only this part will be re-rendered when members/guests change -->
+                <div class="members-grid" id="members-grid">
+                    ${shown.map((m, i) => `
+                        <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
+                             onclick="toggleMember(${i})"
+                             style="--bg-image:url('${avatar(m.gender, m.dob)}')">
+                            <div class="name-tag">${m.member_code || '??'}</div>
+                        </div>`).join('')}
+                    ${Array(empty).fill().map(() => `
+                        <div class="member-card-grid empty"><div class="name-tag">—</div></div>
+                    `).join('')}
                 </div>
-                <div class="bar-right">
-                    <button class="bar-btn" id="bar-btn-add_guest" onclick="openDialog()">
-                        <span class="material-icons">add</span>
-                        <span class="btn-text">Add Guest &nbsp;</span>
-                        <span class="guest-count">${guests.length} / 8</span>
-                    </button>
-                    <div id="bar-wifi-status">
-                    
-                    </div>
-                </div>
-            </div>
-            <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+        
+                <!-- Bottom bar is now OUTSIDE the frequently updated section -->
             </div>
         </div>
-    </div>
-    <div id="screensaver"></div>`;
+        
+        <!-- Bottom bar rendered only ONCE (or separately) -->
+        <div class="bottom-bar" id="bottom-bar">
+            <div class="bar-left">
+                <button class="bar-btn" id="bar-btn-settings" onclick="showSettingsPopup()">
+                    <span class="material-icons" style="font-size:1.7rem;">settings</span>
+                </button>
+                <button class="bar-btn" id="bar-btn-edit_member" onclick="showEditMemberPopup()">
+                    <span class="material-icons" style="font-size:1.7rem;">edit</span>
+                </button>
+                <button class="bar-btn" id="bar-btn-details" onclick="showMeterIdPopup()">
+                    <span class="material-icons" style="font-size:1.7rem;">info</span>
+                </button>
+            </div>
+            <div class="bar-right">
+                <button class="bar-btn" id="bar-btn-add_guest" onclick="openDialog()">
+                    <span class="material-icons">add</span>
+                    <span class="btn-text">Add Guest &nbsp;</span>
+                    <span class="guest-count" id="guest-count">${guests.length} / 8</span>
+                </button>
+                <div id="bar-wifi-status"></div>
+            </div>
+        </div>
+        
+        <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+        </div>
+        
+        <div id="screensaver"></div>`;
     },
 };
