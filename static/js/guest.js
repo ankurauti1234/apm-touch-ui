@@ -91,6 +91,7 @@ function openDialog() {
     overlay.addEventListener('click', e => e.target === overlay && e.stopPropagation());
     loadGuestsForDialog();
     updateGuestCountFromFile();
+    updateMembersGrid();
 }
 
 function numpadPress(digit) {

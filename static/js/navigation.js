@@ -71,7 +71,16 @@ async function navigate(state, param = null) {
     if (state === 'main') {
         await fetchMembers();
         await loadGuestsFromServer();
-        render();
+
+        if (!isMainLayoutRendered) {
+            // First time entering main → build full layout with static bottom bar
+            renderMainDashboardLayout();
+            isMainLayoutRendered = true;
+        } else {
+            // Already on main → just update the dynamic parts (grid + guest count)
+            updateMembersGrid();
+        }
+
         updateGuestCountFromFile();
 
         // Start screensaver timer only on main screen
@@ -80,6 +89,7 @@ async function navigate(state, param = null) {
                 resetScreensaverTimer();
             }
         }, 100);
+
         return;
     }
 

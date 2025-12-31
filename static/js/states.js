@@ -3,7 +3,12 @@
    All HTML templates for each installation step
    ============================================================== */
 
-const states = {
+/* ==============================================================
+   states.js
+   All HTML templates for each installation step
+   ============================================================== */
+
+   const states = {
     loading: () => `
         <div class="loading"><div class="spinner"></div><p>Loading system...</p></div>`,
 
@@ -285,6 +290,9 @@ const states = {
         </div>
     </div>`,
 
+    // ================================================
+    // MAIN DASHBOARD - ONLY THE GRID (DYNAMIC PART)
+    // ================================================
     main: () => {
         const max = 8;
         const members = membersData?.members || [];
@@ -292,26 +300,35 @@ const states = {
         const empty = max - shown.length;
 
         return `
-        <div class="layout-reset">
-            <div class="main-dashboard fixed-layout">
-                <!-- Only this part will be re-rendered when members/guests change -->
-                <div class="members-grid" id="members-grid">
-                    ${shown.map((m, i) => `
-                        <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
-                             onclick="toggleMember(${i})"
-                             style="--bg-image:url('${avatar(m.gender, m.dob)}')">
-                            <div class="name-tag">${m.member_code || '??'}</div>
-                        </div>`).join('')}
-                    ${Array(empty).fill().map(() => `
-                        <div class="member-card-grid empty"><div class="name-tag">—</div></div>
-                    `).join('')}
-                </div>
-        
-                <!-- Bottom bar is now OUTSIDE the frequently updated section -->
+            <div class="members-grid" id="members-grid">
+                ${shown.map((m, i) => `
+                    <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
+                         onclick="toggleMember(${i})"
+                         style="--bg-image:url('${avatar(m.gender, m.dob)}')">
+                        <div class="name-tag">${m.member_code || '??'}</div>
+                    </div>`).join('')}
+                ${Array(empty).fill().map(() => `
+                    <div class="member-card-grid empty"><div class="name-tag">—</div></div>
+                `).join('')}
             </div>
+        `;
+    },
+};
+
+// ================================================
+// INITIAL LAYOUT + UPDATE FUNCTION (ADD THESE)
+// ================================================
+
+// Render the full dashboard layout ONCE when entering 'main' state
+function renderMainDashboardLayout() {
+    document.body.innerHTML = `
+    <div class="layout-reset">
+        <div class="main-dashboard fixed-layout">
+            <!-- Dynamic grid will be injected here -->
+            <div id="members-grid" class="members-grid"></div>
         </div>
-        
-        <!-- Bottom bar rendered only ONCE (or separately) -->
+
+        <!-- Static bottom bar - created once, never re-rendered -->
         <div class="bottom-bar" id="bottom-bar">
             <div class="bar-left">
                 <button class="bar-btn" id="bar-btn-settings" onclick="showSettingsPopup()">
@@ -328,15 +345,50 @@ const states = {
                 <button class="bar-btn" id="bar-btn-add_guest" onclick="openDialog()">
                     <span class="material-icons">add</span>
                     <span class="btn-text">Add Guest &nbsp;</span>
-                    <span class="guest-count" id="guest-count">${guests.length} / 8</span>
+                    <span class="guest-count" id="guest-count-display">${guests.length} / 8</span>
                 </button>
                 <div id="bar-wifi-status"></div>
             </div>
         </div>
-        
+
         <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>
-        
-        <div id="screensaver"></div>`;
-    },
-};
+    </div>
+    <div id="screensaver"></div>`;
+
+    // Now fill the grid for the first time
+    updateMembersGrid();
+}
+
+// Safe update function - only touches grid and guest count
+function updateMembersGrid() {
+    const grid = document.getElementById('members-grid');
+    if (!grid) return;
+
+    const max = 8;
+    const members = membersData?.members || [];
+    const shown = members.slice(0, max);
+    const empty = max - shown.length;
+
+    grid.innerHTML = `
+        ${shown.map((m, i) => `
+            <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
+                 onclick="toggleMember(${i})"
+                 style="--bg-image:url('${avatar(m.gender, m.dob)}')">
+                <div class="name-tag">${m.member_code || '??'}</div>
+            </div>`).join('')}
+        ${Array(empty).fill().map(() => `
+            <div class="member-card-grid empty"><div class="name-tag">—</div></div>
+        `).join('')}
+    `;
+
+    // Update guest count without recreating button
+    const guestCountEl = document.getElementById('guest-count-display');
+    if (guestCountEl) {
+        guestCountEl.textContent = `${guests.length} / 8`;
+    }
+}
+
+// Make functions globally available
+window.renderMainDashboardLayout = renderMainDashboardLayout;
+window.updateMembersGrid = updateMembersGrid;
