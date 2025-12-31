@@ -54,7 +54,6 @@ async function toggleMember(idx) {
         showError('Network error');
         console.error('Toggle member failed:', err);
     }
-    updateMembersGrid();
 }
 
 
