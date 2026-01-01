@@ -2190,12 +2190,12 @@ input[type="number"] {
 
 .icon-left {
     left: 20px;
-    bottom: 130px;   /* or top: 20px; depending on where they normally are */
+    bottom: -10px;   /* or top: 20px; depending on where they normally are */
 }
 
 .icon-right {
     right: 20px;
-    bottom: 80px;
+    bottom: -10px;
 }
 
 /* When keyboard open — move icons to extreme screen edges */
