@@ -129,7 +129,7 @@ const states = {
             </button>
         </div>
 
-        <div class="bottom-bar-allpage">
+        <div class="bottom-bar">
             <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
         </div>
          
