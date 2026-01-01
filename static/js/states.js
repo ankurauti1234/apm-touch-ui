@@ -128,12 +128,8 @@ const states = {
                 <span class="material-icons">arrow_back</span> Back
             </button>
         </div>
-
-        <div class="bottom-bar">
-            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-        </div>
          
-        <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+        <div style="position:fixed; bottom:1px; left:0px">
         </div>`,
 
     otp_verification: () => `
