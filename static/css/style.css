@@ -611,9 +611,9 @@ ul li {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgb(255, 0, 0);
+    background: white;
     /* border-top: 1px solid hsl(var(--border)); */
-    padding: 0.75rem;
+    padding: 0.5rem;
     gap: 1rem;
     display: flex;
     justify-content: flex-end;
