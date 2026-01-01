@@ -611,7 +611,7 @@ ul li {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgb(234, 0, 0);
+    background: white;
     /* border-top: 1px solid hsl(var(--border)); */
     padding: 0.75rem;
     gap: 1rem;
