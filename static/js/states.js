@@ -158,9 +158,6 @@ const states = {
                 <span class="material-icons">refresh</span> Resend OTP
             </button>
         </div>
-        <div class="bottom-bar-allpage">
-            <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-        </div>
          
         <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>

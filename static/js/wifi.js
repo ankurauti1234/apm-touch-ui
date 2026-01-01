@@ -158,7 +158,7 @@ async function scanWiFi() {
             container.innerHTML = '';
             d.networks.forEach(n => {
                 const li = document.createElement('li');
-                li.innerHTML = ` 
+                li.innerHTML = `
                     <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
                         <div>
                             <span>${n.ssid}</span>
@@ -215,8 +215,6 @@ async function connectWiFi() {
     const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
 
-    if (!loading || !err) return;
-
     loading.style.display = 'block';
 
     if (!selectedSSID || !pass) {
@@ -234,48 +232,30 @@ async function connectWiFi() {
             body: JSON.stringify({ ssid: selectedSSID, password: pass })
         });
         const d = await r.json();
-
         err.className = d.success ? 'success' : 'error';
-        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Connected!' : d.error || 'Connection failed'}`;
+        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Connected!' : d.error}`;
         err.style.display = 'flex';
 
         if (d.success) {
             setTimeout(async () => {
                 closeWiFiPopup();
-
-                // Fetch the latest actual Wi-Fi status from the server
-                try {
-                    const cur = await fetch('/api/current_wifi');
-                    const cd = await cur.json();
-
-                    if (cd.success && cd.ssid) {
-                        // Connected → show the current SSID
-                        navigate('connect_select', cd.ssid);
+                const cur = await fetch('/api/current_wifi');
+                const cd = await cur.json();
+                if (currentState !== 'main' && cd.success) {
+                    if (currentState !== 'connect_select' && cd.success) {
+                        return;
                     } else {
-                        // Not connected (edge case) → show disconnected state
-                        navigate('connect_select');
+                        navigate('connect_select', cd.ssid);
                     }
-                } catch (e) {
-                    // If fetch fails, assume disconnected
-                    navigate('connect_select');
-                }
-
-                // Update Wi-Fi status indicators
-                if (currentState === 'main') {
-                    updateMainDashboardWiFiStatus();
-                } else {
-                    updateBottomBarWiFiStatus();
                 }
             }, 2000);
         }
-    } catch (e) {
+    } catch {
         err.innerHTML = '<span class="material-icons">error</span> Connection failed';
-        err.className = 'error';
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
-
-        // Immediate UI update even if navigation is delayed
+        // Immediate update for both UI elements
         if (currentState === 'main') {
             updateMainDashboardWiFiStatus();
         } else {
@@ -287,32 +267,20 @@ async function connectWiFi() {
 async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
     const loading = document.getElementById('wifi-loading');
-
-    if (!loading || !err) return;
-
     try {
         loading.style.display = 'block';
-
         const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
         const d = await r.json();
-
         err.className = d.success ? 'success' : 'error';
-        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Disconnected' : d.error || 'Disconnect failed'}`;
+        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.message || d.error || 'Disconnected'}`;
         err.style.display = 'flex';
-
         if (d.success) {
             setTimeout(() => {
                 closeWiFiPopup();
-
-                // Always go to connect_select WITHOUT passing any SSID
-                // This ensures the "Connected to Wi-Fi: [SSID]" box disappears
-                navigate('connect_select');
-
-                // Update status indicators immediately
-                if (currentState === 'main') {
-                    updateMainDashboardWiFiStatus();
+                if (currentState !== 'connect_select' && cd.success) {
+                    return;
                 } else {
-                    updateBottomBarWiFiStatus();
+                    navigate('connect_select', cd.ssid);
                 }
             }, 1200);
         }
@@ -322,8 +290,7 @@ async function disconnectWiFi() {
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
-
-        // Force update Wi-Fi status in UI
+        // Immediate update for both UI elements
         if (currentState === 'main') {
             updateMainDashboardWiFiStatus();
         } else {
@@ -519,44 +486,3 @@ function showMeterIdPopup() {
         }
     });
 }
-
-// Keep bottom bar fixed when keyboard opens
-let initialViewportHeight = window.innerHeight;
-let keyboardShown = false;
-
-window.addEventListener('resize', () => {
-    const currentHeight = window.innerHeight;
-
-    // If viewport height decreased significantly → keyboard likely opened
-    if (currentHeight < initialViewportHeight - 100 && !keyboardShown) {
-        keyboardShown = true;
-        document.body.classList.add('keyboard-open');
-
-        // Force all bottom bars to stay at true bottom
-        document.querySelectorAll('.bottom-bar, .bottom-bar-allpage').forEach(bar => {
-            bar.style.position = 'fixed';
-            bar.style.bottom = '0';
-            bar.style.left = '0';
-            bar.style.right = '0';
-            bar.style.zIndex = '9999';
-        });
-    }
-    // Keyboard closed
-    else if (currentHeight >= initialViewportHeight - 100 && keyboardShown) {
-        keyboardShown = false;
-        document.body.classList.remove('keyboard-open');
-
-        // Optional: revert to original styles (if needed)
-        document.querySelectorAll('.bottom-bar, .bottom-bar-allpage').forEach(bar => {
-            bar.style.position = '';  // let CSS handle it again
-            bar.style.bottom = '';
-        });
-    }
-});
-
-// Reset on orientation change
-window.addEventListener('orientationchange', () => {
-    setTimeout(() => {
-        initialViewportHeight = window.innerHeight;
-    }, 500);
-});
