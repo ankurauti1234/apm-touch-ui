@@ -2190,5 +2190,6 @@ input[type="number"] {
 .icon-right.lifted {
     position: fixed;    /* relative to viewport */
     right: 0px;           /* far right edge */
+    margin-left: 60px;
 }
 
