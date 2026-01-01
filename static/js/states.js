@@ -127,9 +127,7 @@ const states = {
             <button class="button secondary" onclick="navigate('display_meter')">
                 <span class="material-icons">arrow_back</span> Back
             </button>
-        </div>
-         
-        <div style="position:fixed; bottom:1px; left:0px">
+        </div>         
         </div>`,
 
     otp_verification: () => `
