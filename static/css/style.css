@@ -2181,34 +2181,46 @@ input[type="number"] {
 }
 
 /* Normal state — icons positioned normally inside container */
+/* Normal state — icons inside the bottom area */
 .icon-left,
 .icon-right {
     position: absolute;
+    width: 60px;
+    height: 60px;
+    background: blue;           /* TEST: Blue in normal state */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 1000;
 }
 
 .icon-left {
     left: 20px;
-    bottom: -10px;   /* or top: 20px; depending on where they normally are */
+    bottom: 80px;    /* Above the bottom bar in normal position */
 }
 
 .icon-right {
     right: 20px;
-    bottom: -10px;
+    bottom: 80px;
 }
 
-/* When keyboard open — move icons to extreme screen edges */
+/* When keyboard open — move to bottom corners + change color */
 .icon-left.lifted {
     position: fixed !important;
-    left: 26px !important;    /* close to left edge */
-    bottom: 36px !important;  /* close to bottom edge (above keyboard) */
-    /* Or use top: 16px for top-left corner */
+    left: 26px !important;
+    bottom: 36px !important;
+    background: red !important;     /* TEST: Turns red when lifted */
+    z-index: 9999 !important;
 }
 
 .icon-right.lifted {
     position: fixed !important;
     right: 16px !important;
-    bottom: 16px !important;  /* close to bottom-right */
-    /* Or top: 16px for top-right */
+    bottom: 36px !important;
+    background: red !important;     /* TEST: Turns red when lifted */
+    z-index: 9999 !important;
 }
