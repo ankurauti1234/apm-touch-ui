@@ -15,7 +15,7 @@ function showKeyboard(el) {
     const containerCard = document.querySelector('.container');
     const bottomBar = document.querySelector('.bottom-bar-allpage');
     if (containerCard) containerCard.classList.add('lifted');
-    if (bottomBar) bottomBar.classList.add('lifted');
+        // if (bottomBar) bottomBar.classList.add('lifted');
 
     // Move icons to corners
     const leftIcons = document.querySelectorAll('.icon-left');
