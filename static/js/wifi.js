@@ -242,25 +242,27 @@ async function connectWiFi() {
         if (d.success) {
             setTimeout(async () => {
                 closeWiFiPopup();
-
-                // Fetch the latest actual Wi-Fi status from the server
+        
                 try {
                     const cur = await fetch('/api/current_wifi');
                     const cd = await cur.json();
-
-                    if (cd.success && cd.ssid) {
-                        // Connected → show the current SSID
-                        navigate('connect_select', cd.ssid);
-                    } else {
-                        // Not connected (edge case) → show disconnected state
-                        navigate('connect_select');
+        
+                    // Only navigate to connect_select if we were already there
+                    if (currentState === 'connect_select') {
+                        if (cd.success && cd.ssid) {
+                            navigate('connect_select', cd.ssid);  // show connected SSID
+                        } else {
+                            navigate('connect_select');  // show Wi-Fi/GSM choice (no SSID)
+                        }
                     }
+                    // Else: do NOTHING — stay on current page (main, settings, etc.)
                 } catch (e) {
-                    // If fetch fails, assume disconnected
-                    navigate('connect_select');
+                    if (currentState === 'connect_select') {
+                        navigate('connect_select');  // fallback
+                    }
                 }
-
-                // Update Wi-Fi status indicators
+        
+                // Always update Wi-Fi status indicators
                 if (currentState === 'main') {
                     updateMainDashboardWiFiStatus();
                 } else {
