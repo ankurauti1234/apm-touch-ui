@@ -172,9 +172,6 @@ const states = {
         <div class="button-group">
         </div>
     </div>
-    <div class="bottom-bar-allpage">
-        <button class="bar-btn" onclick="showSettingsPopup()"><span class="material-icons ">settings</span></button>
-    </div>
     </div>
 `,
 
