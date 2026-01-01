@@ -267,20 +267,32 @@ async function connectWiFi() {
 async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
     const loading = document.getElementById('wifi-loading');
+
+    if (!loading || !err) return;
+
     try {
         loading.style.display = 'block';
+
         const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
         const d = await r.json();
+
         err.className = d.success ? 'success' : 'error';
         err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.message || d.error || 'Disconnected'}`;
         err.style.display = 'flex';
+
         if (d.success) {
-            setTimeout(() => {
+            setTimeout(async () => {
                 closeWiFiPopup();
-                if (currentState !== 'connect_select' && cd.success) {
-                    return;
+
+                // Always navigate to connect_select without passing any SSID
+                // This forces it to use currentSSID = null → shows "Wi-Fi" and "GSM" buttons only
+                navigate('connect_select');  // ← NO second parameter!
+
+                // Optional: force refresh the status indicators
+                if (currentState === 'main') {
+                    updateMainDashboardWiFiStatus();
                 } else {
-                    navigate('connect_select', cd.ssid);
+                    updateBottomBarWiFiStatus();
                 }
             }, 1200);
         }
@@ -290,12 +302,6 @@ async function disconnectWiFi() {
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
-        // Immediate update for both UI elements
-        if (currentState === 'main') {
-            updateMainDashboardWiFiStatus();
-        } else {
-            updateBottomBarWiFiStatus();
-        }
     }
 }
 
