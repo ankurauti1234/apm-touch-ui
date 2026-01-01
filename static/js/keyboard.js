@@ -13,7 +13,7 @@ function showKeyboard(el) {
 
     // Lift main card and bottom bar
     const containerCard = document.querySelector('.container');
-    const bottomBar = document.querySelector('bottom-bar-allpage');
+    // const bottomBar = document.querySelector('.bottom-bar-allpage');
     if (containerCard) containerCard.classList.add('lifted');
     if (bottomBar) bottomBar.classList.add('.lifted');
 
