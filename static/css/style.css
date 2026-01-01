@@ -2202,7 +2202,7 @@ input[type="number"] {
 .icon-left.lifted {
     position: fixed !important;
     left: 26px !important;    /* close to left edge */
-    bottom: 26px !important;  /* close to bottom edge (above keyboard) */
+    bottom: 9px !important;  /* close to bottom edge (above keyboard) */
     /* Or use top: 16px for top-left corner */
 }
 
