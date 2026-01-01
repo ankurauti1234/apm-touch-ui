@@ -2180,4 +2180,13 @@ input[type="number"] {
     z-index: 1000;
 }
 
-
+.bottom-bar-allpage.lifted,
+.bottom-bar.lifted {
+    transform: translateY(-270px) !important;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    /* TEST: Make it obvious when lifted */
+    background-color: red !important;     /* Bright red background */
+    color: white !important;              /* White text so it's readable */
+    border-top: 4px solid yellow !important;  /* Extra visible indicator */
+}
