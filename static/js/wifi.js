@@ -215,6 +215,8 @@ async function connectWiFi() {
     const pass = document.getElementById('password')?.value;
     const err = document.getElementById('wifi-error');
 
+    if (!loading || !err) return;
+
     loading.style.display = 'block';
 
     if (!selectedSSID || !pass) {
@@ -232,30 +234,48 @@ async function connectWiFi() {
             body: JSON.stringify({ ssid: selectedSSID, password: pass })
         });
         const d = await r.json();
+
         err.className = d.success ? 'success' : 'error';
-        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Connected!' : d.error}`;
+        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Connected!' : d.error || 'Connection failed'}`;
         err.style.display = 'flex';
 
         if (d.success) {
             setTimeout(async () => {
                 closeWiFiPopup();
-                const cur = await fetch('/api/current_wifi');
-                const cd = await cur.json();
-                if (currentState !== 'main' && cd.success) {
-                    if (currentState !== 'connect_select' && cd.success) {
-                        return;
-                    } else {
+
+                // Fetch the latest actual Wi-Fi status from the server
+                try {
+                    const cur = await fetch('/api/current_wifi');
+                    const cd = await cur.json();
+
+                    if (cd.success && cd.ssid) {
+                        // Connected → show the current SSID
                         navigate('connect_select', cd.ssid);
+                    } else {
+                        // Not connected (edge case) → show disconnected state
+                        navigate('connect_select');
                     }
+                } catch (e) {
+                    // If fetch fails, assume disconnected
+                    navigate('connect_select');
+                }
+
+                // Update Wi-Fi status indicators
+                if (currentState === 'main') {
+                    updateMainDashboardWiFiStatus();
+                } else {
+                    updateBottomBarWiFiStatus();
                 }
             }, 2000);
         }
-    } catch {
+    } catch (e) {
         err.innerHTML = '<span class="material-icons">error</span> Connection failed';
+        err.className = 'error';
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
-        // Immediate update for both UI elements
+
+        // Immediate UI update even if navigation is delayed
         if (currentState === 'main') {
             updateMainDashboardWiFiStatus();
         } else {
@@ -267,20 +287,32 @@ async function connectWiFi() {
 async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
     const loading = document.getElementById('wifi-loading');
+
+    if (!loading || !err) return;
+
     try {
         loading.style.display = 'block';
+
         const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
         const d = await r.json();
+
         err.className = d.success ? 'success' : 'error';
-        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.message || d.error || 'Disconnected'}`;
+        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> ${d.success ? 'Disconnected' : d.error || 'Disconnect failed'}`;
         err.style.display = 'flex';
+
         if (d.success) {
             setTimeout(() => {
                 closeWiFiPopup();
-                if (currentState !== 'connect_select' && cd.success) {
-                    return;
+
+                // Always go to connect_select WITHOUT passing any SSID
+                // This ensures the "Connected to Wi-Fi: [SSID]" box disappears
+                navigate('connect_select');
+
+                // Update status indicators immediately
+                if (currentState === 'main') {
+                    updateMainDashboardWiFiStatus();
                 } else {
-                    navigate('connect_select', cd.ssid);
+                    updateBottomBarWiFiStatus();
                 }
             }, 1200);
         }
@@ -290,7 +322,8 @@ async function disconnectWiFi() {
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
-        // Immediate update for both UI elements
+
+        // Force update Wi-Fi status in UI
         if (currentState === 'main') {
             updateMainDashboardWiFiStatus();
         } else {
