@@ -157,7 +157,6 @@ const states = {
             </button>
         </div>
          
-        <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
         </div>
     `,
 
