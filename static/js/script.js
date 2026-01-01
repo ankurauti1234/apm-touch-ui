@@ -412,7 +412,7 @@
                        <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
                             onclick="toggleMember(${i})"
                             style="--bg-image:url('${avatar(m.gender, m.dob)}')">
-                           <div class="name-tag">${m.member_code || '??'}</div>
+                           <div class="name-tag">${m.name || m.member_code || '??'}</div>
                        </div>`).join('')}
                    ${Array(empty).fill().map(() => `
                        <div class="member-card-grid empty"><div class="name-tag">—</div></div>
@@ -1807,33 +1807,25 @@ function togglePasswordVisibility(e) {
    async function disconnectWiFi() {
     const err = document.getElementById('wifi-error');
     const loading = document.getElementById('wifi-loading');
-
     try {
         loading.style.display = 'block';
         err.style.display = 'none';
-
         const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
         const d = await r.json();
-
         err.className = d.success ? 'success' : 'error';
-        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span> 
+        err.innerHTML = `<span class="material-icons">${d.success ? 'check_circle' : 'error'}</span>
                          ${d.success ? 'Wi-Fi disconnected successfully' : d.error || 'Disconnect failed'}`;
         err.style.display = 'flex';
-
         if (d.success) {
-            // Just close popup and refresh UI — DO NOT navigate away
             setTimeout(() => {
                 closeWiFiPopup();
-
-                // Optional: refresh connectivity status indicators in dashboard/settings
-                // Example: if you have a function to update network status
-                // updateNetworkStatus();  
-
-                // Or trigger a soft refresh of current page
-                // refreshCurrentPage();  
+                // ← ONLY refresh connect_select if we are currently on it
+                if (currentState === 'connect_select') {
+                    navigate('connect_select'); // This refreshes the screen cleanly
+                }
+                // ← On main, settings, or any other screen → do nothing extra
             }, 1200);
         }
-
     } catch (e) {
         console.error("Disconnect error:", e);
         err.innerHTML = '<span class="material-icons">error</span> Disconnect failed (network error)';
@@ -2666,7 +2658,7 @@ function togglePasswordVisibility(e) {
     popup.className = 'popup';
 
     popup.innerHTML = `
-        <h2 style="margin-top: 0;"><span class="material-icons">edit</span> Edit Member Code</h2>
+        <h2 style="margin-top: 0;"><span class="material-icons">edit</span> Edit Name</h2>
         <p>Choose a member to edit</p>
         <div id="edit-error" class="error" style="display:none;"></div>
 
@@ -2691,7 +2683,7 @@ function togglePasswordVisibility(e) {
             </div>
 
             <div class="button-group" style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
-                <button class="button" onclick="saveMemberCode()" style="padding:10px 20px; background:#0066ff; color:white; border:none; border-radius:8px; cursor:pointer;">Save</button>
+                <button class="button" onclick="saveMemberName()" style="padding:10px 20px; background:#0066ff; color:white; border:none; border-radius:8px; cursor:pointer;">Save</button>
                 <button class="button secondary" onclick="closeEditMemberPopup()" style="padding:10px 20px; background:#f0f0f0; color:#333; border:1px solid #ccc; border-radius:8px; cursor:pointer;">Cancel</button>
             </div>
         </div>
@@ -2796,35 +2788,48 @@ function initEditMemberLift() {
        selectedMemberIndex = -1;
    }
    
-   async function saveMemberCode() {
-       const codeInput = document.getElementById('new-code');
-       const code = codeInput?.value.trim().toUpperCase();
-       const err = document.getElementById('edit-error');
-   
-       if (selectedMemberIndex < 0) return showErrorInPopup('Select a member', err);
-       if (!code || !/^[A-Za-z0-9]{1,15}$/.test(code)) {
-           return showErrorInPopup('Invalid code (1–15 chars, letters & numbers only)', err);
-       }
-   
-       try {
-           const r = await fetch('/api/edit_member_code', {
-               method: 'POST',
-               headers: { 'Content-Type': 'application/json' },
-               body: JSON.stringify({ index: selectedMemberIndex, member_code: code })
-           });
-           const d = await r.json();
-           if (d.success) {
-               membersData.members[selectedMemberIndex] = d.member;
-               render();
-               lowerEditMemberPopup();
-               closeEditMemberPopup();
-           } else {
-               showErrorInPopup(d.error || 'Failed', err);
-           }
-       } catch {
-           showErrorInPopup('Network error', err);
-       }
-   }
+   async function saveMemberName() {
+    const nameInput = document.getElementById('new-code'); // You can rename this ID to 'new-name' later
+    const name = nameInput?.value.trim();
+    const err = document.getElementById('edit-error');
+
+    if (selectedMemberIndex < 0) return showErrorInPopup('Select a member', err);
+    if (!name || name.length > 30) {
+        return showErrorInPopup('Name must be 1–30 characters', err);
+    }
+
+    try {
+        const r = await fetch('/api/edit_member_name', {  // ← CHANGED ENDPOINT
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                index: selectedMemberIndex, 
+                name: name                     // ← Sending "name", not "member_code"
+            })
+        });
+
+        const d = await r.json();
+
+        if (d.success) {
+            // Update the local member with the new name
+            membersData.members[selectedMemberIndex].name = name;
+
+            // Optional: if backend returns updated member object
+            if (d.member) {
+                membersData.members[selectedMemberIndex] = d.member;
+            }
+
+            render(); // Refresh the member list UI
+            lowerEditMemberPopup();
+            closeEditMemberPopup();
+        } else {
+            showErrorInPopup(d.error || 'Failed to save name', err);
+        }
+    } catch (e) {
+        console.error("Save member name failed:", e);
+        showErrorInPopup('Network error – check connection', err);
+    }
+}
    
    function showErrorInPopup(msg, el) {
        el.innerHTML = `<span class="material-icons">error</span> ${msg}`;
