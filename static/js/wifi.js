@@ -158,7 +158,7 @@ async function scanWiFi() {
             container.innerHTML = '';
             d.networks.forEach(n => {
                 const li = document.createElement('li');
-                li.innerHTML = `
+                li.innerHTML = ` 
                     <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
                         <div>
                             <span>${n.ssid}</span>
@@ -519,3 +519,44 @@ function showMeterIdPopup() {
         }
     });
 }
+
+// Keep bottom bar fixed when keyboard opens
+let initialViewportHeight = window.innerHeight;
+let keyboardShown = false;
+
+window.addEventListener('resize', () => {
+    const currentHeight = window.innerHeight;
+
+    // If viewport height decreased significantly → keyboard likely opened
+    if (currentHeight < initialViewportHeight - 100 && !keyboardShown) {
+        keyboardShown = true;
+        document.body.classList.add('keyboard-open');
+
+        // Force all bottom bars to stay at true bottom
+        document.querySelectorAll('.bottom-bar, .bottom-bar-allpage').forEach(bar => {
+            bar.style.position = 'fixed';
+            bar.style.bottom = '0';
+            bar.style.left = '0';
+            bar.style.right = '0';
+            bar.style.zIndex = '9999';
+        });
+    }
+    // Keyboard closed
+    else if (currentHeight >= initialViewportHeight - 100 && keyboardShown) {
+        keyboardShown = false;
+        document.body.classList.remove('keyboard-open');
+
+        // Optional: revert to original styles (if needed)
+        document.querySelectorAll('.bottom-bar, .bottom-bar-allpage').forEach(bar => {
+            bar.style.position = '';  // let CSS handle it again
+            bar.style.bottom = '';
+        });
+    }
+});
+
+// Reset on orientation change
+window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+        initialViewportHeight = window.innerHeight;
+    }, 500);
+});
