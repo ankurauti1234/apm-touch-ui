@@ -2187,6 +2187,7 @@ input[type="number"] {
     top: 20px;            /* optional: adjust vertical position if needed */
     z-index: 1000;
     transition: all 0.3s ease;
+    background-color: red;
 }
 
 .icon-right.lifted {
