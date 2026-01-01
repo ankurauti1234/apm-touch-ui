@@ -85,18 +85,37 @@ DB_PATH = "/var/lib/meter.db"
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
         cur = conn.cursor()
+        
+        # Create members table if not exists
         cur.execute("""
             CREATE TABLE IF NOT EXISTS members (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 meter_id TEXT NOT NULL,
                 hhid TEXT NOT NULL,
                 member_code TEXT,
+                name TEXT,                    -- ← NEW COLUMN
                 dob TEXT,
                 gender TEXT,
                 created_at TEXT,
                 active INTEGER DEFAULT 0
             )
         """)
+
+        # Add 'name' column if it doesn't exist (for upgrades)
+        cur.execute("PRAGMA table_info(members)")
+        columns = [col[1] for col in cur.fetchall()]
+        if 'name' not in columns:
+            print("[DB] Adding 'name' column to members table")
+            cur.execute("ALTER TABLE members ADD COLUMN name TEXT")
+            
+            # Backfill: set name = member_code where null
+            cur.execute("""
+                UPDATE members 
+                SET name = member_code 
+                WHERE name IS NULL AND member_code IS NOT NULL
+            """)
+
+        # Guests table (unchanged)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS guests (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -269,9 +288,18 @@ def save_members_data(data: dict):
         cur.execute("DELETE FROM members WHERE meter_id = ? AND hhid = ?", (meter_id, hhid))
         for m in members:
             cur.execute("""
-                INSERT INTO members (meter_id, hhid, member_code, dob, gender, created_at, active)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (meter_id, hhid, m.get("member_code"), m.get("dob"), m.get("gender"), m.get("created_at"), int(m.get("active", False))))
+                INSERT INTO members (
+                    meter_id, hhid, member_code, name, dob, gender, created_at, active
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                meter_id, hhid,
+                m.get("member_code"),
+                m.get("name", m.get("member_code")),  # fallback to member_code if name missing
+                m.get("dob"),
+                m.get("gender"),
+                m.get("created_at"),
+                int(m.get("active", False))
+            ))
         conn.commit()
 
 
@@ -280,17 +308,18 @@ def load_members_data() -> dict:
     with sqlite3.connect(DB_PATH) as conn:
         cur = conn.cursor()
         cur.execute("""
-            SELECT member_code, dob, gender, created_at, active
+            SELECT member_code, name, dob, gender, created_at, active
             FROM members WHERE meter_id = ? AND hhid = ?
         """, (METER_ID, hhid))
         members = []
         for row in cur.fetchall():
             members.append({
                 "member_code": row[0],
-                "dob": row[1],
-                "gender": row[2],
-                "created_at": row[3],
-                "active": bool(row[4])
+                "name": row[1] or row[0],  # fallback to member_code if name is NULL
+                "dob": row[2],
+                "gender": row[3],
+                "created_at": row[4],
+                "active": bool(row[5])
             })
     return {"meter_id": METER_ID, "hhid": hhid, "members": members}
 
@@ -422,22 +451,20 @@ def publish_member_event():
     data = load_members_data()
     members = [
         {
-            "member_id": m.get("member_code", ""),
-            "age": calculate_age(m["dob"]),  # Convert DOB to age
+            "member_id": m.get("member_code", ""),   # ← Always use member_code here!
+            "age": calculate_age(m["dob"]),
             "gender": m["gender"],
             "active": m.get("active", False)
         }
         for m in data.get("members", [])
-        if all(k in m for k in ["dob", "gender"])
+        if all(k in m for k in ["dob", "gender"]) and calculate_age(m["dob"]) is not None
     ]
 
     payload = {
         "DEVICE_ID": METER_ID,
-        "TS": str(int(time.time())),   # Unix timestamp as string
-        "Type": 3,                     # Hardcoded as per new spec
-        "Details": {
-            "members": members
-        }
+        "TS": str(int(time.time())),
+        "Type": 3,
+        "Details": {"members": members}
     }
 
     if members:
@@ -1309,30 +1336,44 @@ def toggle_member_status():
         traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route("/api/edit_member_code", methods=["POST"])
-def edit_member_code():
+@app.route("/api/edit_member_name", methods=["POST"])
+def edit_member_name():
     """
     Request:
-      { "index": 0, "member_code": "M1A" }
+      { "index": 0, "name": "Rahul" }
     """
     idx = request.json.get("index")
-    code = request.json.get("member_code")
-    if not isinstance(idx, int) or not code:
-        return jsonify({"success": False, "error": "index and member_code required"}), 400
+    new_name = request.json.get("name")
+    if not isinstance(idx, int) or not new_name:
+        return jsonify({"success": False, "error": "index and name required"}), 400
 
     try:
         data = load_members_data()
         members = data.get("members", [])
         if 0 <= idx < len(members):
-            members[idx]["member_code"] = code.strip().upper()
+            old_name = members[idx].get("name", members[idx]["member_code"])
+            members[idx]["name"] = new_name.strip()
+
             save_members_data(data)
+
+            # Optional: publish updated state (recommended)
             publish_member_event()
-            return jsonify({"success": True, "member": members[idx]}), 200
+
+            print(f"[MEMBER] Renamed member {idx}: '{old_name}' → '{new_name}'")
+
+            return jsonify({
+                "success": True,
+                "member": members[idx],
+                "message": "Display name updated"
+            }), 200
         else:
             return jsonify({"success": False, "error": "Index out of range"}), 400
     except Exception as e:
+        print(f"[ERROR] edit_member_name: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
-        
+
 
 @app.route("/api/finalize", methods=["POST"])
 def finalize():
