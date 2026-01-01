@@ -2201,7 +2201,7 @@ input[type="number"] {
 /* When keyboard open — move icons to extreme screen edges */
 .icon-left.lifted {
     position: fixed !important;
-    left: 16px !important;    /* close to left edge */
+    left: 26px !important;    /* close to left edge */
     bottom: 16px !important;  /* close to bottom edge (above keyboard) */
     /* Or use top: 16px for top-left corner */
 }
