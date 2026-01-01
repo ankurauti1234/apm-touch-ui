@@ -2180,16 +2180,20 @@ input[type="number"] {
     z-index: 1000;
 }
 
-/* When keyboard is up */
+/* When keyboard is up – move icons to screen corners */
 .icon-left.lifted {
-    position: fixed;    /* relative to viewport */
-    left: 0;   
-    margin-left: 40px;         /* far left edge */
+    position: fixed !important;
+    left: 20px;           /* distance from left edge */
+    top: 20px;            /* optional: adjust vertical position if needed */
+    z-index: 1000;
+    transition: all 0.3s ease;
 }
 
 .icon-right.lifted {
-    position: fixed;    /* relative to viewport */
-    right: 0px;           /* far right edge */
-    margin-left: 60px;
+    position: fixed !important;
+    right: 20px;          /* distance from right edge */
+    top: 20px;            /* optional: match left icon vertically */
+    z-index: 1000;
+    transition: all 0.3s ease;
 }
 
