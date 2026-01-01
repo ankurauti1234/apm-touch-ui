@@ -2211,6 +2211,7 @@ body.keyboard-open .bottom-bar,
 body.keyboard-open .bottom-bar-allpage {
     bottom: 0 !important;
     transform: none !important;
+    margin-left: 20px;
 }
 
 /* Prevent main content from being obscured */
