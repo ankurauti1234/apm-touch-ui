@@ -305,12 +305,14 @@ async function disconnectWiFi() {
         if (d.success) {
             setTimeout(() => {
                 closeWiFiPopup();
-
-                // Always go to connect_select WITHOUT passing any SSID
-                // This ensures the "Connected to Wi-Fi: [SSID]" box disappears
-                navigate('connect_select');
-
-                // Update status indicators immediately
+        
+                // Only go back to connect_select if we were already there
+                if (currentState === 'connect_select') {
+                    navigate('connect_select');  // no SSID → shows Wi-Fi/GSM buttons
+                }
+                // Else: stay on current page (main dashboard, etc.)
+        
+                // Always update status
                 if (currentState === 'main') {
                     updateMainDashboardWiFiStatus();
                 } else {
