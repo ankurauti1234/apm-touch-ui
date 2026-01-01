@@ -2190,7 +2190,7 @@ input[type="number"] {
 
 .icon-left {
     left: 20px;
-    bottom: 80px;   /* or top: 20px; depending on where they normally are */
+    bottom: 130px;   /* or top: 20px; depending on where they normally are */
 }
 
 .icon-right {
