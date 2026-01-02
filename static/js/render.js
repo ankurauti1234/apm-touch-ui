@@ -96,11 +96,19 @@ function showError(msg, type = 'error') {
     const el = document.getElementById('error');
     if (!el) return;
 
+    // Clear any previous timeout to avoid conflicts
+    if (el.hideTimeout) {
+        clearTimeout(el.hideTimeout);
+    }
+
     el.innerHTML = `<span class="material-icons">${type === 'success' ? 'check_circle' : 'error'}</span> ${msg}`;
-    el.className = type;
+    el.className = type;                    // e.g., 'error' or 'success' for styling
     el.style.display = 'flex';
 
-    if (type === 'success') {
-        setTimeout(() => el.style.display = 'none', 3000);
-    }
+    // Auto-hide after 5 seconds (5000 ms) for both error and success
+    el.hideTimeout = setTimeout(() => {
+        el.style.display = 'none';
+        el.innerHTML = '';                  // Optional: clear content
+        el.hideTimeout = null;              // Clean up
+    }, 5000);  // Change 5000 to any duration you want (e.g., 4000 for 4 sec)
 }
