@@ -366,7 +366,7 @@ async function retryOTP() {
 
     // ← NEW: Check internet connection before attempting fetch
     if (!navigator.onLine) {
-        showError('Internet connection required. Please connect and try again.');
+        showError('Internet required');
         btn.disabled = false;
         btn.innerHTML = originalHTML || '<span class="material-icons">refresh</span> Resend OTP';
         return;
