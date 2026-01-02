@@ -248,7 +248,7 @@ async function submitOTP() {
 
     // ← NEW: Check internet connection before making request
     if (!navigator.onLine) {
-        showError('Internet connection required. Please connect and try again.');
+        showError('Internet connection required');
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP';
