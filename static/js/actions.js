@@ -274,6 +274,17 @@ async function submitOTP() {
         btn.innerHTML = '<span class="material-icons">hourglass_top</span> Verifying...';
     }
 
+    // ← ADDED: Check for internet before fetch
+    if (!navigator.onLine) {
+        showError('Internet required');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP';
+        }
+        input.focus();
+        return;
+    }
+
     try {
         const r = await fetch('/api/submit_otp', {
             method: 'POST',
@@ -292,7 +303,7 @@ async function submitOTP() {
             input.focus();        // ← Bring cursor back
         }
     } catch (e) {
-        showError('Network error. Try again.');
+        showError('Internet required');  // ← CHANGED: More user-friendly message
         input.value = '';
         input.focus();
     } finally {
