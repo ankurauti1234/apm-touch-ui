@@ -2,7 +2,7 @@
    actions.js
    Retry loops for input source and video detection
    ============================================================== */
-
+   let CURRENT_HHID = null;
 
 async function checkWiFi() {
     try {
