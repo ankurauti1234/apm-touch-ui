@@ -122,11 +122,13 @@ function lowerEditMemberPopup() {
 
 function closeEditMemberPopup() {
     lowerEditMemberPopup();
-       ['edit-member-popup', 'edit-member-overlay'].forEach(id => {
-           const el = document.getElementById(id);
-           if (el) el.remove();
-       });
-       selectedMemberIndex = -1;
+
+    ['edit-member-popup', 'edit-member-overlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
+
+    selectedMemberIndex = -1;  // Reset selection
 }
 
 async function saveMemberName() {
