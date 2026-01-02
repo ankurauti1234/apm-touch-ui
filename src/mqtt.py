@@ -13,7 +13,7 @@ from datetime import datetime
 # ----------------------------------------------------------------------
 from src.config import METER_ID, DEVICE_CONFIG
 
-MQTT_TOPIC       = "indi/AM/test"
+MQTT_TOPIC       = "indi/AM/meter"
 AWS_IOT_ENDPOINT = "a3uoz4wfsx2nz3-ats.iot.ap-south-1.amazonaws.com"
 RECONNECT_DELAY  = 5
 MAX_RECONNECT_DELAY = 60
