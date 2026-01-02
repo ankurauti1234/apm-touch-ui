@@ -163,7 +163,6 @@ async function saveMemberName() {
             }
 
             render(); // Refresh the member list UI
-            lowerEditMemberPopup();
             closeEditMemberPopup();
         } else {
             showErrorInPopup(d.error || 'Failed to save name', err);
