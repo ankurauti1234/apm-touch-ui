@@ -204,7 +204,7 @@ function startVideoDetectionRetry() {
    Form submissions & system actions
    ============================================================== */
 
-   async function submitHHID() {
+async function submitHHID() {
     const input = document.getElementById('hhid');
     const rawHhid = input?.value.trim();
 
@@ -214,30 +214,31 @@ function startVideoDetectionRetry() {
         return;
     }
 
+    // --- VALIDATION RULES ---
     if (!/^[A-Za-z0-9]+$/.test(rawHhid)) {
         showError('Special characters not allowed');
         input?.focus();
         return;
     }
 
+    // Optional length check (uncomment if needed)
+    // if (rawHhid.length !== 6) {
+    //     showError('HHID must be exactly 6 characters long');
+    //     input?.focus();
+    //     return;
+    // }
+
+    // Normalize
     const hhid = rawHhid.toUpperCase();
     CURRENT_HHID = hhid;
 
     const btn = event?.target;
     if (btn) {
-        // 1. Blur input immediately
-        input?.blur();
-
-        // 2. Disable button (prevents double-click)
         btn.disabled = true;
-
-        // 3. CRITICAL: Delay text change significantly to avoid DOM reflow during click
-        setTimeout(() => {
-            btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
-        }, 300);  // Increased to 300ms — this is the key!
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
     }
 
-    // Offline check
+    // ← NEW: Check internet connection before fetch
     if (!navigator.onLine) {
         showError('Internet required');
         if (btn) {
@@ -255,6 +256,7 @@ function startVideoDetectionRetry() {
             body: JSON.stringify({ hhid })
         });
 
+        // Handle server errors (e.g., 500)
         if (!r.ok) {
             throw new Error(`Server error: ${r.status}`);
         }
