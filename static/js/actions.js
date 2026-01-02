@@ -204,7 +204,7 @@ function startVideoDetectionRetry() {
    Form submissions & system actions
    ============================================================== */
 
-async function submitHHID() {
+   async function submitHHID() {
     hhid = document.getElementById('hhid')?.value.trim();
     CURRENT_HHID = hhid;
 
@@ -219,14 +219,42 @@ async function submitHHID() {
     hhid = hhid.toUpperCase();
 
     const btn = event?.target;
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...'; }
+    if (btn) { 
+        btn.disabled = true; 
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...'; 
+    }
+
+    // ← ADDED: Check for internet before fetch
+    if (!navigator.onLine) {
+        showError('Internet required');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
+        }
+        return;
+    }
+
     try {
-        const r = await fetch('/api/submit_hhid', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hhid }) });
+        const r = await fetch('/api/submit_hhid', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ hhid }) 
+        });
         const d = await r.json();
-        if (d.success) { showError('OTP sent! Check email.', 'success'); setTimeout(() => navigate('otp_verification'), 1500); }
+        if (d.success) { 
+            showError('OTP sent! Check email.', 'success'); 
+            setTimeout(() => navigate('otp_verification'), 1500); 
+        }
         else showError(d.error || 'Invalid HHID');
-    } catch { showError('Network error'); }
-    finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP'; } }
+    } catch { 
+        showError('Internet required');  // ← CHANGED: More user-friendly message
+    }
+    finally { 
+        if (btn) { 
+            btn.disabled = false; 
+            btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP'; 
+        } 
+    }
 }
 
 async function submitOTP() {
