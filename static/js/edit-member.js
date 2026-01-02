@@ -120,6 +120,8 @@ function lowerEditMemberPopup() {
     if (p) p.classList.remove('lifted');
 }
 
+let selectedMemberIndex = -1;
+
 function closeEditMemberPopup() {
     lowerEditMemberPopup();
 
