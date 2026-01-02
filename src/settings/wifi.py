@@ -228,3 +228,36 @@ def list_wifi_networks():
         import traceback
         print(f"[WiFi ERROR] {e}\n{traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
+        
+
+@wifi_bp.route("/current_connectivity")
+def current_connectivity():
+    """Return current connectivity type: Wi-Fi, GSM, or Offline"""
+    try:
+        # First, try to get active Wi-Fi
+        ok, out = run_system_command(
+            ["nmcli", "-t", "-f", "TYPE,DEVICE", "connection", "show", "--active"]
+        )
+        if ok:
+            for line in out.strip().split("\n"):
+                if not line.strip():
+                    continue
+                parts = line.split(":", 1)
+                if len(parts) < 2:
+                    continue
+                conn_type, device = parts[0], parts[1]
+                if conn_type == "802-11-wireless" and (device.startswith("wlan") or device.startswith("wlx")):
+                    return jsonify({"connectivity": "Wi-Fi"})
+
+        # If no Wi-Fi, check if GSM is active (adjust command to your system)
+        # Example placeholder — replace with your actual GSM check
+        ok, out = run_system_command(["mmcli", "-m", "any", "--bearer-list"])  # example for ModemManager
+        if ok and "bearer" in out.lower():
+            return jsonify({"connectivity": "GSM"})
+
+        # Fallback
+        return jsonify({"connectivity": "Offline"})
+
+    except Exception as e:
+        print(f"[Connectivity] Error checking status: {e}")
+        return jsonify({"connectivity": "Offline"})

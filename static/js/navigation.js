@@ -56,10 +56,21 @@ async function navigate(state, param = null) {
 
     /* ---------- FINALIZE ---------- */
     if (state === 'finalize') {
+        let currentConnectivity = "Unknown";
+
+        try {
+            const r = await fetch('/api/current_connectivity');
+            const d = await r.json();
+            currentConnectivity = d.connectivity || "Offline";
+        } catch (e) {
+            console.warn("Failed to fetch current connectivity");
+            currentConnectivity = "Offline";
+        }
+
         const details = {
             meter_id: meterId,
             hhid,
-            connectivity: connectivityMode.toUpperCase(),
+            connectivity: currentConnectivity,  // ← Now live and accurate!
             input_sources: inputSources,
             video_detection: !!document.getElementById('video-status')?.dataset.detected
         };
