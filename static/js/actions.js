@@ -240,7 +240,7 @@ async function submitHHID() {
 
     // ← NEW: Check internet connection before fetch
     if (!navigator.onLine) {
-        showError('Internet connection required. Please connect and try again.');
+        showError('Internet required');
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
