@@ -246,25 +246,44 @@ async function submitOTP() {
         btn.innerHTML = '<span class="material-icons">hourglass_top</span> Verifying...';
     }
 
+    // ← NEW: Check internet connection before making request
+    if (!navigator.onLine) {
+        showError('Internet connection required. Please connect and try again.');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP';
+        }
+        input.focus();
+        return;
+    }
+
     try {
         const r = await fetch('/api/submit_otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ hhid, otp })
         });
+
+        // Optional: Also handle non-200 responses (e.g., 500 server error)
+        if (!r.ok) {
+            throw new Error(`Server error: ${r.status}`);
+        }
+
         const d = await r.json();
 
         if (d.success) {
             CURRENT_HHID = null;
-            input.value = ''; // Clear on success too (optional)
+            input.value = '';
             navigate('input_source_detection');
         } else {
             showError(d.error || 'Invalid OTP');
-            input.value = '';     // ← Critical: Clear field on invalid OTP
-            input.focus();        // ← Bring cursor back
+            input.value = '';
+            input.focus();
         }
     } catch (e) {
-        showError('Network error. Try again.');
+        // This now catches only real network/fetch errors (not offline, already handled above)
+        console.error("OTP submission failed:", e);
+        showError('Check your internet');
         input.value = '';
         input.focus();
     } finally {
