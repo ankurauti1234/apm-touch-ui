@@ -33,7 +33,7 @@ function showEditMemberPopup() {
                 <input
                     type="text"
                     id="new-code"
-                    placeholder="New Code (e.g. M1A)"
+                    placeholder="Enter Name"
                     maxlength="15"
                     autocomplete="off"
                     style="width:100%;padding:12px 48px 12px 12px;border:1px solid #ccc;border-radius:8px;font-size:16px;outline:none;"
@@ -41,7 +41,7 @@ function showEditMemberPopup() {
             </div>
 
             <div class="button-group" style="margin-top:20px;display:flex;gap:10px;justify-content:center;">
-                <button class="button" onclick="saveMemberCode()">Save</button>
+                <button class="button" onclick="saveMemberName()">Save</button>
                 <button class="button secondary" onclick="closeEditMemberPopup()">Cancel</button>
             </div>
         </div>
@@ -122,44 +122,52 @@ function lowerEditMemberPopup() {
 
 function closeEditMemberPopup() {
     lowerEditMemberPopup();
-    document.getElementById('edit-member-overlay')?.remove();
-    document.getElementById('edit-member-popup')?.remove();
-    selectedMemberIndex = -1;
+       ['edit-member-popup', 'edit-member-overlay'].forEach(id => {
+           const el = document.getElementById(id);
+           if (el) el.remove();
+       });
+       selectedMemberIndex = -1;
 }
 
-async function saveMemberCode() {
-    const input = document.getElementById('new-code');
-    const code = input?.value.trim().toUpperCase();
+async function saveMemberName() {
+    const nameInput = document.getElementById('new-code'); // You can rename this ID to 'new-name' later
+    const name = nameInput?.value.trim();
     const err = document.getElementById('edit-error');
 
-    if (selectedMemberIndex < 0) {
-        err.textContent = 'Please select a member';
-        err.style.display = 'flex';
-        return;
-    }
-    if (!code || !/^[A-Z0-9]{1,15}$/.test(code)) {
-        err.textContent = 'Invalid code (1–15 letters/numbers only)';
-        err.style.display = 'flex';
-        return;
+    if (selectedMemberIndex < 0) return showErrorInPopup('Select a member', err);
+    if (!name || name.length > 30) {
+        return showErrorInPopup('Name must be 1–30 characters', err);
     }
 
     try {
-        const r = await fetch('/api/edit_member_code', {
+        const r = await fetch('/api/edit_member_name', {  // ← CHANGED ENDPOINT
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ index: selectedMemberIndex, member_code: code })
+            body: JSON.stringify({ 
+                index: selectedMemberIndex, 
+                name: name                     // ← Sending "name", not "member_code"
+            })
         });
+
         const d = await r.json();
+
         if (d.success) {
-            membersData.members[selectedMemberIndex] = d.member;
-            render(); // refresh dashboard
+            // Update the local member with the new name
+            membersData.members[selectedMemberIndex].name = name;
+
+            // Optional: if backend returns updated member object
+            if (d.member) {
+                membersData.members[selectedMemberIndex] = d.member;
+            }
+
+            render(); // Refresh the member list UI
+            lowerEditMemberPopup();
             closeEditMemberPopup();
         } else {
-            err.textContent = d.error || 'Save failed';
-            err.style.display = 'flex';
+            showErrorInPopup(d.error || 'Failed to save name', err);
         }
-    } catch {
-        err.textContent = 'Network error';
-        err.style.display = 'flex';
+    } catch (e) {
+        console.error("Save member name failed:", e);
+        showErrorInPopup('Network error – check connection', err);
     }
 }

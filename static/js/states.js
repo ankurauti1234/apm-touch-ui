@@ -292,7 +292,7 @@ const states = {
                     <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
                          onclick="toggleMember(${i})"
                          style="--bg-image:url('${avatar(m.gender, m.dob)}')">
-                        <div class="name-tag">${m.member_code || '??'}</div>
+                        <div class="name-tag">${m.name || m.member_code || '??'}</div>
                     </div>`).join('')}
                 ${Array(empty).fill().map(() => `
                     <div class="member-card-grid empty"><div class="name-tag">—</div></div>

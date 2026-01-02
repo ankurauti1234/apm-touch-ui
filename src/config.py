@@ -10,18 +10,37 @@ DB_PATH = "/var/lib/meter.db"
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
         cur = conn.cursor()
+        
+        # Create members table if not exists
         cur.execute("""
             CREATE TABLE IF NOT EXISTS members (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 meter_id TEXT NOT NULL,
                 hhid TEXT NOT NULL,
                 member_code TEXT,
+                name TEXT,                    -- ← NEW COLUMN
                 dob TEXT,
                 gender TEXT,
                 created_at TEXT,
                 active INTEGER DEFAULT 0
             )
         """)
+
+        # Add 'name' column if it doesn't exist (for upgrades)
+        cur.execute("PRAGMA table_info(members)")
+        columns = [col[1] for col in cur.fetchall()]
+        if 'name' not in columns:
+            print("[DB] Adding 'name' column to members table")
+            cur.execute("ALTER TABLE members ADD COLUMN name TEXT")
+            
+            # Backfill: set name = member_code where null
+            cur.execute("""
+                UPDATE members 
+                SET name = member_code 
+                WHERE name IS NULL AND member_code IS NOT NULL
+            """)
+
+        # Guests table (unchanged)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS guests (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
