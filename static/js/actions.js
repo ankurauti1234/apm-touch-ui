@@ -205,28 +205,81 @@ function startVideoDetectionRetry() {
    ============================================================== */
 
 async function submitHHID() {
-    hhid = document.getElementById('hhid')?.value.trim();
-    CURRENT_HHID = hhid;
+    const input = document.getElementById('hhid');
+    const rawHhid = input?.value.trim();
 
-    if (!hhid) return showError('Enter HHID');
+    if (!rawHhid) {
+        showError('Please enter HHID');
+        input?.focus();
+        return;
+    }
 
     // --- VALIDATION RULES ---
-    if (!hhid) return showError('Enter HHID');
-    if (!/^[A-Za-z0-9]+$/.test(hhid)) return showError('Special characters not allowed');
-    // if (hhid.length !== 6) return showError('HHID must be exactly 6 characters long');
+    if (!/^[A-Za-z0-9]+$/.test(rawHhid)) {
+        showError('Special characters not allowed');
+        input?.focus();
+        return;
+    }
 
-    // --- Normalizing (optional but cleaner) ---
-    hhid = hhid.toUpperCase();
+    // Optional length check (uncomment if needed)
+    // if (rawHhid.length !== 6) {
+    //     showError('HHID must be exactly 6 characters long');
+    //     input?.focus();
+    //     return;
+    // }
+
+    // Normalize
+    const hhid = rawHhid.toUpperCase();
+    CURRENT_HHID = hhid;
 
     const btn = event?.target;
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...'; }
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
+    }
+
+    // ← NEW: Check internet connection before fetch
+    if (!navigator.onLine) {
+        showError('Internet connection required. Please connect and try again.');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
+        }
+        input?.focus();
+        return;
+    }
+
     try {
-        const r = await fetch('/api/submit_hhid', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hhid }) });
+        const r = await fetch('/api/submit_hhid', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hhid })
+        });
+
+        // Handle server errors (e.g., 500)
+        if (!r.ok) {
+            throw new Error(`Server error: ${r.status}`);
+        }
+
         const d = await r.json();
-        if (d.success) { showError('OTP sent! Check email.', 'success'); setTimeout(() => navigate('otp_verification'), 1500); }
-        else showError(d.error || 'Invalid HHID');
-    } catch { showError('Network error'); }
-    finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP'; } }
+
+        if (d.success) {
+            showError('OTP sent! Check your email.', 'success');
+            setTimeout(() => navigate('otp_verification'), 1500);
+        } else {
+            showError(d.error || 'Invalid HHID');
+            input?.focus();
+        }
+    } catch (e) {
+        console.error("HHID submission failed:", e);
+        showError('Failed to connect. Check your internet and try again.');
+        input?.focus();
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
+        }
+    }
 }
 
 async function submitOTP() {
