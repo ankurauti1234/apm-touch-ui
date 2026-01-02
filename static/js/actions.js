@@ -14,7 +14,7 @@ async function checkWiFi() {
             if (cd.success) {
                 navigate('connect_select', cd.ssid);
             } else {
-                showWiFiPopup();
+                showWiFiPopup();    
             }
         } else {
             showWiFiPopup();
@@ -295,31 +295,31 @@ async function submitOTP() {
 
     const btn = event?.target;
     if (btn) {
-        input?.blur();  // Prevent keyboard flash
         btn.disabled = true;
-        setTimeout(() => {
-            btn.innerHTML = '<span class="material-icons">hourglass_top</span> Verifying...';
-        }, 200);
+        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Verifying...';
+    }
+
+    // ← NEW: Check internet connection before making request
+    if (!navigator.onLine) {
+        showError('Internet required');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP';
+        }
+        input.focus();
+        return;
     }
 
     try {
-
-
-
         const r = await fetch('/api/submit_otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ hhid, otp })
         });
 
+        // Optional: Also handle non-200 responses (e.g., 500 server error)
         if (!r.ok) {
-            // Server responded but with error status (4xx, 5xx)
-            if (r.status >= 400 && r.status < 500) {
-                // Client error — likely bad request, not connectivity
-                throw new Error('client_error');
-            }
-            // Server error or network issue
-            throw new Error('network_or_server');
+            throw new Error(`Server error: ${r.status}`);
         }
 
         const d = await r.json();
@@ -334,15 +334,9 @@ async function submitOTP() {
             input.focus();
         }
     } catch (e) {
+        // This now catches only real network/fetch errors (not offline, already handled above)
         console.error("OTP submission failed:", e);
-
-        // Only show "check internet" for real connectivity issues
-        if (e.message === 'network_or_server' || e.name === 'TypeError' || !navigator.onLine) {
-            showError('No internet connection. Please check and try again.');
-        } else {
-            showError('Invalid OTP. Please try again.');
-        }
-
+        showError('Failed to connect. Check your internet and try again.');
         input.value = '';
         input.focus();
     } finally {
