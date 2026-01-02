@@ -204,7 +204,7 @@ function startVideoDetectionRetry() {
    Form submissions & system actions
    ============================================================== */
 
-async function submitHHID() {
+   async function submitHHID() {
     const input = document.getElementById('hhid');
     const rawHhid = input?.value.trim();
 
@@ -234,11 +234,19 @@ async function submitHHID() {
 
     const btn = event?.target;
     if (btn) {
+        // 1. Blur input to prevent keyboard flash on touch devices
+        input?.blur();
+
+        // 2. Disable immediately, but delay visual text change
         btn.disabled = true;
-        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
+        setTimeout(() => {
+            if (btn.disabled) {  // Only update if still disabled
+                btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
+            }
+        }, 100);  // 100ms delay is enough to avoid reflow during click
     }
 
-    // ← NEW: Check internet connection before fetch
+    // Check internet connection before fetch
     if (!navigator.onLine) {
         showError('Internet required');
         if (btn) {
@@ -256,7 +264,6 @@ async function submitHHID() {
             body: JSON.stringify({ hhid })
         });
 
-        // Handle server errors (e.g., 500)
         if (!r.ok) {
             throw new Error(`Server error: ${r.status}`);
         }
@@ -281,6 +288,7 @@ async function submitHHID() {
         }
     }
 }
+
 
 async function submitOTP() {
     const input = document.getElementById('otp');
