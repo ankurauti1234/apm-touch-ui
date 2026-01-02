@@ -2,7 +2,7 @@
    actions.js
    Retry loops for input source and video detection
    ============================================================== */
-   let CURRENT_HHID = null;
+
 
 async function checkWiFi() {
     try {
@@ -14,7 +14,7 @@ async function checkWiFi() {
             if (cd.success) {
                 navigate('connect_select', cd.ssid);
             } else {
-                showWiFiPopup();    
+                showWiFiPopup();
             }
         } else {
             showWiFiPopup();
@@ -205,81 +205,28 @@ function startVideoDetectionRetry() {
    ============================================================== */
 
 async function submitHHID() {
-    const input = document.getElementById('hhid');
-    const rawHhid = input?.value.trim();
-
-    if (!rawHhid) {
-        showError('Please enter HHID');
-        input?.focus();
-        return;
-    }
-
-    // --- VALIDATION RULES ---
-    if (!/^[A-Za-z0-9]+$/.test(rawHhid)) {
-        showError('Special characters not allowed');
-        input?.focus();
-        return;
-    }
-
-    // Optional length check (uncomment if needed)
-    // if (rawHhid.length !== 6) {
-    //     showError('HHID must be exactly 6 characters long');
-    //     input?.focus();
-    //     return;
-    // }
-
-    // Normalize
-    const hhid = rawHhid.toUpperCase();
+    hhid = document.getElementById('hhid')?.value.trim();
     CURRENT_HHID = hhid;
 
+    if (!hhid) return showError('Enter HHID');
+
+    // --- VALIDATION RULES ---
+    if (!hhid) return showError('Enter HHID');
+    if (!/^[A-Za-z0-9]+$/.test(hhid)) return showError('Special characters not allowed');
+    // if (hhid.length !== 6) return showError('HHID must be exactly 6 characters long');
+
+    // --- Normalizing (optional but cleaner) ---
+    hhid = hhid.toUpperCase();
+
     const btn = event?.target;
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
-    }
-
-    // ← NEW: Check internet connection before fetch
-    if (!navigator.onLine) {
-        showError('Internet required');
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
-        }
-        input?.focus();
-        return;
-    }
-
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...'; }
     try {
-        const r = await fetch('/api/submit_hhid', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ hhid })
-        });
-
-        // Handle server errors (e.g., 500)
-        if (!r.ok) {
-            throw new Error(`Server error: ${r.status}`);
-        }
-
+        const r = await fetch('/api/submit_hhid', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hhid }) });
         const d = await r.json();
-
-        if (d.success) {
-            showError('OTP sent! Check your email.', 'success');
-            setTimeout(() => navigate('otp_verification'), 1500);
-        } else {
-            showError(d.error || 'Invalid HHID');
-            input?.focus();
-        }
-    } catch (e) {
-        console.error("HHID submission failed:", e);
-        showError('Failed to connect. Check your internet and try again.');
-        input?.focus();
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP';
-        }
-    }
+        if (d.success) { showError('OTP sent! Check email.', 'success'); setTimeout(() => navigate('otp_verification'), 1500); }
+        else showError(d.error || 'Invalid HHID');
+    } catch { showError('Network error'); }
+    finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">send</span> Submit & Send OTP'; } }
 }
 
 async function submitOTP() {
@@ -299,44 +246,25 @@ async function submitOTP() {
         btn.innerHTML = '<span class="material-icons">hourglass_top</span> Verifying...';
     }
 
-    // ← NEW: Check internet connection before making request
-    if (!navigator.onLine) {
-        showError('Internet required');
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<span class="material-icons">verified</span> Verify OTP';
-        }
-        input.focus();
-        return;
-    }
-
     try {
         const r = await fetch('/api/submit_otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ hhid, otp })
         });
-
-        // Optional: Also handle non-200 responses (e.g., 500 server error)
-        if (!r.ok) {
-            throw new Error(`Server error: ${r.status}`);
-        }
-
         const d = await r.json();
 
         if (d.success) {
             CURRENT_HHID = null;
-            input.value = '';
+            input.value = ''; // Clear on success too (optional)
             navigate('input_source_detection');
         } else {
             showError(d.error || 'Invalid OTP');
-            input.value = '';
-            input.focus();
+            input.value = '';     // ← Critical: Clear field on invalid OTP
+            input.focus();        // ← Bring cursor back
         }
     } catch (e) {
-        // This now catches only real network/fetch errors (not offline, already handled above)
-        console.error("OTP submission failed:", e);
-        showError('Failed to connect. Check your internet and try again.');
+        showError('Network error. Try again.');
         input.value = '';
         input.focus();
     } finally {
@@ -353,24 +281,16 @@ async function retryOTP() {
         return;
     }
 
-    // Find the Resend button
+    // Find the Resend button (works even if you move it later)
     const btn = document.querySelector('button[onclick="retryOTP()"]') ||
-                document.querySelector('.button.secondary');   // fallback
+        document.querySelector('.button.secondary');   // fallback
 
     if (!btn) return;
 
-    // Store original HTML and disable button
-    const originalHTML = btn.innerHTML;
+    // Disable button + show inline spinner
     btn.disabled = true;
+    const originalHTML = btn.innerHTML;
     btn.innerHTML = '<span class="material-icons spinner-small">hourglass_top</span> Sending…';
-
-    // ← NEW: Check internet connection before attempting fetch
-    if (!navigator.onLine) {
-        showError('Internet required');
-        btn.disabled = false;
-        btn.innerHTML = originalHTML || '<span class="material-icons">refresh</span> Resend OTP';
-        return;
-    }
 
     try {
         const r = await fetch('/api/submit_hhid', {
@@ -378,11 +298,6 @@ async function retryOTP() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ hhid: CURRENT_HHID })
         });
-
-        // Optional: Handle non-200 responses
-        if (!r.ok) {
-            throw new Error(`Server error: ${r.status}`);
-        }
 
         const data = await r.json();
 
@@ -392,10 +307,10 @@ async function retryOTP() {
             showError(data.error || "Failed to resend OTP");
         }
     } catch (e) {
-        console.error("Resend OTP failed:", e);
-        showError('Failed to connect. Check your internet and try again.');
+        console.error(e);
+        showError("Network error – please try again");
     } finally {
-        // Always restore the button (only runs if not already restored in offline case)
+        // Always restore the button
         btn.disabled = false;
         btn.innerHTML = originalHTML || '<span class="material-icons">refresh</span> Resend OTP';
     }
