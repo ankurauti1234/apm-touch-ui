@@ -331,6 +331,14 @@ async function retryOTP() {
     const originalHTML = btn.innerHTML;
     btn.innerHTML = '<span class="material-icons spinner-small">hourglass_top</span> Sending…';
 
+    // ← ADDED: Check for internet before fetch
+    if (!navigator.onLine) {
+        showError('Internet required');
+        btn.disabled = false;
+        btn.innerHTML = originalHTML || '<span class="material-icons">refresh</span> Resend OTP';
+        return;
+    }
+
     try {
         const r = await fetch('/api/submit_hhid', {
             method: 'POST',
@@ -347,7 +355,7 @@ async function retryOTP() {
         }
     } catch (e) {
         console.error(e);
-        showError("Network error – please try again");
+        showError("Internet required");  // ← CHANGED: Clear message instead of generic "Network error"
     } finally {
         // Always restore the button
         btn.disabled = false;
