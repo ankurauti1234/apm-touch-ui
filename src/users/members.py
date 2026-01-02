@@ -130,7 +130,7 @@ def toggle_member_status():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@members_bp.route("/api/edit_member_name", methods=["POST"])
+@members_bp.route("/edit_member_name", methods=["POST"])
 def edit_member_name():
     """
     Request:

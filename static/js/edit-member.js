@@ -142,7 +142,7 @@ async function saveMemberName() {
     }
 
     try {
-        const r = await fetch('/api/edit_member_name', {  // ← CHANGED ENDPOINT
+        const r = await fetch('/edit_member_name', {  // ← CHANGED ENDPOINT
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
