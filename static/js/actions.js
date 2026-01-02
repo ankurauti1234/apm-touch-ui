@@ -214,39 +214,30 @@ function startVideoDetectionRetry() {
         return;
     }
 
-    // --- VALIDATION RULES ---
     if (!/^[A-Za-z0-9]+$/.test(rawHhid)) {
         showError('Special characters not allowed');
         input?.focus();
         return;
     }
 
-    // Optional length check (uncomment if needed)
-    // if (rawHhid.length !== 6) {
-    //     showError('HHID must be exactly 6 characters long');
-    //     input?.focus();
-    //     return;
-    // }
-
-    // Normalize
     const hhid = rawHhid.toUpperCase();
     CURRENT_HHID = hhid;
 
     const btn = event?.target;
     if (btn) {
-        // 1. Blur input to prevent keyboard flash on touch devices
+        // 1. Blur input immediately
         input?.blur();
 
-        // 2. Disable immediately, but delay visual text change
+        // 2. Disable button (prevents double-click)
         btn.disabled = true;
+
+        // 3. CRITICAL: Delay text change significantly to avoid DOM reflow during click
         setTimeout(() => {
-            if (btn.disabled) {  // Only update if still disabled
-                btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
-            }
-        }, 100);  // 100ms delay is enough to avoid reflow during click
+            btn.innerHTML = '<span class="material-icons">hourglass_top</span> Sending...';
+        }, 300);  // Increased to 300ms — this is the key!
     }
 
-    // Check internet connection before fetch
+    // Offline check
     if (!navigator.onLine) {
         showError('Internet required');
         if (btn) {
@@ -288,7 +279,6 @@ function startVideoDetectionRetry() {
         }
     }
 }
-
 
 async function submitOTP() {
     const input = document.getElementById('otp');
