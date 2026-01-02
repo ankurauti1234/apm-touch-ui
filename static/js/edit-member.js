@@ -75,11 +75,11 @@ function showEditMemberPopup() {
     if (membersData?.members?.length > 0) {
         membersData.members.forEach((m, i) => {
             const li = document.createElement('li');
-            li.innerHTML = `<span>${m.member_code || '??'}</span>`;
+            li.innerHTML = `<span>${m.name || m.member_code || '??'}</span>`;
             li.onclick = (e) => {
                 e.stopPropagation();
                 selectedMemberIndex = i;
-                selected.innerHTML = `<span>${m.member_code || '??'}</span><span class="material-icons arrow">arrow_drop_down</span>`;
+                selected.innerHTML = `<span>${m.name || m.member_code || '??'}</span><span class="material-icons arrow">arrow_drop_down</span>`;
                 list.style.display = 'none';
                 selected.classList.remove('open');
                 codeInput.focus();  // ← FIXED
