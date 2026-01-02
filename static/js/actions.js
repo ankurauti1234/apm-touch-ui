@@ -353,16 +353,24 @@ async function retryOTP() {
         return;
     }
 
-    // Find the Resend button (works even if you move it later)
+    // Find the Resend button
     const btn = document.querySelector('button[onclick="retryOTP()"]') ||
-        document.querySelector('.button.secondary');   // fallback
+                document.querySelector('.button.secondary');   // fallback
 
     if (!btn) return;
 
-    // Disable button + show inline spinner
-    btn.disabled = true;
+    // Store original HTML and disable button
     const originalHTML = btn.innerHTML;
+    btn.disabled = true;
     btn.innerHTML = '<span class="material-icons spinner-small">hourglass_top</span> Sending…';
+
+    // ← NEW: Check internet connection before attempting fetch
+    if (!navigator.onLine) {
+        showError('Internet connection required. Please connect and try again.');
+        btn.disabled = false;
+        btn.innerHTML = originalHTML || '<span class="material-icons">refresh</span> Resend OTP';
+        return;
+    }
 
     try {
         const r = await fetch('/api/submit_hhid', {
@@ -370,6 +378,11 @@ async function retryOTP() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ hhid: CURRENT_HHID })
         });
+
+        // Optional: Handle non-200 responses
+        if (!r.ok) {
+            throw new Error(`Server error: ${r.status}`);
+        }
 
         const data = await r.json();
 
@@ -379,10 +392,10 @@ async function retryOTP() {
             showError(data.error || "Failed to resend OTP");
         }
     } catch (e) {
-        console.error(e);
-        showError("Network error – please try again");
+        console.error("Resend OTP failed:", e);
+        showError('Failed to connect. Check your internet and try again.');
     } finally {
-        // Always restore the button
+        // Always restore the button (only runs if not already restored in offline case)
         btn.disabled = false;
         btn.innerHTML = originalHTML || '<span class="material-icons">refresh</span> Resend OTP';
     }
