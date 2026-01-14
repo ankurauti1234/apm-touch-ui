@@ -1,0 +1,128 @@
+/* ==========================================================================
+   MODULE 06: LAYOUT
+   Grid, Flex, Containers, Cards
+   ========================================================================== */
+
+/* --- Main Viewport (Fixed Clean Layout) --- */
+body {
+    width: var(--device-w);
+    height: var(--device-h);
+    background-color: var(--bg-app);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    /* Optional: Subtle gradient */
+    background: linear-gradient(to bottom right, #000000, #1c1c1e);
+}
+
+#layout-root {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* Respect keyboard resize */
+    transition: height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* --- Center Card Layout --- */
+.center-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-lg);
+    width: 100%;
+}
+
+.glass-card {
+    width: 100%;
+    max-width: 600px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--blur-md));
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    box-shadow: var(--shadow-card);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center children */
+    animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- Scrollable Content Inner --- */
+.scroll-content {
+    max-height: 350px;
+    overflow-y: auto;
+    width: 100%;
+    padding-right: 4px; /* Scrollbar space */
+}
+
+/* --- Bottom Bar Floating --- */
+.bottom-bar-float {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 800px;
+    height: 72px;
+    background: rgba(40, 40, 40, 0.8);
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    z-index: 100;
+    box-shadow: var(--shadow-float);
+}
+
+.bar-tools {
+    display: flex;
+    gap: 16px;
+}
+
+/* --- Summary Grid --- */
+.summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.summary-tile {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid transparent;
+}
+
+.summary-tile.active {
+    border-color: var(--success);
+    background: rgba(52, 199, 89, 0.1);
+}
+
+.summary-tile.error {
+    border-color: var(--error);
+    background: rgba(255, 59, 48, 0.1);
+}
+
+/* --- Animations --- */
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

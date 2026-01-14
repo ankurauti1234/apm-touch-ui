@@ -1,0 +1,52 @@
+/* ==========================================================================
+   MODULE 01: TOKENS
+   Constants for Colors, Spacing, Radius, Shadow
+   ========================================================================== */
+
+:root {
+    /* --- Brand Colors --- */
+    --primary: #007AFF;         /* Apple Classic Blue */
+    --primary-dim: rgba(0, 122, 255, 0.15);
+    
+    --success: #34C759;         /* Apple Green */
+    --warning: #FF9500;         /* Apple Orange */
+    --error: #FF3B30;           /* Apple Red */
+    
+    /* --- Grayscale / Surface --- */
+    --bg-app: #000000;          /* Deepest Black */
+    --bg-glass: rgba(30, 30, 30, 0.75); /* Card Background */
+    --bg-glass-heavy: rgba(20, 20, 20, 0.95); /* Modal/Keyboard Background */
+    --bg-input: rgba(120, 120, 128, 0.2);
+    
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(235, 235, 245, 0.6);
+    --text-tertiary: rgba(235, 235, 245, 0.3);
+    
+    --border-subtle: rgba(255, 255, 255, 0.1);
+    --border-strong: rgba(255, 255, 255, 0.2);
+    
+    /* --- Radius & Spacing --- */
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-pill: 9999px;
+    
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    
+    /* --- Effects --- */
+    --blur-md: 20px;
+    --blur-lg: 40px;
+    
+    --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --shadow-float: 0 20px 50px rgba(0, 0, 0, 0.6);
+    
+    /* --- Layout --- */
+    --header-h: 64px;
+    --bottom-bar-h: 80px;
+    --device-w: 1024px;
+    --device-h: 600px;
+}
