@@ -502,33 +502,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // show Meter ID popup
 function showMeterIdPopup() {
+    if (document.getElementById('meter-id-popup')) return;
+
     // Use the existing meterId variable
     if (!meterId || meterId.trim() === '') {
         meterId = 'Not Available'; // Fallback if empty
     }
 
-    // Create the popup
+    const overlay = document.createElement('div');
+    overlay.id = 'meter-id-overlay';
+    overlay.className = 'overlay';
+
     const popup = document.createElement('div');
-    popup.className = 'meter-id-popup';
+    popup.id = 'meter-id-popup';
+    popup.className = 'popup';
+
     popup.innerHTML = `
-        <div class="popup-content">
-            <div class="popup-header">
-                <span class="material-icons">memory</span>
-                <h3>Meter ID</h3>
-            </div>
-            <div class="meter-id-display">${meterId}</div>
-            <button class="popup-close-btn" onclick="this.closest('.meter-id-popup').remove()">
+        <div class="popup-header">
+            <h2>
+                <span class="material-icons" style="color:var(--primary);">memory</span>
+                Meter ID
+            </h2>
+            <button class="close-btn" onclick="closeMeterIdPopup()" aria-label="Close">
                 <span class="material-icons">close</span>
             </button>
         </div>
+        
+        <div class="meter-id-display" style="text-align:center; font-size:2rem; font-weight:700; color:var(--primary); padding:2rem; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid rgba(255,255,255,0.1); margin:1rem 0;">
+            ${meterId}
+        </div>
+        
+        <p style="text-align:center; margin:0; font-size:0.9rem; opacity:0.7;">Unique Device Identifier</p>
     `;
 
-    document.body.appendChild(popup);
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
 
-    // Close when clicking outside the content
-    popup.addEventListener('click', (e) => {
-        if (e.target === popup) {
-            popup.remove();
-        }
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeMeterIdPopup();
     });
+}
+
+function closeMeterIdPopup() {
+    document.getElementById('meter-id-overlay')?.remove();
 }
