@@ -8,6 +8,9 @@ let saver = document.getElementById('screensaver');
 if (!saver) {
     saver = document.createElement('div');
     saver.id = 'screensaver';
+    saver.className = 'screensaver-overlay'; // Use class for styles
+    
+    // Inline styles reset for fixed positioning
     Object.assign(saver.style, {
         position: 'fixed',
         left: '0', top: '0',
@@ -16,47 +19,23 @@ if (!saver) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'black',
+        background: '#000',
         zIndex: '2147483647',
-        pointerEvents: 'all',
-        touchAction: 'none',
-        WebkitUserSelect: 'none',
-        userSelect: 'none',
-        margin: '0', padding: '0',
-        color: 'white',
-        gap: '10px',
-        opacity: '0',
-        transition: 'opacity 1s ease',
         visibility: 'hidden',
-        outline: 'none'
+        opacity: '0',
+        transition: 'opacity 0.5s',
     });
-    saver.tabIndex = -1;
+    
     document.body.appendChild(saver);
 
-    const wrapper = document.createElement('div');
-    wrapper.id = 'clock-wrapper';
-    Object.assign(wrapper.style, {
-        width: '100%', height: '100%',
-        display: 'flex', flexDirection: 'column',
-        justifyContent: 'center', alignItems: 'center'
-    });
-
-    const timeEl = document.createElement('div');
-    timeEl.id = 'clock-time';
-    Object.assign(timeEl.style, {
-        fontSize: '200px', fontWeight: '600',
-        marginBottom: '10px', lineHeight: '1', textAlign: 'center'
-    });
-
-    const dateEl = document.createElement('div');
-    dateEl.id = 'clock-date';
-    Object.assign(dateEl.style, {
-        fontSize: '70px', fontWeight: '400', textAlign: 'center'
-    });
-
-    wrapper.appendChild(timeEl);
-    wrapper.appendChild(dateEl);
-    saver.appendChild(wrapper);
+    saver.innerHTML = `
+        <div style="border:1px solid #333; padding:40px; text-align:center; background:#050505;">
+            <div id="clock-time" style="font-family:'Courier New', monospace; font-size:120px; font-weight:700; color:#fff; letter-spacing:-4px; line-height:1;">00:00</div>
+            <div style="width:100%; height:1px; background:#333; margin:20px 0;"></div>
+            <div id="clock-date" style="font-family:'Courier New', monospace; font-size:24px; color:#888; text-transform:uppercase; letter-spacing:2px;">MON, 01 JAN 2024</div>
+        </div>
+        <div style="margin-top:20px; color:#444; font-size:12px; font-family:'Courier New', monospace;">TOUCH TO UNLOCK</div>
+    `;
 }
 
 // Clock update

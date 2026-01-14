@@ -1,852 +1,353 @@
 /* ==========================================================================
-   Indi Meter - Premium Design System (Dark Modern)
+   Indi Meter - STRICT BORDER SYSTEM (Premium Technical)
    ========================================================================== */
 
 :root {
-    /* --- COLOR PALETTE (HSL) --- */
-    /* Primary: Electric Violet / Neon Blue feel */
-    --primary-h: 250;
-    --primary-s: 100%;
-    --primary-l: 65%;
-    --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
-    --primary-glow: hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.4);
-
-    /* Secondary: Vibrant Pink/Magenta for accents */
-    --secondary-h: 310;
-    --secondary-s: 90%;
-    --secondary-l: 60%;
-    --secondary: hsl(var(--secondary-h), var(--secondary-s), var(--secondary-l));
-
-    /* Backgrounds: Deep Space Black/Blue */
-    --bg-app: #050507;
-    --bg-surface: #121216;
-    --bg-card: rgba(25, 25, 35, 0.6);        /* Glassmorphism base */
-    --bg-glass: rgba(255, 255, 255, 0.05);
-
-    /* Text */
-    --text-main: #FFFFFF;
-    --text-muted: #A0A0B0;
-    --text-dark: #121212;
-
-    /* States */
-    --success: #00E676;
-    --error: #FF1744;
-    --warning: #FFC400;
-
-    /* Dimensions & Spacing */
-    --radius-sm: 8px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    --radius-full: 9999px;
+    /* --- COLOR PALETTE (Technical/Premium) --- */
+    --primary: #3b82f6;          /* Inter Blue */
+    --primary-dim: rgba(59, 130, 246, 0.15);
     
-    --header-height: 70px;
-    --bottom-bar-height: 80px;
+    --bg-app: #09090b;           /* Zinc 950 */
+    --bg-surface: #18181b;       /* Zinc 900 */
+    --bg-panel: #27272a;         /* Zinc 800 */
+    
+    --border: #3f3f46;           /* Zinc 700 */
+    --border-active: #52525b;    /* Zinc 600 */
+    
+    --text-main: #fafafa;        /* Zinc 50 */
+    --text-muted: #a1a1aa;       /* Zinc 400 */
+    
+    --success: #10b981;          /* Emerald 500 */
+    --error: #ef4444;            /* Red 500 */
+    --warning: #f59e0b;          /* Amber 500 */
 
-    /* Shadows */
-    --shadow-sm: 0 4px 6px rgba(0,0,0, 0.1);
-    --shadow-md: 0 8px 15px rgba(0,0,0, 0.2);
-    --shadow-glow: 0 0 20px var(--primary-glow);
+    /* --- DIMENSIONS --- */
+    --radius: 0px;               /* STRICT NO RADIUS */
+    --header-height: 60px;
+    --bottom-bar-height: 72px;
 }
 
-/* --- LIGHT THEME OVERRIDES --- */
+/* --- LIGHT THEME --- */
 [data-theme="light"] {
-    --bg-app: #f0f2f5;
-    --bg-surface: #ffffff;
-    --bg-card: rgba(255, 255, 255, 0.7);
-    --bg-glass: rgba(0, 0, 0, 0.05);
-
-    --text-main: #1a1a1a;
-    --text-muted: #666666;
-    --text-dark: #000000;
-
-    --shadow-sm: 0 4px 6px rgba(0,0,0, 0.05);
-    --shadow-md: 0 8px 15px rgba(0,0,0, 0.1);
-    --shadow-glow: 0 0 20px rgba(var(--primary-h), var(--primary-s), var(--primary-l), 0.2);
+    --bg-app: #ffffff;
+    --bg-surface: #f4f4f5;       /* Zinc 100 */
+    --bg-panel: #e4e4e7;         /* Zinc 200 */
+    --border: #d4d4d8;           /* Zinc 300 */
+    --border-active: #a1a1aa;    /* Zinc 400 */
+    --text-main: #09090b;
+    --text-muted: #52525b;
 }
 
 /* ==========================================================================
-   RESET & BASE STYLES
+   RESET & BASE
    ========================================================================== */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    user-select: none; /* Kiosk mode: prevent text selection */
+    user-select: none;
     -webkit-tap-highlight-color: transparent;
+    border-radius: 0 !important; /* Force square everywhere */
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif; /* Clean, technical font */
     background-color: var(--bg-app);
     color: var(--text-main);
-    overflow: hidden; /* Prevent scrolling in kiosk mode */
     height: 100vh;
     width: 100vw;
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-image: 
-        radial-gradient(circle at 10% 20%, var(--primary-glow) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(var(--secondary-h), var(--secondary-s), var(--secondary-l), 0.2) 0%, transparent 40%);
-    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
-    line-height: 1.2;
-    margin-bottom: 0.5rem;
-    color: var(--text-main);
-}
-
-h1 {
-    font-size: 2rem;
-    letter-spacing: -0.5px;
-    margin-bottom: 1rem;
-    color: var(--text-main);
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-p {
-    font-size: 1rem;
-    color: var(--text-muted);
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-}
-
-/* ==========================================================================
-   LAYOUT CONTAINERS
-   ========================================================================== */
-#main-content {
+/* Layout Container - Resent for Keyboard */
+#layout-root {
     width: 100%;
     height: 100%;
-    position: relative;
-    z-index: 1;
-}
-
-/* Central Card Layout (for most steps) */
-.container {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-    padding: 2rem;
-    position: relative;
-}
-
-.card {
-    background: var(--bg-card);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: var(--radius-lg);
-    padding: 3rem;
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-    box-shadow: var(--shadow-md);
-    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
 }
 
-/* ==========================================================================
-   ATOMIC COMPONENTS
-   ========================================================================== */
-
-/* --- Buttons --- */
-.button-group {
+#main-content {
+    flex: 1;
+    position: relative;
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
     justify-content: center;
-    margin-top: 2rem;
-    flex-wrap: wrap;
+    align-items: center;
+    padding: 24px;
+    overflow-y: auto;
 }
 
-.button {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: var(--radius-full);
+/* ==========================================================================
+   PRIMITIVES (Atomic Design)
+   ========================================================================== */
+
+/* --- Card --- */
+.card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    padding: 40px;
+    width: 100%;
+    max-width: 580px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2); /* Hard shadow */
+}
+
+/* --- Typography --- */
+h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+h2 { font-size: 1.4rem; font-weight: 500; margin-bottom: 1rem; }
+p { color: var(--text-muted); line-height: 1.5; margin-bottom: 1.5rem; }
+
+/* --- Inputs --- */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+input[type="text"], input[type="password"], input[type="number"] {
+    background: var(--bg-app);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 16px;
+    font-size: 1.1rem;
     font-family: inherit;
-    font-weight: 500;
+    width: 100%;
+    outline: none;
+    text-align: center;
+    transition: all 0.1s;
+    user-select: auto !important;
+}
+
+input:focus, input.active {
+    border-color: var(--primary);
+    background: var(--bg-surface);
+    box-shadow: 0 0 0 1px var(--primary); /* Sharp focus ring */
+}
+
+/* --- Buttons --- */
+.button {
+    background: var(--text-main);
+    color: var(--bg-app);
+    border: 1px solid var(--text-main);
+    padding: 14px 28px;
     font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.1s;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 10px rgba(var(--primary-h), var(--primary-s), var(--primary-l), 0.3);
+    justify-content: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.button:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
 }
 
 .button:active {
-    transform: scale(0.95);
-    box-shadow: none;
+    transform: translateY(2px);
 }
 
 .button.secondary {
-    background: rgba(255,255,255,0.08);
-    color: var(--text-main);
-    box-shadow: none;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.button.secondary:active {
-    background: rgba(255,255,255,0.15);
-}
-
-/* --- Inputs --- */
-input[type="text"], input[type="password"], input[type="number"] {
-    background: rgba(0,0,0,0.3);
-    border: 2px solid rgba(255,255,255,0.1);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: var(--radius-md);
-    font-family: inherit;
-    font-size: 1.2rem;
-    width: 100%;
-    outline: none;
-    transition: all 0.3s ease;
-    text-align: center;
-    user-select: auto !important; /* Fix for keyboard interaction */
-}
-
-input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px var(--primary-glow);
-    background: rgba(0,0,0,0.5);
-}
-
-/* --- Range Slider (Brightness) --- */
-input[type=range] {
-    -webkit-appearance: none;
-    width: 100%;
-    margin: 10px 0;
     background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-main);
 }
 
-input[type=range]:focus {
-    outline: none;
+.button.secondary:hover {
+    border-color: var(--text-main);
 }
 
-input[type=range]::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 8px;
-    cursor: pointer;
-    background: rgba(255,255,255,0.1);
-    border-radius: var(--radius-full);
-}
-
-input[type=range]::-webkit-slider-thumb {
-    height: 24px;
-    width: 24px;
-    border-radius: 50%;
-    background: var(--primary);
-    cursor: pointer;
-    -webkit-appearance: none;
-    margin-top: -8px; /* centers thumb */
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    transition: transform 0.1s;
-}
-
-input[type=range]::-webkit-slider-thumb:active {
-    transform: scale(1.2);
-}
-
-[data-theme="light"] input[type=range]::-webkit-slider-runnable-track {
-    background: rgba(0,0,0,0.1);
-}
-
-.hhid-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.hhid-prefix {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary);
-}
-
-/* --- Progress Bar --- */
+/* --- Progress Bar (Strict Grid) --- */
 #progress-bar {
     display: flex;
-    gap: 8px;
-    margin-bottom: 2rem;
-    justify-content: center;
+    gap: 4px;
+    margin-bottom: 40px;
+    width: 100%;
+    max-width: 200px;
 }
 
 .progress-step {
-    width: 40px;
-    height: 6px;
-    background: rgba(255,255,255,0.1);
-    border-radius: var(--radius-full);
+    flex: 1;
+    height: 4px;
+    background: var(--border);
 }
 
 .progress-step.active {
     background: var(--primary);
-    box-shadow: 0 0 10px var(--primary-glow);
-}
-
-/* --- Bottom Bar --- */
-#bottom-bar-allpage {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    pointer-events: none; /* Let clicks pass through */
-}
-
-#bottom-bar-allpage > * {
-    pointer-events: auto; /* Re-enable clicks for buttons */
-}
-
-.bar-btn {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    backdrop-filter: blur(10px);
-}
-
-.bar-btn:active {
-    background: rgba(255,255,255,0.2);
-    color: white;
-    transform: scale(0.9);
 }
 
 /* ==========================================================================
-   COMPONENT SPECIFIC STYLES
-   ========================================================================== */
-
-/* --- Loading Spinner --- */
-.loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    padding: 2rem;
-}
-
-.spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255,255,255,0.1);
-    border-top: 4px solid var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-/* --- Messages (Error/Success) --- */
-#error, .error, .success {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    border-radius: var(--radius-md);
-    margin: 1rem 0;
-    animation: fadeIn 0.3s ease;
-    font-weight: 500;
-}
-
-.error, #error {
-    background: rgba(255, 23, 68, 0.1);
-    border: 1px solid rgba(255, 23, 68, 0.3);
-    color: #ff80ab;
-}
-
-.success {
-    background: rgba(0, 230, 118, 0.1);
-    border: 1px solid rgba(0, 230, 118, 0.3);
-    color: #b9f6ca;
-}
-
-/* --- Main Dashboard Grid --- */
-.members-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.5rem;
-    padding: 2rem;
-    height: calc(100vh - var(--bottom-bar-height));
-    width: 100%;
-    overflow-y: auto;
-}
-
-.member-card-grid {
-    background-color: rgba(255,255,255,0.03);
-    border-radius: var(--radius-lg);
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.05);
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
-    background-size: cover;
-    background-position: center;
-    background-image: var(--bg-image); /* Allow inline styles to work */
-}
-
-.member-card-grid.active {
-    box-shadow: 0 0 0 2px var(--primary);
-}
-
-.member-card-grid:active {
-    transform: scale(0.97);
-}
-
-.member-card-grid .name-tag {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(4px);
-    padding: 0.8rem;
-    text-align: center;
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.member-card-grid.empty {
-    opacity: 0.3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    color: rgba(255,255,255,0.2);
-    box-shadow: none; /* No ring for empty */
-    background-image: none !important;
-}
-
-/* --- Main Dashboard Bottom Bar --- */
-.bottom-bar {
-    height: var(--bottom-bar-height);
-    background: rgba(18, 18, 22, 0.8);
-    backdrop-filter: blur(20px);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 2rem;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-}
-
-.bar-left, .bar-right {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
-/* --- Summary Card Items --- */
-.summary-container {
-    width: 100%;
-}
-
-.summary-header {
-    margin-bottom: 2rem;
-}
-
-.summary-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: rgba(255,255,255,0.03);
-    border-radius: var(--radius-md);
-    margin-bottom: 0.8rem;
-    text-align: left;
-}
-
-.item-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.05);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.item-content {
-    flex: 1;
-}
-
-.item-label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-}
-
-.item-value {
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-/* --- Animations --- */
-@keyframes slideUpFade {
-    0% { opacity: 0; transform: translateY(30px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeIn {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-}
-
-/* ==========================================================================
-   POPUPS & DIALOGS
+   DIALOGS & POPOVERS (Centered, Bordered)
    ========================================================================== */
 .overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    z-index: 9998;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    z-index: 5000;
     display: flex;
     justify-content: center;
     align-items: center;
-    animation: fadeIn 0.3s ease;
 }
 
 .popup {
     background: var(--bg-surface);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
+    border: 1px solid var(--border);
+    padding: 0; /* Header separates content */
     width: 90%;
     max-width: 500px;
-    box-shadow: var(--shadow-md);
-    position: relative;
-    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    color: var(--text-main);
-}
-
-[data-theme="light"] .popup {
-    border: 1px solid rgba(0,0,0,0.1);
+    animation: fadeIn 0.15s ease-out;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .popup-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    background: var(--bg-panel);
 }
 
-.popup-header h2 {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.5rem;
+.popup-content {
+    padding: 24px;
 }
 
 .close-btn {
-    background: rgba(255,255,255,0.1);
-    border: none;
+    background: transparent;
+    border: 1px solid transparent;
     color: var(--text-muted);
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    transition: all 0.2s;
-}
-
-[data-theme="light"] .close-btn {
-    background: rgba(0,0,0,0.05);
 }
 
 .close-btn:hover {
-    background: var(--error);
-    color: white;
-    transform: rotate(90deg);
-}
-
-/* Guest Dialog Specifics */
-#guest-overlay .guest-dialog-container {
-    background: var(--bg-surface);
-    color: var(--text-main);
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-[data-theme="light"] #guest-overlay .guest-dialog-container {
-    border: 1px solid rgba(0,0,0,0.1);
-}
-
-/* Turn off inline styles for Guest Dialog parts */
-.guest-list-panel {
-    background: var(--bg-glass) !important;
-    border-right: 1px solid rgba(255,255,255,0.1) !important;
-}
-
-[data-theme="light"] .guest-list-panel {
-    background: #f0f7ff !important;
-    border-right: 1px solid #e0e0e0 !important;
-}
-
-.guest-right-panel {
-    background: var(--bg-surface) !important;
-    color: var(--text-main) !important;
-}
-
-/* Animations */
-@keyframes scaleUp {
-    0% { transform: scale(0.9); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+    border-color: var(--error);
+    color: var(--error);
+    background: rgba(239, 68, 68, 0.1);
 }
 
 /* ==========================================================================
-   THEME TOGGLE
-   ========================================================================== */
-.theme-toggle-btn {
-    position: absolute;
-    top: -60px; /* Positioned relative to bottom bar or settings panel */
-    right: 20px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--bg-surface);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
-    z-index: 100;
-}
-
-[data-theme="light"] .theme-toggle-btn {
-    border-color: rgba(0,0,0,0.1);
-    background: white;
-}
-
-
-.theme-toggle-btn:hover {
-    transform: scale(1.1);
-}
-
-/* ==========================================================================
-   CUSTOM SELECT STYLING
-   ========================================================================== */
-.custom-select {
-    position: relative;
-    width: 100%;
-    margin-bottom: 1.5rem;
-    text-align: left;
-}
-
-.selected-item {
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 1rem 1.2rem;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: var(--text-main);
-    transition: all 0.2s;
-}
-
-[data-theme="light"] .selected-item {
-    background: white;
-    border-color: rgba(0,0,0,0.1);
-}
-
-.selected-item:hover, .selected-item.open {
-    border-color: var(--primary);
-    background: rgba(0,0,0,0.3);
-}
-
-.dropdown-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background: var(--bg-surface);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: var(--radius-md);
-    margin-top: 0.5rem;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 10000;
-    box-shadow: var(--shadow-md);
-    animation: fadeIn 0.2s;
-}
-
-.dropdown-list li, .dropdown-item {
-    padding: 1rem;
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    color: var(--text-muted);
-    transition: all 0.2s;
-}
-
-.dropdown-list li:hover, .dropdown-item:hover {
-    background: var(--primary-glow);
-    color: white;
-    padding-left: 1.5rem;
-}
-
-/* ==========================================================================
-   SETTINGS MODAL BUTTONS (TILES)
-   ========================================================================== */
-.settings-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-top: 2rem;
-}
-
-.setting-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.8rem;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: var(--radius-md);
-    padding: 1.5rem;
-    color: var(--text-main);
-    cursor: pointer;
-    transition: all 0.2s;
-    height: 120px;
-}
-
-[data-theme="light"] .setting-btn {
-    background: rgba(0,0,0,0.03);
-    border-color: rgba(0,0,0,0.1);
-}
-
-.setting-btn:hover {
-    transform: translateY(-5px);
-    background: var(--bg-card);
-    border-color: var(--primary);
-    box-shadow: var(--shadow-md);
-}
-
-.setting-btn span.material-icons {
-    font-size: 2.5rem;
-    color: var(--primary);
-}
-
-/* ==========================================================================
-   VIRTUAL KEYBOARD (Glassmorphism Overlay)
+   KEYBOARD (Strict Grid, Bottom Drawer)
    ========================================================================== */
 .virtual-keyboard {
     position: fixed;
-    bottom: -400px; /* Hidden initially */
-    left: 0;
-    width: 100%;
-    background: rgba(18, 18, 22, 0.85);
-    backdrop-filter: blur(25px);
-    border-top: 1px solid rgba(255,255,255,0.1);
-    padding: 20px;
+    bottom: 0; left: 0; width: 100%;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    padding: 8px;
     z-index: 9999;
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-    transition: bottom 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    transform: translateY(100%);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .virtual-keyboard.showing {
-    bottom: 0;
-}
-
-.keyboard-body {
-    max-width: 1000px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    transform: translateY(0);
 }
 
 .keyboard-row {
     display: flex;
+    gap: 6px;
     justify-content: center;
-    gap: 8px;
 }
 
-.keyboard-bottom-row {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 5px;
-}
-
-.key, .key-special {
-    background: rgba(255,255,255,0.1);
-    border: none;
-    border-radius: 8px;
-    color: white;
-    font-family: inherit;
-    font-size: 1.5rem;
-    height: 60px;
-    min-width: 50px;
+.key {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    font-size: 1.4rem;
+    height: 56px;
     flex: 1;
+    min-width: 40px;
+    max-width: 80px;
+    display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    transition: all 0.1s;
+}
+
+.key:active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.key-space { max-width: 300px; flex: 4; }
+.key-enter { background: var(--border); }
+.key-enter:active { background: var(--success); }
+
+/* --- Special Keyboards --- */
+.keyboard-numeric {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.keyboard-numeric .key {
+    height: 70px;
+    max-width: none;
+    font-size: 1.8rem;
+}
+
+/* ==========================================================================
+   GUEST UI (Split Grid)
+   ========================================================================== */
+.guest-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: 600px;
+    width: 100%;
+    max-width: 900px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+}
+
+.guest-list-side {
+    border-right: 1px solid var(--border);
+    background: var(--bg-app);
+    overflow-y: auto;
+}
+
+.guest-list-item {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
     display: flex;
+    justify-content: space-between;
     align-items: center;
+}
+
+.guest-form-side {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
     justify-content: center;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
 
-[data-theme="light"] .key, [data-theme="light"] .key-special {
-    background: white;
-    color: #333;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+/* ==========================================================================
+   SCREENSAVER (Technical)
+   ========================================================================== */
+#screensaver {
+    background: #000;
+    font-family: 'Courier New', monospace; /* Technical look */
 }
 
-.key:active, .key.pressed {
-    transform: scale(0.92);
-    background: var(--primary);
-    color: white;
-}
-
-.key-space {
-    flex: 5;
-}
-
-.key-enter {
-    background: var(--primary);
-    flex: 2;
-}
-
-.key-backspace {
-    background: rgba(255, 23, 68, 0.2);
-    color: var(--error);
-    flex: 1.5;
-}
-
-.key-shift.active, .key-special-characters.active {
-    background: var(--primary);
-    color: white;
-    box-shadow: 0 0 15px var(--primary-glow);
-}
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

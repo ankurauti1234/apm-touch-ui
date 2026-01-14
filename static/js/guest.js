@@ -4,6 +4,7 @@
    FIXED & PERFECT – zero syntax errors
    ============================================================== */
 
+// Open Strict Grid Guest Dialog
 function openDialog() {
     closeSettingsPopup();
     closeWiFiPopup();
@@ -12,99 +13,80 @@ function openDialog() {
 
     const overlay = document.createElement('div');
     overlay.id = 'guest-overlay';
-    // Use our global overlay class for centering and backdrop
     overlay.className = 'overlay';
 
-    // We'll create a custom container but reused global logic where possible
     overlay.innerHTML = `
-        <div class="guest-dialog-container" 
-             style="display:flex; align-items:stretch; justify-content:center; gap:0; width:90%; max-width:1100px; margin:0 auto; 
-                    background:var(--bg-surface); border-radius:24px; overflow:hidden; 
-                    box-shadow:var(--shadow-md); position:relative; animation:scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div class="guest-grid" style="animation: fadeIn 0.15s ease-out;">
             
             <!-- LEFT PANEL: GUEST LIST -->
-            <div class="guest-list-panel" 
-                 style="width:340px; padding:28px; display:flex; flex-direction:column; border-right:1px solid rgba(255,255,255,0.1); height:100%; min-height:500px;">
-                <h3 style="margin:0 0 20px; font-size:19px; color:var(--text-main);">
-                    Added Guests <strong id="guest-counter-header" style="color:var(--primary);">${guests.length}</strong>/8
-                </h3>
-                <div style="flex:1; overflow-y:auto; padding-right:8px;">
-                    <div id="guest-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+            <div class="guest-list-side">
+                <div style="padding:20px; border-bottom:1px solid var(--border); font-weight:600; display:flex; justify-content:space-between; align-items:center;">
+                    <span>Guests <strong id="guest-counter-header" style="color:var(--primary); margin-left:8px;">${guests.length}</strong>/8</span>
+                    <button class="button secondary" onclick="refreshGuests()" style="padding:8px 12px; font-size:0.8rem;">
+                        <span class="material-icons" style="font-size:16px; margin:0;">refresh</span>
+                    </button>
+                </div>
+                <div id="guest-list" style="padding:0;">
+                    <!-- Items appended here -->
                 </div>
             </div>
 
-            <!-- CENTER PANEL: FORM -->
-            <div style="flex:1; min-width:380px; padding:32px 40px; display:flex; flex-direction:column; background:var(--bg-surface);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-                    <h2 style="margin:0; font-size:22px; font-weight:600; color:var(--text-main);">Add Guest</h2>
-                    
-                    <button class="close-btn" onclick="closeGuestDialog()" aria-label="Close">
+            <!-- RIGHT PANEL: FORM -->
+            <div class="guest-form-side">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px;">
+                    <h2>Add Guest</h2>
+                    <button class="close-btn" onclick="closeGuestDialog()">
                         <span class="material-icons">close</span>
                     </button>
                 </div>
 
-                <div style="flex:1; display:flex; flex-direction:column; justify-content:center; max-width:400px; margin:0 auto;">
-                    <label style="font-size:17px; margin-bottom:8px; color:var(--text-muted);">Age</label>
-                    <input type="number" id="guest-age" min="1" max="125" placeholder="e.g. 32" inputmode="none"
-                           style="width:100%; padding:18px; font-size:20px; border:2px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:var(--text-main); border-radius:14px; margin-bottom:10px; text-align:center;">
-                    
-                    <div class="guest-error" id="age-error" style="color:var(--error); font-size:15px; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
-                        <span class="material-icons" style="font-size:19px;">error</span> Please enter age (1–125)
-                    </div>
-
-                    <label style="font-size:17px; margin:20px 0 8px; color:var(--text-muted);">Gender</label>
-                    <div class="custom-dropdown">
-                        <div id="gender-display" class="dropdown-display" style="background:rgba(0,0,0,0.2); border-color:rgba(255,255,255,0.1); color:var(--text-main);">
-                            <span class="placeholder" style="color:var(--text-muted);">Select gender</span>
+                <div class="input-wrapper">
+                    <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:14px;">Age (1-125)</label>
+                    <input type="number" id="guest-age" placeholder="e.g. 30" autocomplete="off" onfocus="showKeyboard(this)">
+                </div>
+                
+                <div class="input-wrapper">
+                    <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:14px;">Gender</label>
+                    <div class="custom-select">
+                        <div id="gender-display" class="selected-item" onclick="toggleGenderDropdown()">
+                            <span>Select Gender</span>
                             <span class="material-icons arrow">arrow_drop_down</span>
                         </div>
-                        <div id="gender-options" class="dropdown-options" style="background:var(--bg-surface); border-color:rgba(255,255,255,0.1);">
-                            <div class="dropdown-item" data-value="Male" style="color:var(--text-main);">Male</div>
-                            <div class="dropdown-item" data-value="Female" style="color:var(--text-main);">Female</div>
-                            <div class="dropdown-item" data-value="Other" style="color:var(--text-main);">Other</div>
-                        </div>
-                    </div>
-
-                    <div class="guest-error" id="gender-error" style="color:var(--error); font-size:15px; margin-bottom:20px; display:flex; align-items:center; gap:6px;">
-                        <span class="material-icons" style="font-size:19px;">error</span> Please select gender
-                    </div>
-
-                    <div style="display:flex; gap:16px; margin-top:30px;">
-                        <button class="cancel" onclick="closeGuestDialog()"
-                                style="flex:1; padding:18px; border:1px solid rgba(255,255,255,0.1); border-radius:14px; background:transparent; color:var(--text-main); font-size:18px; font-weight:600; cursor:pointer;">Cancel</button>
-                        <button class="add" id="add-guest-btn" onclick="addGuest()"
-                                style="flex:1; padding:18px; border:none; border-radius:14px; background:var(--primary); color:white; font-size:18px; font-weight:600; cursor:pointer; box-shadow:var(--shadow-glow);">Add</button>
+                        <ul id="gender-options" class="dropdown-list" style="display:none;">
+                            <li onclick="selectGender('Male')">Male</li>
+                            <li onclick="selectGender('Female')">Female</li>
+                            <li onclick="selectGender('Other')">Other</li>
+                        </ul>
                     </div>
                 </div>
-            </div>
 
-            <!-- RIGHT PANEL: NUMPAD -->
-            <div style="width:300px; background:rgba(255,255,255,0.03); padding:28px; display:flex; align-items:center; justify-content:center; border-left:1px solid rgba(255,255,255,0.1);">
-                <div class="guest-numpad" style="display:grid; grid-template-columns:repeat(3,70px); gap:14px;">
-                    ${[7, 8, 9, 4, 5, 6, 1, 2, 3].map(n =>
-                        `<button onclick="numpadPress('${n}')" style="width:70px; height:70px; border:1px solid rgba(255,255,255,0.1); border-radius:18px; background:var(--bg-card); color:var(--text-main); font-size:30px; font-weight:700; cursor:pointer; box-shadow:var(--shadow-sm);">${n}</button>`
-                    ).join('')}
-                    <button onclick="numpadPress('0')" style="grid-column:2; width:70px; height:70px; border:1px solid rgba(255,255,255,0.1); border-radius:18px; background:var(--bg-card); color:var(--text-main); font-size:30px; font-weight:700; cursor:pointer; box-shadow:var(--shadow-sm);">0</button>
-                    <button class="backspace" onclick="numpadBackspace()" style="grid-column:1/4; background:rgba(255, 23, 68, 0.2); color:var(--error); border:none; border-radius:18px; cursor:pointer;">
-                        <span class="material-icons" style="font-size:40px;">backspace</span>
-                    </button>
+                <div style="display:flex; gap:12px; margin-top:24px;">
+                    <button class="button" onclick="addGuest()" style="flex:1;">Add Guest</button>
+                    <button class="button secondary" onclick="closeGuestDialog()" style="flex:1;">Cancel</button>
                 </div>
+                
+                <div id="guest-error" class="error" style="display:none; margin-top:20px;"></div>
             </div>
         </div>
     `;
+
     document.body.appendChild(overlay);
-    hideKeyboard();
+    
+    // Add logic to toggle dropdown
+    window.toggleGenderDropdown = () => {
+        const list = document.getElementById('gender-options');
+        list.style.display = list.style.display === 'none' ? 'block' : 'none';
+    };
 
-    requestAnimationFrame(() => {
-        overlay.style.opacity = '1';
-        document.getElementById('guest-age')?.focus();
-        updateGuestList();
-        updateGuestCounter();
-    });
+    window.selectGender = (val) => {
+        const display = document.querySelector('#gender-display span:first-child');
+        display.textContent = val;
+        display.parentElement.dataset.value = val;
+        document.getElementById('gender-options').style.display = 'none';
+    };
 
-    overlay.addEventListener('click', e => e.target === overlay && e.stopPropagation());
+    updateGuestList();
     loadGuestsForDialog();
-    updateGuestCountFromFile();
 }
 
 function numpadPress(digit) {
@@ -134,45 +116,42 @@ function closeGuestDialog() {
 
 function addGuest() {
     const ageInput = document.getElementById('guest-age');
-    const ageError = document.getElementById('age-error');
-    const genderError = document.getElementById('gender-error');
-    const genderDisplay = document.getElementById('gender-display');
-    const age = ageInput.value.trim();
-    const gender = genderDisplay?.dataset.value || '';
-    let valid = true;
+    const genderDisplay = document.querySelector('#gender-display span:first-child');
+    const errorDiv = document.getElementById('guest-error');
 
-    ageError.classList.remove('show');
-    genderError.classList.remove('show');
+    const age = parseInt(ageInput.value, 10);
+    const gender = genderDisplay.parentElement.dataset.value;
 
-    if (!age || parseInt(age) < 1 || parseInt(age) > 125) {
-        ageError.classList.add('show');
-        valid = false;
+    errorDiv.style.display = 'none';
+
+    if (!age || age < 1 || age > 125) {
+        errorDiv.textContent = 'Please enter a valid age (1-125)';
+        errorDiv.style.display = 'flex';
+        return;
     }
     if (!gender) {
-        genderError.classList.add('show');
-        valid = false;
+        errorDiv.textContent = 'Please select a gender';
+        errorDiv.style.display = 'flex';
+        return;
     }
-    if (!valid) return;
-
     if (guests.length >= MAX_GUESTS) {
-        alert('Maximum 8 guests allowed');
+        errorDiv.textContent = 'Maximum 8 guests allowed';
+        errorDiv.style.display = 'flex';
         return;
     }
 
-    guests.push({ age: parseInt(age), gender });
+    guests.push({ age, gender });
+    
+    // Reset Form
     ageInput.value = '';
-    genderDisplay.innerHTML = '<span class="placeholder">Select gender</span><span class="material-icons arrow">arrow_drop_down</span>';
-    delete genderDisplay.dataset.value;
-    ageInput.focus();
-
+    genderDisplay.textContent = 'Select Gender';
+    delete genderDisplay.parentElement.dataset.value;
+    
+    // Updates
     updateGuestList();
     updateGuestCounter();
     renderGuestCountInMain();
     sendGuestListToServer();
-    // updateGuestCountFromFile();
-
-    const container = document.querySelector('.guest-list-container');
-    if (container) container.scrollTop = container.scrollHeight;
 }
 
 function removeGuest(index) {
@@ -189,14 +168,16 @@ function updateGuestList() {
     if (!list) return;
 
     if (guests.length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">No guests added yet</div>';
+        list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">No guests added</div>';
         return;
     }
 
     list.innerHTML = guests.map((g, i) => `
-        <div class="guest-item" style="padding:12px;background:#f8fbff;border-radius:12px;display:flex;justify-content:space-between;align-items:center;">
-            <span>Guest ${i + 1}: ${g.age} years • ${g.gender}</span>
-            <button onclick="removeGuest(${i})" style="background:none;border:none;color:#d32f2f;font-size:20px;cursor:pointer;">remove</button>
+        <div class="guest-list-item">
+            <span><strong>#${i + 1}</strong> &nbsp; ${g.age} yrs • ${g.gender}</span>
+            <button class="button secondary" onclick="removeGuest(${i})" style="padding:4px 8px; border-color:var(--error); color:var(--error);">
+                <span class="material-icons" style="font-size:18px; margin:0;">delete</span>
+            </button>
         </div>
     `).join('');
 }

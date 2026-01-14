@@ -206,29 +206,20 @@ function hideKeyboard() {
     const kb = document.getElementById('virtual-keyboard');
     if (kb) {
         kb.classList.remove('showing');
-        kb.classList.add('hiding');
-        setTimeout(() => kb.remove(), 300);
     }
-    const containerCard = document.querySelector('.container');
-    const bottomBar = document.querySelector('.bottom-bar-allpage');
-    if (containerCard) containerCard.classList.remove('lifted');
-    if (bottomBar) bottomBar.classList.remove('lifted');
+    
+    // Reset layout height
+    const layoutRoot = document.getElementById('layout-root');
+    if (layoutRoot) {
+        layoutRoot.style.height = '100%';
+    }
 
-    // Reset icon positions
-    const leftIcons = document.querySelectorAll('.icon-left');
-    const rightIcons = document.querySelectorAll('.icon-right');
-
-    leftIcons.forEach(icon => icon.classList.remove('lifted'));
-    rightIcons.forEach(icon => icon.classList.remove('lifted'));
-
-
-    document.querySelector('.container')?.classList.remove('lifted');
-    document.querySelector('.bottom-bar-allpage')?.classList.remove('lifted');
+    if (document.getElementById('wifi-popup')) {
+        document.getElementById('wifi-popup').style.transform = 'none';
+    }
 
     activeInput = null;
     shiftActive = false;
-    lowerEditMemberPopup();
-    lowerWiFiPopup();
 }
 
 function scrollInputIntoView() {
