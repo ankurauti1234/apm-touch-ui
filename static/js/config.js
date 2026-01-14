@@ -12,11 +12,11 @@ const steps = [
     { id: 'welcome', label: 'Start' },
     { id: 'connect_select', label: 'Connect' },
     { id: 'network_test', label: 'Network' },
+    { id: 'input_source_detection', label: 'Inputs' },
+    { id: 'video_object_detection', label: 'Video' },
     { id: 'display_meter', label: 'Meter ID' },
     { id: 'hhid_input', label: 'HHID' },
     { id: 'otp_verification', label: 'OTP' },
-    { id: 'input_source_detection', label: 'Inputs' },
-    { id: 'video_object_detection', label: 'Video' },
     { id: 'finalize', label: 'Summary' },
     { id: 'main', label: 'Complete' }
 ];

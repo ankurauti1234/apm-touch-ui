@@ -308,14 +308,15 @@ document.addEventListener('click', function (e) {
 });
 
 // Toast notification
-function showToast(message) {
+// Toast notification (Apple Style)
+function showToast(message, type = 'default') {
     const toast = document.createElement('div');
-    toast.textContent = message;
-    toast.style.cssText = `
-        position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
-        background:rgba(0,0,0,0.8);color:white;padding:12px 24px;
-        border-radius:30px;font-size:16px;z-index:10000;
-        animation:fadein 0.3s,fadeout 0.5s 2.5s forwards;
+    toast.className = 'toast';
+    toast.innerHTML = `
+        <span class="material-icons" style="color:${type === 'error' ? 'var(--error)' : 'var(--success)'}">
+            ${type === 'error' ? 'error' : 'check_circle'}
+        </span>
+        <span>${message}</span>
     `;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);

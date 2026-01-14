@@ -229,77 +229,67 @@ const states = {
     `,
 
     finalize: (details) => `
-    <div class="summary-container">
-        <div class="summary-header">
-            <h1>Setup Complete</h1>
-            <p>Ready to finalize your configuration.</p>
-        </div>
+    <div class="summary-container" style="height:100%; display:flex; flex-direction:column;">
+        <h1>Setup Complete</h1>
+        <p>Ready to finalize your configuration.</p>
 
         <div id="error" class="error" style="display:none;"></div>
 
-        <div class="card-grid" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: var(--radius-md);">
-   
-            <!-- Meter ID -->
-            <div class="summary-item">
-                <div class="item-icon" style="color: var(--primary);"><span class="material-icons">electric_meter</span></div>
-                <div class="item-content">
-                    <div class="item-label">Meter ID</div>
-                    <div class="item-value" style="color: var(--primary-l);">${details.meter_id}</div>
+        <div class="card-scroll-content">
+            <div class="card-grid">
+                <!-- Meter ID -->
+                <div class="summary-item">
+                    <div class="item-icon"><span class="material-icons" style="color:var(--primary);">memory</span></div>
+                    <div>
+                        <div style="font-size:12px; opacity:0.6;">Meter ID</div>
+                        <div style="font-weight:600;">${details.meter_id}</div>
+                    </div>
                 </div>
-            </div>
-    
-            <!-- HHID -->
-            <div class="summary-item">
-                <div class="item-icon" style="color: var(--secondary);"><span class="material-icons">home</span></div>
-                <div class="item-content">
-                    <div class="item-label">Household</div>
-                    <div class="item-value">${details.hhid || '<span style="opacity:0.5;">Not configured</span>'}</div>
+        
+                <!-- HHID -->
+                <div class="summary-item">
+                    <div class="item-icon"><span class="material-icons" style="color:var(--warning);">home</span></div>
+                    <div>
+                        <div style="font-size:12px; opacity:0.6;">Household</div>
+                        <div style="font-weight:600;">${details.hhid || 'N/A'}</div>
+                    </div>
                 </div>
-            </div>
-    
-            <!-- Connectivity -->
-            <div class="summary-item">
-                <div class="item-icon" style="color: var(--success);"><span class="material-icons">signal_cellular_alt</span></div>
-                <div class="item-content">
-                    <div class="item-label">Network</div>
-                    <div class="item-value">${details.connectivity}</div>
+        
+                <!-- Connectivity -->
+                <div class="summary-item">
+                    <div class="item-icon"><span class="material-icons" style="color:var(--success);">wifi</span></div>
+                    <div>
+                        <div style="font-size:12px; opacity:0.6;">Network</div>
+                        <div style="font-weight:600;">${details.connectivity}</div>
+                    </div>
                 </div>
-            </div>
-    
-            <!-- Input Sources -->
-            <div class="summary-item" style="border-left: 3px solid ${details.input_sources.length ? 'var(--success)' : 'var(--error)'};">
-                <div class="item-icon" style="color: ${details.input_sources.length ? 'var(--success)' : 'var(--error)'};">
-                    <span class="material-icons">${details.input_sources.length ? 'usb' : 'usb_off'}</span>
+        
+                <!-- Video Status -->
+                <div class="summary-item">
+                    <div class="item-icon"><span class="material-icons" style="color:${details.video_detection ? 'var(--success)':'var(--error)'};">videocam</span></div>
+                    <div>
+                        <div style="font-size:12px; opacity:0.6;">Camera</div>
+                        <div style="font-weight:600;">${details.video_detection ? 'Active' : 'Failed'}</div>
+                    </div>
                 </div>
-                <div class="item-content">
-                    <div class="item-label">Input Devices</div>
-                    <div class="item-value">
-                        ${details.input_sources.length ? details.input_sources.join(', ') : 'None Found'}
+
+                <!-- Input Sources -->
+                <div class="summary-item" style="grid-column: span 2;">
+                    <div class="item-icon"><span class="material-icons">usb</span></div>
+                    <div>
+                        <div style="font-size:12px; opacity:0.6;">Inputs</div>
+                        <div style="font-weight:600; font-size:14px;">${details.input_sources.length ? details.input_sources.join(', ') : 'None'}</div>
                     </div>
                 </div>
             </div>
-    
-            <!-- Video Detection -->
-            <div class="summary-item" style="border-left: 3px solid ${details.video_detection ? 'var(--success)' : 'var(--error)'};">
-                <div class="item-icon" style="color: ${details.video_detection ? 'var(--success)' : 'var(--error)'};">
-                    <span class="material-icons">${details.video_detection ? 'videocam' : 'videocam_off'}</span>
-                </div>
-                <div class="item-content">
-                    <div class="item-label">AI Detection</div>
-                    <div class="item-value">
-                        ${details.video_detection ? 'Operational' : 'Failed'}
-                    </div>
-                </div>
-            </div>
-   
         </div>
 
-        <div class="button-group large" style="margin-top: 2rem;">
+        <div class="button-group" style="padding-top:16px; border-top:1px solid rgba(255,255,255,0.1);">
             <button class="button" onclick="finalizeInstallation()">
-                <span class="material-icons">check_circle</span> Finish Setup
+                Finish Setup <span class="material-icons">check</span>
             </button>
-            <button class="button secondary" onclick="navigate('video_object_detection')">
-                <span class="material-icons">arrow_back</span> Review
+            <button class="button secondary" onclick="navigate('input_source_detection')">
+                <span class="material-icons">arrow_back</span> Back
             </button>
         </div>
     </div>`,
