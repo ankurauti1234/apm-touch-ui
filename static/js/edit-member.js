@@ -16,8 +16,17 @@ function showEditMemberPopup() {
     popup.className = 'popup';
 
     popup.innerHTML = `
-        <h2 style="margin-top:0;"><span class="material-icons">edit</span> Edit Member Code</h2>
-        <p>Choose a member to edit</p>
+        <div class="popup-header">
+            <h2>
+                <span class="material-icons" style="color:var(--primary);">edit</span>
+                Edit Member
+            </h2>
+            <button class="close-btn" onclick="closeEditMemberPopup()" aria-label="Close">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+
+        <p style="text-align:center;">Choose a member to rename</p>
         <div id="edit-error" class="error" style="display:none;"></div>
 
         <div class="custom-select" style="margin:1rem 0;">
@@ -47,8 +56,8 @@ function showEditMemberPopup() {
         </div>
     `;
 
+    overlay.appendChild(popup);
     document.body.appendChild(overlay);
-    document.body.appendChild(popup);
 
     // Keyboard + lift handling for the code input
     const codeInput = document.getElementById('new-code');

@@ -16,8 +16,17 @@ async function showWiFiPopup() {
     popup.className = 'popup';
 
     popup.innerHTML = `
-        <h2 style="margin-top: 0;">Select Wi-Fi</h2>
-        <p>Choose a network to connect</p>
+        <div class="popup-header">
+            <h2>
+                <span class="material-icons" style="color:var(--primary);">wifi</span>
+                Select Wi-Fi
+            </h2>
+            <button class="close-btn" onclick="closeWiFiPopup()" aria-label="Close">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+
+        <p style="text-align:center; margin-bottom:1rem;">Choose a network to connect</p>
         <div id="wifi-error" class="error" style="display:none;"></div>
 
         <div id="custom-select" class="custom-select">
@@ -56,8 +65,8 @@ async function showWiFiPopup() {
         </div>
     `;
 
+    overlay.appendChild(popup);
     document.body.appendChild(overlay);
-    document.body.appendChild(popup);
 
     // Focus + lift handling for password field
     const passwordInput = document.getElementById('password');

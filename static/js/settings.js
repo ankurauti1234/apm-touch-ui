@@ -3,6 +3,9 @@
    Settings popup + brightness slider + reboot/shutdown
    ============================================================== */
 
+// Initialize theme on load
+document.addEventListener('DOMContentLoaded', initThemeToggle);
+
 function showSettingsPopup() {
     if (document.getElementById('settings-popup')) {
         closeSettingsPopup();
@@ -27,6 +30,11 @@ function showSettingsPopup() {
                 <span class="material-icons">close</span>
             </button>
         </div>
+        
+        <!-- Theme Toggle (Absolute positioned) -->
+        <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Theme">
+            <span class="material-icons" id="theme-icon">light_mode</span>
+        </button>
 
         <!-- Brightness Control -->
         <div class="setting-item brightness-control">
@@ -60,7 +68,8 @@ function showSettingsPopup() {
         </div>
     `;
 
-    document.body.append(overlay, popup);
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
 
     if (document.getElementById('wifi-popup')) closeWiFiPopup();
 
@@ -70,6 +79,7 @@ function showSettingsPopup() {
 
     // Initialize brightness slider with current value from backend
     initBrightnessControl();
+    updateThemeIcon(); // Ensure icon is correct
 }
 
 function closeSettingsPopup() {
@@ -98,4 +108,24 @@ async function initBrightnessControl() {
         originalBrightness = val;
         await updateBrightnessAPI(val);
     });
+}
+
+function initThemeToggle() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    updateThemeIcon();
+}
+
+function updateThemeIcon() {
+    const icon = document.getElementById('theme-icon');
+    if (!icon) return;
+    const current = document.documentElement.getAttribute('data-theme');
+    icon.textContent = current === 'light' ? 'dark_mode' : 'light_mode';
 }
