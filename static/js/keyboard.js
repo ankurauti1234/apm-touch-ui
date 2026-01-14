@@ -82,6 +82,9 @@ function showKeyboard(el) {
     scrollInputIntoView();
 
     kb.addEventListener('click', e => e.stopPropagation());
+    
+    // Ensure clicking the input itself doesn't trigger the global "close" listener
+    el.addEventListener('click', e => e.stopPropagation());
 }
 
 function renderKeys() {
@@ -253,12 +256,14 @@ document.addEventListener('click', e => {
     if (wifiPopup && wifiPopup.contains(e.target)) return;
     if (wifiOverlay && wifiOverlay.contains(e.target)) return;
 
+    // If we clicked an input, show keyboard and STOP there
     const input = e.target.closest('input');
     if (input) {
         showKeyboard(input);
         return;
     }
 
+    // Otherwise, close keyboard
     hideKeyboard();
 });
 
