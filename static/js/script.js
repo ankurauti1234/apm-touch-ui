@@ -2505,41 +2505,72 @@ setupScreensaverResetListeners();  // call once
        console.log("Screensaver already exists");
    }
 
-    function updateScreensaverMembers() {
-        const membersContainer = document.getElementById('screensaver-active-members');
-        const warningContainer  = document.getElementById('screensaver-no-active');
-        
-        if (!membersContainer || !warningContainer) return;
+   function updateScreensaverMembers() {
+    const membersContainer = document.getElementById('screensaver-active-members');
+    const warningContainer  = document.getElementById('screensaver-no-active');
     
-        if (!membersData?.members?.length) {
-            membersContainer.style.display = 'none';
-            warningContainer.style.display = 'none';
-            return;
-        }
-    
-        const activeMembers = membersData.members.filter(m => m.active !== false);
-    
-        if (activeMembers.length === 0) {
-            membersContainer.style.display = 'none';
-            warningContainer.style.display = 'flex';
-            return;
-        }
-    
-        // Show active members avatars
-        membersContainer.innerHTML = activeMembers.map(m => {
-            const bgImage = avatar(m.gender, m.dob);
-            const title = m.name || m.member_code || 'Member';
-            return `
-                <div class="mini-avatar" 
-                     style="background-image: url('${bgImage}');" 
-                     title="${title}">
-                </div>
-            `;
-        }).join('');
-    
-        membersContainer.style.display = 'flex';
+    if (!membersContainer || !warningContainer) return;
+
+    if (!membersData?.members?.length) {
+        membersContainer.style.display = 'none';
         warningContainer.style.display = 'none';
+        return;
     }
+
+    const activeMembers = membersData.members.filter(m => m.active !== false);
+
+    if (activeMembers.length === 0) {
+        membersContainer.style.display = 'none';
+        warningContainer.style.display = 'flex';
+        return;
+    }
+
+    // Show avatars + member codes below them
+    membersContainer.innerHTML = activeMembers.map(m => {
+        const bgImage = avatar(m.gender, m.dob);
+        const code = m.member_code || '—';           // fallback if no code
+        const name = m.name || '';                   // optional: show name too
+
+        return `
+            <div style="text-align: center; min-width: 90px;">
+                <div class="mini-avatar" 
+                     style="
+                        background-image: url('${bgImage}');
+                        width: 100px; 
+                        height: 100px; 
+                        border-radius: 50%; 
+                        background-size: cover; 
+                        background-position: center;
+                        margin: 0 auto 8px auto;
+                     ">
+                </div>
+                <div style="
+                    font-size: 18px; 
+                    color: rgba(255,255,255,0.95);
+                    font-weight: 500;
+                    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                ">
+                    ${code}
+                </div>
+                ${name ? `
+                    <div style="
+                        font-size: 14px; 
+                        color: rgba(255,255,255,0.75);
+                        margin-top: 2px;
+                    ">
+                        ${name}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+
+    membersContainer.style.display = 'flex';
+    warningContainer.style.display = 'none';
+}
    
    // --- Clock update ---
    function updateClock() {
