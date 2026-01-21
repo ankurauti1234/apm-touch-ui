@@ -1991,18 +1991,53 @@ function togglePasswordVisibility(e) {
        /* ---------- MAIN DASHBOARD ---------- */
        /* ---------- MAIN DASHBOARD ---------- */
        if (state === 'main') {
-           await fetchMembers();
-           await loadGuestsFromServer();
-           render();
-           updateGuestCountFromFile();     // ← Updates bottom bar instantly
-           // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
-           setTimeout(() => {
-               if (currentState === 'main') resetScreensaverTimer();
-           }, 100);
-           return;   // <-- important: stop further execution
-       }
+        await fetchMembers();
+        await loadGuestsFromServer();
+        
+        render();
+        updateGuestCountFromFile();
+        updateScreensaverMembers();   // make sure member data is ready for screensaver
+        
+        // Wait one microtask (very fast) so any pending DOM paints happen
+        requestAnimationFrame(() => {
+            if (currentState === 'main') {
+                console.log("Main screen ready → starting screensaver timer");
+                resetScreensaverTimer();
+            }
+        });
+        
+        return;
+    }
        render();
    }
+   function resetScreensaverTimer() {
+    console.log("resetScreensaverTimer called");
+    
+    clearTimeout(screensaverTimeout);
+    clearTimeout(preDimTimeout);
+    
+    hideScreensaver();
+    restoreBrightness();
+
+    preDimTimeout = setTimeout(preDimBrightness, 20000);
+    screensaverTimeout = setTimeout(showScreensaver, 30000);
+}
+
+// Run this only once (e.g. at the end of init() or in DOMContentLoaded)
+function setupScreensaverResetListeners() {
+    const resetOnActivity = () => {
+        if (currentState === 'main') {
+            resetScreensaverTimer();
+        }
+    };
+
+    ['mousemove', 'mousedown', 'touchstart', 'touchmove', 'keydown', 'scroll']
+        .forEach(evt => {
+            document.addEventListener(evt, resetOnActivity, { passive: true });
+        });
+}
+
+setupScreensaverResetListeners();  // call once
    
    /* ==============================================================
       INPUT SOURCES API
@@ -2390,102 +2425,86 @@ function togglePasswordVisibility(e) {
    
    // -------------------- Raspberry-proof screensaver (fixed) --------------------
    let saver = document.getElementById('screensaver');
-    if (!saver) {
-        saver = document.createElement('div');
-        saver.id = 'screensaver';
-        Object.assign(saver.style, {
-            position: 'fixed',
-            left: '0',
-            top: '0',
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'black',
-            zIndex: '2147483647',
-            pointerEvents: 'all',
-            touchAction: 'none',
-            WebkitUserSelect: 'none',
-            userSelect: 'none',
-            margin: '0',
-            padding: '0',
-            color: 'white',
-            gap: '10px',
-            opacity: '0',
-            transition: 'opacity 1s ease',
-            visibility: 'hidden',
-            outline: 'none',
-        });
-
-        saver.tabIndex = -1;
-        document.body.appendChild(saver);
-
-        const wrapper = document.createElement('div');
-        wrapper.id = 'clock-wrapper';
-        Object.assign(wrapper.style, {
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-        });
-
-        // Time
-        const timeEl = document.createElement('div');
-        timeEl.id = 'clock-time';
-        Object.assign(timeEl.style, {
-            fontSize: '200px',
-            fontWeight: '600',
-            marginBottom: '10px',
-            lineHeight: '1',
-            textAlign: 'center',
-        });
-
-        // Date
-        const dateEl = document.createElement('div');
-        dateEl.id = 'clock-date';
-        Object.assign(dateEl.style, {
-            fontSize: '70px',
-            fontWeight: '400',
-            textAlign: 'center',
-        });
-
-        // Active members container
-        const membersContainer = document.createElement('div');
-        membersContainer.id = 'screensaver-active-members';
-        Object.assign(membersContainer.style, {
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            gap: '24px',
-            marginTop: '60px',
-            maxWidth: '90%'
-        });
-
-        // No active members warning
-        const warningEl = document.createElement('div');
-        warningEl.id = 'screensaver-no-active';
-        warningEl.style.display = 'none';
-        warningEl.innerHTML = `
-            <span class="material-icons" style="font-size:80px; color:#e74c3c;">warning_amber</span>
-            <div style="margin-top:20px; font-size:42px; color:#e74c3c;">
-                No active members
-            </div>
-            <div style="margin-top:16px; font-size:28px; color:#bbb; max-width:80%; text-align:center;">
-                System may not record usage properly<br>
-                Please activate members in the dashboard
-            </div>
-        `;
-
-        wrapper.appendChild(timeEl);
-        wrapper.appendChild(dateEl);
-        wrapper.appendChild(membersContainer);
-        wrapper.appendChild(warningEl);
-        saver.appendChild(wrapper);
-    }
+   if (!saver) {
+       saver = document.createElement('div');
+       saver.id = 'screensaver';
+       Object.assign(saver.style, {
+           position: 'fixed',
+           left: '0', top: '0',
+           width: '100%', height: '100%',
+           display: 'flex',
+           flexDirection: 'column',
+           alignItems: 'center',
+           justifyContent: 'center',
+           background: 'black',
+           zIndex: '2147483647',
+           pointerEvents: 'all',
+           touchAction: 'none',
+           WebkitUserSelect: 'none',
+           userSelect: 'none',
+           margin: '0', padding: '0',
+           color: 'white',
+           gap: '10px',
+           opacity: '0',
+           transition: 'opacity 1s ease',
+           visibility: 'hidden',
+           outline: 'none',
+       });
+   
+       saver.tabIndex = -1;
+       document.body.appendChild(saver);
+   
+       const wrapper = document.createElement('div');
+       wrapper.id = 'clock-wrapper';
+       Object.assign(wrapper.style, {
+           width: '100%', height: '100%',
+           display: 'flex', flexDirection: 'column',
+           justifyContent: 'center', alignItems: 'center',
+       });
+   
+       const timeEl = document.createElement('div');
+       timeEl.id = 'clock-time';
+       Object.assign(timeEl.style, {
+           fontSize: '200px', fontWeight: '600',
+           marginBottom: '10px', lineHeight: '1',
+           textAlign: 'center',
+       });
+   
+       const dateEl = document.createElement('div');
+       dateEl.id = 'clock-date';
+       Object.assign(dateEl.style, {
+           fontSize: '70px', fontWeight: '400',
+           textAlign: 'center',
+       });
+   
+       // ── ADD THE NEW PARTS HERE ────────────────────────────────
+       const membersContainer = document.createElement('div');
+       membersContainer.id = 'screensaver-active-members';
+       membersContainer.className = 'screensaver-members';
+   
+       const warningContainer = document.createElement('div');
+       warningContainer.id = 'screensaver-no-active';
+       warningContainer.className = 'screensaver-warning';
+       warningContainer.style.display = 'none';
+       warningContainer.innerHTML = `
+           <span class="material-icons" style="font-size:80px; color:#e74c3c;">warning_amber</span>
+           <div style="margin-top:20px; font-size:42px; color:#e74c3c;">No active members</div>
+           <div style="margin-top:16px; font-size:28px; color:#bbb; max-width:80%; text-align:center;">
+               System may not record usage properly<br>
+               Please activate members in the dashboard
+           </div>
+       `;
+   
+       wrapper.appendChild(timeEl);
+       wrapper.appendChild(dateEl);
+       wrapper.appendChild(membersContainer);
+       wrapper.appendChild(warningContainer);
+       saver.appendChild(wrapper);
+   
+       console.log("Screensaver CREATED and appended to body");
+   } else {
+       console.log("Screensaver already exists");
+   }
 
     function updateScreensaverMembers() {
         const membersContainer = document.getElementById('screensaver-active-members');
@@ -2556,24 +2575,21 @@ function togglePasswordVisibility(e) {
    let isDimmed = false;
    
    function showScreensaver() {
+    console.log("SHOW SCREENSAVER called");
     saver.style.visibility = "visible";
     saver.style.opacity = "1";
-    
-    // NEW: refresh member icons / warning
-    updateScreensaverMembers();
-    
     try { saver.focus({ preventScroll: true }); } catch(e) {}
+    updateScreensaverMembers();   // make sure avatars/warning are fresh
 }
-   
-   function hideScreensaver() {
-       saver.style.opacity = "0"; // fade out
-       setTimeout(() => {
-           saver.style.visibility = "hidden";
-       }, 1000); // matches transition duration
-       try {
-           saver.blur();
-       } catch (e) { }
-   }
+
+function hideScreensaver() {
+    console.log("HIDE SCREENSAVER called");
+    saver.style.opacity = "0";
+    setTimeout(() => {
+        saver.style.visibility = "hidden";
+    }, 1000);
+    try { saver.blur(); } catch(e) {}
+}
    
    // --- Pre-dim brightness logic (go straight to mapped minimum) ---
    async function preDimBrightness() {
@@ -2632,18 +2648,24 @@ function togglePasswordVisibility(e) {
    
    
    // --- Screensaver with pre-dim at 20s (30s - 10s) ---
+
    
    function resetScreensaverTimer() {
+       console.log("Resetting screensaver timer");
+   
        clearTimeout(screensaverTimeout);
        clearTimeout(preDimTimeout);
        hideScreensaver();
        restoreBrightness();
    
-       // Pre-dim at 20 seconds (10 seconds before screensaver)
+       // Pre-dim at 20 seconds
        preDimTimeout = setTimeout(preDimBrightness, 20000);
    
        // Show screensaver at 30 seconds
-       screensaverTimeout = setTimeout(showScreensaver, 30000);
+       screensaverTimeout = setTimeout(() => {
+           console.log("30 seconds passed → showing screensaver");
+           showScreensaver();
+       }, 30000);
    }
    
    // Start screensaver timer ONLY when on the main dashboard
