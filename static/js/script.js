@@ -2555,15 +2555,6 @@ setupScreensaverResetListeners();  // call once
                 ">
                     ${code}
                 </div>
-                ${name ? `
-                    <div style="
-                        font-size: 14px; 
-                        color: rgba(255,255,255,0.75);
-                        margin-top: 2px;
-                    ">
-                        ${name}
-                    </div>
-                ` : ''}
             </div>
         `;
     }).join('');
