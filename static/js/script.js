@@ -2336,6 +2336,11 @@ function togglePasswordVisibility(e) {
        } catch (e) { console.error(e); }
    }
    async function toggleMember(idx) {
+    if (d.success) {
+        membersData.members[idx] = d.member;
+        render();                     // refresh dashboard
+        updateScreensaverMembers();   // ← add this (safe even if screensaver not visible)
+    }
        if (!membersData?.members?.[idx]) return;
        try {
            const r = await fetch('/api/toggle_member_status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ index: idx }) });
@@ -2343,6 +2348,7 @@ function togglePasswordVisibility(e) {
            if (d.success) { membersData.members[idx] = d.member; render(); }
            else showError(d.error || 'Failed to update');
        } catch { showError('Network error'); }
+       
    }
    async function shutdown() {
        if (!confirm('Shutdown system?')) return;
@@ -2361,73 +2367,138 @@ function togglePasswordVisibility(e) {
    
    // -------------------- Raspberry-proof screensaver (fixed) --------------------
    let saver = document.getElementById('screensaver');
-   if (!saver) {
-       saver = document.createElement('div');
-       saver.id = 'screensaver';
-       Object.assign(saver.style, {
-           position: 'fixed',
-           left: '0',
-           top: '0',
-           width: '100%',
-           height: '100%',
-           display: 'flex',
-           flexDirection: 'column',
-           alignItems: 'center',
-           justifyContent: 'center',
-           background: 'black',
-           zIndex: '2147483647',
-           pointerEvents: 'all',
-           touchAction: 'none',
-           WebkitUserSelect: 'none',
-           userSelect: 'none',
-           margin: '0',
-           padding: '0',
-           color: 'white',
-           gap: '10px',
-           opacity: '0',
-           transition: 'opacity 1s ease', // <— smooth fade animation
-           visibility: 'hidden',
-           outline: 'none',
-       });
-   
-       saver.tabIndex = -1;
-       document.body.appendChild(saver);
-   
-       const wrapper = document.createElement('div');
-       wrapper.id = 'clock-wrapper';
-       Object.assign(wrapper.style, {
-           width: '100%',
-           height: '100%',
-           display: 'flex',
-           flexDirection: 'column',
-           justifyContent: 'center',
-           alignItems: 'center',
-       });
-   
-       // time
-       const timeEl = document.createElement('div');
-       timeEl.id = 'clock-time';
-       Object.assign(timeEl.style, {
-           fontSize: '200px',
-           fontWeight: '600',
-           marginBottom: '10px',
-           lineHeight: '1',
-           textAlign: 'center',
-       });
-   
-       // date
-       const dateEl = document.createElement('div');
-       dateEl.id = 'clock-date';
-       Object.assign(dateEl.style, {
-           fontSize: "70px",
-           fontWeight: '400',
-           textAlign: 'center',
-       });
-   
-       wrapper.appendChild(timeEl);
-       wrapper.appendChild(dateEl);
-       saver.appendChild(wrapper);
-   }
+    if (!saver) {
+        saver = document.createElement('div');
+        saver.id = 'screensaver';
+        Object.assign(saver.style, {
+            position: 'fixed',
+            left: '0',
+            top: '0',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'black',
+            zIndex: '2147483647',
+            pointerEvents: 'all',
+            touchAction: 'none',
+            WebkitUserSelect: 'none',
+            userSelect: 'none',
+            margin: '0',
+            padding: '0',
+            color: 'white',
+            gap: '10px',
+            opacity: '0',
+            transition: 'opacity 1s ease',
+            visibility: 'hidden',
+            outline: 'none',
+        });
+
+        saver.tabIndex = -1;
+        document.body.appendChild(saver);
+
+        const wrapper = document.createElement('div');
+        wrapper.id = 'clock-wrapper';
+        Object.assign(wrapper.style, {
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+        });
+
+        // Time
+        const timeEl = document.createElement('div');
+        timeEl.id = 'clock-time';
+        Object.assign(timeEl.style, {
+            fontSize: '200px',
+            fontWeight: '600',
+            marginBottom: '10px',
+            lineHeight: '1',
+            textAlign: 'center',
+        });
+
+        // Date
+        const dateEl = document.createElement('div');
+        dateEl.id = 'clock-date';
+        Object.assign(dateEl.style, {
+            fontSize: '70px',
+            fontWeight: '400',
+            textAlign: 'center',
+        });
+
+        // Active members container
+        const membersContainer = document.createElement('div');
+        membersContainer.id = 'screensaver-active-members';
+        Object.assign(membersContainer.style, {
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: '24px',
+            marginTop: '60px',
+            maxWidth: '90%'
+        });
+
+        // No active members warning
+        const warningEl = document.createElement('div');
+        warningEl.id = 'screensaver-no-active';
+        warningEl.style.display = 'none';
+        warningEl.innerHTML = `
+            <span class="material-icons" style="font-size:80px; color:#e74c3c;">warning_amber</span>
+            <div style="margin-top:20px; font-size:42px; color:#e74c3c;">
+                No active members
+            </div>
+            <div style="margin-top:16px; font-size:28px; color:#bbb; max-width:80%; text-align:center;">
+                System may not record usage properly<br>
+                Please activate members in the dashboard
+            </div>
+        `;
+
+        wrapper.appendChild(timeEl);
+        wrapper.appendChild(dateEl);
+        wrapper.appendChild(membersContainer);
+        wrapper.appendChild(warningEl);
+        saver.appendChild(wrapper);
+    }
+
+    function updateScreensaverMembers() {
+        const membersContainer = document.getElementById('screensaver-active-members');
+        const warningContainer  = document.getElementById('screensaver-no-active');
+        
+        if (!membersContainer || !warningContainer) return;
+    
+        if (!membersData?.members?.length) {
+            membersContainer.style.display = 'none';
+            warningContainer.style.display = 'none';
+            return;
+        }
+    
+        const activeMembers = membersData.members.filter(m => m.active !== false);
+    
+        if (activeMembers.length === 0) {
+            membersContainer.style.display = 'none';
+            warningContainer.style.display = 'flex';
+            return;
+        }
+    
+        // Show active members avatars
+        membersContainer.innerHTML = activeMembers.map(m => {
+            const bgImage = avatar(m.gender, m.dob);
+            const title = m.name || m.member_code || 'Member';
+            return `
+                <div class="mini-avatar" 
+                     style="background-image: url('${bgImage}');" 
+                     title="${title}">
+                </div>
+            `;
+        }).join('');
+    
+        membersContainer.style.display = 'flex';
+        warningContainer.style.display = 'none';
+    }
    
    // --- Clock update ---
    function updateClock() {
@@ -2462,12 +2533,14 @@ function togglePasswordVisibility(e) {
    let isDimmed = false;
    
    function showScreensaver() {
-       saver.style.visibility = "visible";
-       saver.style.opacity = "1"; // fade in
-       try {
-           saver.focus({ preventScroll: true });
-       } catch (e) { }
-   }
+    saver.style.visibility = "visible";
+    saver.style.opacity = "1";
+    
+    // NEW: refresh member icons / warning
+    updateScreensaverMembers();
+    
+    try { saver.focus({ preventScroll: true }); } catch(e) {}
+}
    
    function hideScreensaver() {
        saver.style.opacity = "0"; // fade out
