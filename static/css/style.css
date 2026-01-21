@@ -2250,21 +2250,21 @@ button:focus {
 }
 
 .screensaver-warning .material-icons {
-    font-size: 30px;
+    font-size: 10px;
     color: #e74c3c;
     margin-bottom: 5px;
     animation: pulse-warning 2.2s infinite ease-in-out;
 }
 
 .screensaver-warning div:first-of-type {
-    font-size: 20px;
+    font-size: 15px;
     font-weight: 600;
     color: #e74c3c;
     margin-bottom: 16px;
 }
 
 .screensaver-warning div:last-of-type {
-    font-size: 26px;
+    font-size: 10px;
     color: #ddd;
     line-height: 1.4;
 }
