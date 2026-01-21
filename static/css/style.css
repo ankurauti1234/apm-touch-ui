@@ -2244,20 +2244,20 @@ button:focus {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 60px;
+    margin-top: 40px;
     text-align: center;
     max-width: 80%;
 }
 
 .screensaver-warning .material-icons {
-    font-size: 90px;
+    font-size: 60px;
     color: #e74c3c;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     animation: pulse-warning 2.2s infinite ease-in-out;
 }
 
 .screensaver-warning div:first-of-type {
-    font-size: 48px;
+    font-size: 40px;
     font-weight: 600;
     color: #e74c3c;
     margin-bottom: 16px;
