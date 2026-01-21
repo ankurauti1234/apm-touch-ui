@@ -2336,20 +2336,43 @@ function togglePasswordVisibility(e) {
        } catch (e) { console.error(e); }
    }
    async function toggleMember(idx) {
-    if (d.success) {
-        membersData.members[idx] = d.member;
-        render();                     // refresh dashboard
-        updateScreensaverMembers();   // ← add this (safe even if screensaver not visible)
+    // Guard: make sure we have valid data for this index
+    if (!membersData?.members?.[idx]) {
+        showError('Member not found');
+        return;
     }
-       if (!membersData?.members?.[idx]) return;
-       try {
-           const r = await fetch('/api/toggle_member_status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ index: idx }) });
-           const d = await r.json();
-           if (d.success) { membersData.members[idx] = d.member; render(); }
-           else showError(d.error || 'Failed to update');
-       } catch { showError('Network error'); }
-       
-   }
+
+    try {
+        const response = await fetch('/api/toggle_member_status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ index: idx })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update local state with the new member object returned by server
+            membersData.members[idx] = data.member;
+
+            // Refresh UI
+            render();                     // redraw main dashboard
+            updateScreensaverMembers();   // update avatars on screensaver
+
+            // Optional: immediate feedback
+            // showError('Member status updated', 'success'); 
+        } else {
+            showError(data.error || 'Failed to toggle member status');
+        }
+    } catch (err) {
+        console.error('Toggle member failed:', err);
+        showError('Network error or server unavailable');
+    }
+}
    async function shutdown() {
        if (!confirm('Shutdown system?')) return;
        try { const r = await fetch('/api/shutdown', { method: 'POST' }); const d = await r.json(); alert(d.success ? 'Shutting down...' : d.error); }
