@@ -2488,10 +2488,7 @@ setupScreensaverResetListeners();  // call once
        warningContainer.style.display = 'none';
        warningContainer.innerHTML = `
            <span class="material-icons" style="font-size:80px; color:#e74c3c;">warning_amber</span>
-           <div style="margin-top:20px; font-size:25px; color:#e74c3c;">No active members</div>
-           <div style="margin-top:5px; font-size:20px; color:#bbb; max-width:80%; text-align:center;">
-               Please activate members in the dashboard
-           </div>
+           <div style="margin-top:20px; font-size:25px; color:#e74c3c;">No active members please activate members</div>
        `;
    
        wrapper.appendChild(timeEl);
