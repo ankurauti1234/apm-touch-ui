@@ -2195,3 +2195,88 @@ button:focus {
     color: rgb(0, 0, 0) !important;              /* ← Pure white */
     margin-top: 6px;                      /* Fine-tune vertical position if needed */
 }
+
+/* ── Screensaver base improvements ─────────────────────────────────────── */
+#screensaver {
+    font-family: 'Segoe UI', Roboto, sans-serif; /* nicer default font */
+}
+
+/* Clock styling (make it more readable on black bg) */
+#clock-time {
+    text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+    letter-spacing: 4px;
+}
+
+#clock-date {
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    opacity: 0.9;
+}
+
+/* ── Active members avatars ────────────────────────────────────────────── */
+.screensaver-members {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 28px;               /* space between avatars */
+    margin-top: 50px;        /* distance from date */
+    max-width: 85vw;         /* prevent overflow on small screens */
+    padding: 0 20px;
+}
+
+.screensaver-members .mini-avatar {
+    width: 100px;            /* adjust size as needed: 80–140px */
+    height: 100px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 4px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.screensaver-members .mini-avatar:hover {
+    transform: scale(1.12);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.9);
+}
+
+/* ── Warning when no active members ────────────────────────────────────── */
+.screensaver-warning {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 60px;
+    text-align: center;
+    max-width: 80%;
+}
+
+.screensaver-warning .material-icons {
+    font-size: 90px;
+    color: #e74c3c;
+    margin-bottom: 20px;
+    animation: pulse-warning 2.2s infinite ease-in-out;
+}
+
+.screensaver-warning div:first-of-type {
+    font-size: 48px;
+    font-weight: 600;
+    color: #e74c3c;
+    margin-bottom: 16px;
+}
+
+.screensaver-warning div:last-of-type {
+    font-size: 26px;
+    color: #ddd;
+    line-height: 1.4;
+}
+
+/* Pulse animation for warning icon */
+@keyframes pulse-warning {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+}
+
+/* Optional: darken clock a bit when members are shown */
+#clock-wrapper:has(+ .screensaver-members:not(:empty)) #clock-time,
+#clock-wrapper:has(+ .screensaver-members:not(:empty)) #clock-date {
+    opacity: 0.92;
+}
