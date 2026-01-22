@@ -2549,7 +2549,7 @@ setupScreensaverResetListeners();  // call once
         html += `
             <div style="text-align:center; min-width:100px;">
                 <div class="mini-avatar" style="
-                    width:100px; height:100px; 
+                    width:200px; height:200px; 
                     border-radius:50%; 
                     background:url('${bgImage}') center/cover no-repeat;
                     border:3px solid rgba(255,255,255,0.6);
