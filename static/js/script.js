@@ -2008,6 +2008,10 @@ function togglePasswordVisibility(e) {
         
         return;
     }
+    if (state !== 'main') {
+        stopWarningRefresh();
+        // ... other cleanup if you have
+    }
        render();
    }
    function resetScreensaverTimer() {
@@ -2602,11 +2606,13 @@ setupScreensaverResetListeners();  // call once
 
 function hideScreensaver() {
     console.log("HIDE SCREENSAVER called");
-    saver.style.opacity = "0";
+    saver.style.opacity = '0';
     setTimeout(() => {
-        saver.style.visibility = "hidden";
+        saver.style.visibility = 'hidden';
     }, 1000);
     try { saver.blur(); } catch(e) {}
+
+    stopWarningRefresh();   // ← stop the 2-min cycle when hidden
 }
    
    // --- Pre-dim brightness logic (go straight to mapped minimum) ---
@@ -2666,25 +2672,52 @@ function hideScreensaver() {
    
    
    // --- Screensaver with pre-dim at 20s (30s - 10s) ---
+   let warningRefreshInterval = null;
 
+   function startWarningRefresh() {
+       if (warningRefreshInterval) clearInterval(warningRefreshInterval);
+   
+       warningRefreshInterval = setInterval(() => {
+           // Only act if we are currently in a state where screensaver should be possible
+           if (currentState !== 'main') return;
+   
+           const activeCount = membersData?.members?.filter(m => m.active !== false)?.length ?? 0;
+   
+           if (activeCount === 0 && saver.style.visibility === 'visible') {
+               console.log("No active members → refreshing warning on screensaver");
+   
+               // Brief hide → re-show creates a noticeable refresh/pulse
+               saver.style.opacity = '0';
+               
+               setTimeout(() => {
+                   saver.style.opacity = '1';
+                   updateScreensaverMembers();  // re-apply warning
+               }, 600);  // 0.6 seconds fade out + fade in
+           }
+       }, 2 * 60 * 1000);   // 120000 ms = 2 minutes
+   }
+   
+   function stopWarningRefresh() {
+       if (warningRefreshInterval) {
+           clearInterval(warningRefreshInterval);
+           warningRefreshInterval = null;
+       }
+   }
    
    function resetScreensaverTimer() {
-       console.log("Resetting screensaver timer");
-   
-       clearTimeout(screensaverTimeout);
-       clearTimeout(preDimTimeout);
-       hideScreensaver();
-       restoreBrightness();
-   
-       // Pre-dim at 20 seconds
-       preDimTimeout = setTimeout(preDimBrightness, 20000);
-   
-       // Show screensaver at 30 seconds
-       screensaverTimeout = setTimeout(() => {
-           console.log("30 seconds passed → showing screensaver");
-           showScreensaver();
-       }, 30000);
-   }
+    console.log("resetScreensaverTimer called");
+
+    clearTimeout(screensaverTimeout);
+    clearTimeout(preDimTimeout);
+    hideScreensaver();
+    restoreBrightness();
+
+    preDimTimeout = setTimeout(preDimBrightness, 20000);
+    screensaverTimeout = setTimeout(showScreensaver, 30000);
+
+    // Also manage the warning refresh
+    startWarningRefresh();
+}
    
    // Start screensaver timer ONLY when on the main dashboard
    // if (currentState === 'main') resetScreensaverTimer();
