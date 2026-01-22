@@ -2281,3 +2281,34 @@ button:focus {
     opacity: 0.92;
 }
 
+#screensaver.no-active-members {
+    box-shadow: 
+        inset 0 0 20px 8px rgba(231, 76, 60, 0)       !important,
+        inset 0 0 50px 20px rgba(231, 76, 60, 0.2)    !important,
+        inset 0 0 90px 40px rgba(231, 76, 60, 0.4)    !important,
+        inset 0 0 140px 60px rgba(231, 76, 60, 0.65)  !important;
+    
+    animation: pulse-red-border 4.5s infinite ease-in-out !important;
+    outline: 2px solid rgba(231, 76, 60, 0.55) !important;      /* very thin outline */
+    outline-offset: -2px !important;
+}
+
+/* Extremely soft pulse — barely noticeable zoom */
+@keyframes pulse-red-border {
+    0%, 100% {
+        box-shadow: 
+            inset 0 0 20px 8px rgba(231, 76, 60, 0),
+            inset 0 0 50px 20px rgba(231, 76, 60, 0.2),
+            inset 0 0 90px 40px rgba(231, 76, 60, 0.4),
+            inset 0 0 140px 60px rgba(231, 76, 60, 0.65);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 
+            inset 0 0 28px 12px rgba(231, 76, 60, 0.05),
+            inset 0 0 70px 30px rgba(231, 76, 60, 0.35),
+            inset 0 0 120px 55px rgba(231, 76, 60, 0.55),
+            inset 0 0 180px 80px rgba(231, 76, 60, 0.8);
+        transform: scale(1.002);   /* almost no zoom */
+    }
+}
