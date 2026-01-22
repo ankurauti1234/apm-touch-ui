@@ -2217,7 +2217,7 @@ button:focus {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 10px;               /* space between avatars */
+    gap: 5px;               /* space between avatars */
     margin-top: 50px;        /* distance from date */
     max-width: 85vw;         /* prevent overflow on small screens */
     padding: 0 20px;
