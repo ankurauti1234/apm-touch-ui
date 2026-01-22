@@ -2291,6 +2291,8 @@ button:focus {
     animation: pulse-red-border 2s infinite ease-in-out !important;
     outline: 1px solid rgba(231, 76, 60, 0.5) !important;          /* ultra-thin outline (1px) */
     outline-offset: -1px !important;
+
+    will-change: box-shadow, transform;
 }
 
 /* Very soft, slow pulse — barely noticeable */
@@ -2309,6 +2311,6 @@ button:focus {
             inset 0 0 55px 22px rgba(231, 76, 60, 0.25),
             inset 0 0 95px 45px rgba(231, 76, 60, 0.45),
             inset 0 0 140px 65px rgba(231, 76, 60, 0.7);
-        transform: scale(1.001);   /* almost no zoom — very subtle */
+        transform: scale(1.003);   /* almost no zoom — very subtle */
     }
 }
