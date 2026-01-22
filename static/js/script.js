@@ -2509,12 +2509,14 @@ setupScreensaverResetListeners();  // call once
    function updateScreensaverMembers() {
     const membersContainer = document.getElementById('screensaver-active-members');
     const warningContainer  = document.getElementById('screensaver-no-active');
+    const screensaverEl     = document.getElementById('screensaver');
     
-    if (!membersContainer || !warningContainer) return;
+    if (!membersContainer || !warningContainer || !screensaverEl) return;
 
     if (!membersData?.members?.length) {
         membersContainer.style.display = 'none';
         warningContainer.style.display = 'none';
+        screensaverEl.classList.remove('no-active-members');
         return;
     }
 
@@ -2523,45 +2525,21 @@ setupScreensaverResetListeners();  // call once
     if (activeMembers.length === 0) {
         membersContainer.style.display = 'none';
         warningContainer.style.display = 'flex';
-        return;
+        
+        // ADD red pulsing border class
+        screensaverEl.classList.add('no-active-members');
+    } else {
+        // Build avatars + codes (your existing code)
+        membersContainer.innerHTML = activeMembers.map(m => {
+            // ... your avatar + code HTML ...
+        }).join('');
+
+        membersContainer.style.display = 'flex';
+        warningContainer.style.display = 'none';
+        
+        // REMOVE border when there ARE active members
+        screensaverEl.classList.remove('no-active-members');
     }
-
-    // Show avatars + member codes below them
-    membersContainer.innerHTML = activeMembers.map(m => {
-        const bgImage = avatar(m.gender, m.dob);
-        const code = m.member_code || '—';           // fallback if no code
-        const name = m.name || '';                   // optional: show name too
-
-        return `
-            <div style="text-align: center; min-width: 90px;">
-                <div class="mini-avatar" 
-                     style="
-                        background-image: url('${bgImage}');
-                        width: 100px; 
-                        height: 100px; 
-                        border-radius: 50%; 
-                        background-size: cover; 
-                        background-position: center;
-                        margin: 0 auto 8px auto;
-                     ">
-                </div>
-                <div style="
-                    font-size: 18px; 
-                    color: rgba(255,255,255,0.95);
-                    font-weight: 500;
-                    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                ">
-                    ${code}
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    membersContainer.style.display = 'flex';
-    warningContainer.style.display = 'none';
 }
    
    // --- Clock update ---
