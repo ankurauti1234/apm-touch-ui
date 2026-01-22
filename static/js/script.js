@@ -2577,11 +2577,14 @@ setupScreensaverResetListeners();  // call once
    let isDimmed = false;
    
    function showScreensaver() {
-    console.log("SHOW SCREENSAVER called");
+    console.log("Showing screensaver");
     saver.style.visibility = "visible";
     saver.style.opacity = "1";
+    
+    // Force refresh of warning/border state
+    updateScreensaverMembers();
+    
     try { saver.focus({ preventScroll: true }); } catch(e) {}
-    updateScreensaverMembers();   // make sure avatars/warning are fresh
 }
 
 function hideScreensaver() {
