@@ -2557,7 +2557,7 @@ setupScreensaverResetListeners();  // call once
                     box-shadow:0 4px 15px rgba(0,0,0,0.5);
                     margin:0 auto 6px;
                 "></div>
-                <div style="font-size:45px; font-weight:500; color:white; text-shadow:0 1px 3px black;">
+                <div style="font-size:50px; font-weight:500; color:white; text-shadow:0 1px 3px black;">
                     ${code}
                 </div>
             </div>
