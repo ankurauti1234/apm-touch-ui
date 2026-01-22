@@ -2559,7 +2559,6 @@ setupScreensaverResetListeners();  // call once
                 <div style="font-size:16px; font-weight:500; color:white; text-shadow:0 1px 3px black;">
                     ${code}
                 </div>
-                ${name}
             </div>
         `;
     });
