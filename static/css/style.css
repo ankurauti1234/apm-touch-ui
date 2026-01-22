@@ -2283,32 +2283,32 @@ button:focus {
 
 #screensaver.no-active-members {
     box-shadow: 
-        inset 0 0 20px 8px rgba(231, 76, 60, 0)       !important,
-        inset 0 0 50px 20px rgba(231, 76, 60, 0.2)    !important,
-        inset 0 0 90px 40px rgba(231, 76, 60, 0.4)    !important,
-        inset 0 0 140px 60px rgba(231, 76, 60, 0.65)  !important;
+        inset 0 0 15px 5px rgba(231, 76, 60, 0)       !important,   /* almost invisible center */
+        inset 0 0 40px 15px rgba(231, 76, 60, 0.15)   !important,   /* very light fade */
+        inset 0 0 70px 30px rgba(231, 76, 60, 0.3)    !important,   /* thin middle layer */
+        inset 0 0 110px 50px rgba(231, 76, 60, 0.55)  !important;   /* thin outer glow */
     
-    animation: pulse-red-border 4.5s infinite ease-in-out !important;
-    outline: 2px solid rgba(231, 76, 60, 0.55) !important;      /* very thin outline */
-    outline-offset: -2px !important;
+    animation: pulse-red-border 5s infinite ease-in-out !important;
+    outline: 1px solid rgba(231, 76, 60, 0.5) !important;          /* ultra-thin outline (1px) */
+    outline-offset: -1px !important;
 }
 
-/* Extremely soft pulse — barely noticeable zoom */
+/* Very soft, slow pulse — barely noticeable */
 @keyframes pulse-red-border {
     0%, 100% {
         box-shadow: 
-            inset 0 0 20px 8px rgba(231, 76, 60, 0),
-            inset 0 0 50px 20px rgba(231, 76, 60, 0.2),
-            inset 0 0 90px 40px rgba(231, 76, 60, 0.4),
-            inset 0 0 140px 60px rgba(231, 76, 60, 0.65);
+            inset 0 0 15px 5px rgba(231, 76, 60, 0),
+            inset 0 0 40px 15px rgba(231, 76, 60, 0.15),
+            inset 0 0 70px 30px rgba(231, 76, 60, 0.3),
+            inset 0 0 110px 50px rgba(231, 76, 60, 0.55);
         transform: scale(1);
     }
     50% {
         box-shadow: 
-            inset 0 0 28px 12px rgba(231, 76, 60, 0.05),
-            inset 0 0 70px 30px rgba(231, 76, 60, 0.35),
-            inset 0 0 120px 55px rgba(231, 76, 60, 0.55),
-            inset 0 0 180px 80px rgba(231, 76, 60, 0.8);
-        transform: scale(1.002);   /* almost no zoom */
+            inset 0 0 20px 8px rgba(231, 76, 60, 0.05),
+            inset 0 0 55px 22px rgba(231, 76, 60, 0.25),
+            inset 0 0 95px 45px rgba(231, 76, 60, 0.45),
+            inset 0 0 140px 65px rgba(231, 76, 60, 0.7);
+        transform: scale(1.001);   /* almost no zoom — very subtle */
     }
 }
