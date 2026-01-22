@@ -2302,7 +2302,7 @@ button:focus {
         inset 0 0 360px 180px rgba(131, 76, 60, 1)  !important;
     
     animation: pulse-red-border 3.2s infinite ease-in-out !important;
-    outline: 8px solid rgba(231, 76, 60, 0.85) !important;
+    outline: 4px solid rgba(231, 76, 60, 0.85) !important;
     outline-offset: -8px !important;
 }
 
