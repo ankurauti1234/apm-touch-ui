@@ -2470,7 +2470,7 @@ setupScreensaverResetListeners();  // call once
        timeEl.id = 'clock-time';
        Object.assign(timeEl.style, {
            fontSize: '150px', fontWeight: '600',
-           marginTop: '20px',
+           marginTop: '50px',
            marginBottom: '0px', lineHeight: '1',
            textAlign: 'center',
        });
