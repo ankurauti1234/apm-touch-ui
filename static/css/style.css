@@ -2224,8 +2224,8 @@ button:focus {
 }
 
 .screensaver-members .mini-avatar {
-    width: 100px;            /* adjust size as needed: 80–140px */
-    height: 100px;
+    width: 140px;            /* adjust size as needed: 80–140px */
+    height: 140px;
     border-radius: 50%;
     background-size: cover;
     background-position: center;
