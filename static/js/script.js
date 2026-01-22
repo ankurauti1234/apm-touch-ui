@@ -2509,39 +2509,48 @@ setupScreensaverResetListeners();  // call once
    function updateScreensaverMembers() {
     const membersContainer = document.getElementById('screensaver-active-members');
     const warningContainer = document.getElementById('screensaver-no-active');
-    const screensaverEl = document.getElementById('screensaver');
+    const screensaverEl    = document.getElementById('screensaver');
     
     if (!membersContainer || !warningContainer || !screensaverEl) {
         console.warn("Screensaver elements missing!");
         return;
     }
 
+    // Force remove class first (safety)
+    screensaverEl.classList.remove('no-active-members');
+    
     if (!membersData?.members?.length) {
         console.log("No members data → hiding everything");
         membersContainer.style.display = 'none';
         warningContainer.style.display = 'none';
-        screensaverEl.classList.remove('no-active-members');
         return;
     }
 
     const activeMembers = membersData.members.filter(m => m.active !== false);
-    
+    console.log(`Active members count: ${activeMembers.length}`);
+
     if (activeMembers.length === 0) {
-        console.log("ZERO active members → showing warning + red border");
+        console.log("NO active members → SHOW warning + ADD red border class");
         membersContainer.style.display = 'none';
         warningContainer.style.display = 'flex';
+        
+        // Add class + force browser to apply it immediately
         screensaverEl.classList.add('no-active-members');
+        void screensaverEl.offsetWidth;  // force reflow
     } else {
-        console.log(`${activeMembers.length} active members → showing avatars`);
-        // Your avatar building code here...
+        console.log("HAS active members → SHOW avatars + REMOVE red border class");
+        // Your avatar + code generation here...
         membersContainer.innerHTML = activeMembers.map(m => {
-            // ... your existing avatar + code HTML ...
-            return `<div>...</div>`;
+            // ... your existing avatar HTML with member code ...
+            return `<div style="text-align:center;">...</div>`;
         }).join('');
         
         membersContainer.style.display = 'flex';
         warningContainer.style.display = 'none';
+        
+        // Explicitly remove class + force reflow
         screensaverEl.classList.remove('no-active-members');
+        void screensaverEl.offsetWidth;  // force style update
     }
 }
    
@@ -2602,10 +2611,11 @@ function hideScreensaver() {
     saver.style.opacity = '0';
     setTimeout(() => {
         saver.style.visibility = 'hidden';
+        // Clean up class when hidden
+        saver.classList.remove('no-active-members');
     }, 1000);
     try { saver.blur(); } catch(e) {}
-
-    stopWarningRefresh();   // ← stop the 2-min cycle when hidden
+    stopWarningRefresh();
 }
    
    // --- Pre-dim brightness logic (go straight to mapped minimum) ---
