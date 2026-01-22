@@ -2323,7 +2323,7 @@ button:focus {
 
 /* Pulsing red tint when no active members */
 #screensaver.no-active-members {
-    animation: pulse-red-tint 6s infinite ease-in-out !important;
+    animation: pulse-red-tint 3s infinite ease-in-out !important;
 }
 
 /* Smooth pulsing background color animation */
