@@ -2469,8 +2469,8 @@ setupScreensaverResetListeners();  // call once
        const timeEl = document.createElement('div');
        timeEl.id = 'clock-time';
        Object.assign(timeEl.style, {
-           fontSize: '200px', fontWeight: '600',
-           marginBottom: '10px', lineHeight: '1',
+           fontSize: '150px', fontWeight: '600',
+           marginBottom: '0px', lineHeight: '1',
            textAlign: 'center',
        });
    
