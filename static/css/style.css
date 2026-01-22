@@ -2288,7 +2288,7 @@ button:focus {
         inset 0 0 70px 30px rgba(231, 76, 60, 0.3)    !important,   /* thin middle layer */
         inset 0 0 80px 50px rgba(231, 76, 60, 0.55)  !important;   /* thin outer glow */
     
-    animation: pulse-red-border 5s infinite ease-in-out !important;
+    animation: pulse-red-border 2s infinite ease-in-out !important;
     outline: 1px solid rgba(231, 76, 60, 0.5) !important;          /* ultra-thin outline (1px) */
     outline-offset: -1px !important;
 }
