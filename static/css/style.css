@@ -2244,7 +2244,6 @@ button:focus {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 10px;
     text-align: center;
     max-width: 80%;
 }
