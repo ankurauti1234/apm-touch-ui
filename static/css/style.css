@@ -2260,7 +2260,7 @@ button:focus {
     font-size: 10px;
     font-weight: 600;
     color: #e74c3c;
-    margin-bottom: 16px;
+    margin-bottom: 5px;
 }
 
 .screensaver-warning div:last-of-type {
@@ -2333,7 +2333,7 @@ button:focus {
         background: rgb(20, 0, 0);     /* very dark red-black */
     }
     50% {
-        background: rgb(174, 0, 0);   /* noticeable red tint, still dark */
+        background: rgb(137, 0, 0);   /* noticeable red tint, still dark */
     }
 }
 
@@ -2351,7 +2351,6 @@ button:focus {
 .screensaver-warning .material-icons {
     font-size: 90px;
     color: #ff4d4d;
-    margin-bottom: 20px;
     animation: pulse-icon 2s infinite;
 }
 
