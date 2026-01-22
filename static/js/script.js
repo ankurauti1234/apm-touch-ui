@@ -2508,12 +2508,16 @@ setupScreensaverResetListeners();  // call once
 
    function updateScreensaverMembers() {
     const membersContainer = document.getElementById('screensaver-active-members');
-    const warningContainer  = document.getElementById('screensaver-no-active');
-    const screensaverEl     = document.getElementById('screensaver');
+    const warningContainer = document.getElementById('screensaver-no-active');
+    const screensaverEl = document.getElementById('screensaver');
     
-    if (!membersContainer || !warningContainer || !screensaverEl) return;
+    if (!membersContainer || !warningContainer || !screensaverEl) {
+        console.warn("Screensaver elements missing!");
+        return;
+    }
 
     if (!membersData?.members?.length) {
+        console.log("No members data → hiding everything");
         membersContainer.style.display = 'none';
         warningContainer.style.display = 'none';
         screensaverEl.classList.remove('no-active-members');
@@ -2521,26 +2525,23 @@ setupScreensaverResetListeners();  // call once
     }
 
     const activeMembers = membersData.members.filter(m => m.active !== false);
-
+    
     if (activeMembers.length === 0) {
+        console.log("ZERO active members → showing warning + red border");
         membersContainer.style.display = 'none';
         warningContainer.style.display = 'flex';
-        
-        // ADD red pulsing border class
         screensaverEl.classList.add('no-active-members');
-        document.getElementById('screensaver').classList.add('no-active-members');
     } else {
-        // Build avatars + codes (your existing code)
+        console.log(`${activeMembers.length} active members → showing avatars`);
+        // Your avatar building code here...
         membersContainer.innerHTML = activeMembers.map(m => {
-            // ... your avatar + code HTML ...
+            // ... your existing avatar + code HTML ...
+            return `<div>...</div>`;
         }).join('');
-
+        
         membersContainer.style.display = 'flex';
         warningContainer.style.display = 'none';
-        
-        // REMOVE border when there ARE active members
         screensaverEl.classList.remove('no-active-members');
-        document.getElementById('screensaver').classList.remove('no-active-members');
     }
 }
    
@@ -2577,12 +2578,21 @@ setupScreensaverResetListeners();  // call once
    let isDimmed = false;
    
    function showScreensaver() {
-    console.log("Showing screensaver");
+    console.log("SHOW SCREENSAVER called");
     saver.style.visibility = "visible";
     saver.style.opacity = "1";
     
-    // Force refresh of warning/border state
+    // CRITICAL: Refresh state + force border if needed
     updateScreensaverMembers();
+    
+    // Double-check class after a tiny delay (fixes timing issues)
+    setTimeout(() => {
+        const activeCount = membersData?.members?.filter(m => m.active !== false)?.length ?? 0;
+        if (activeCount === 0) {
+            console.log("No active members → FORCING .no-active-members class");
+            saver.classList.add('no-active-members');
+        }
+    }, 300);
     
     try { saver.focus({ preventScroll: true }); } catch(e) {}
 }
