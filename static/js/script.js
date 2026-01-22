@@ -2512,46 +2512,63 @@ setupScreensaverResetListeners();  // call once
     const screensaverEl    = document.getElementById('screensaver');
     
     if (!membersContainer || !warningContainer || !screensaverEl) {
-        console.warn("Screensaver elements missing!");
+        console.error("Screensaver elements missing! Cannot update.");
         return;
     }
 
-    // Force remove class first (safety)
+    // Always start by removing border class (safety)
     screensaverEl.classList.remove('no-active-members');
-    
+
     if (!membersData?.members?.length) {
-        console.log("No members data → hiding everything");
+        console.warn("No members data loaded yet");
         membersContainer.style.display = 'none';
         warningContainer.style.display = 'none';
         return;
     }
 
     const activeMembers = membersData.members.filter(m => m.active !== false);
-    console.log(`Active members count: ${activeMembers.length}`);
+    console.log(`updateScreensaverMembers: ${activeMembers.length} active members found`);
 
     if (activeMembers.length === 0) {
-        console.log("NO active members → SHOW warning + ADD red border class");
+        console.log("No active members → show warning");
         membersContainer.style.display = 'none';
         warningContainer.style.display = 'flex';
-        
-        // Add class + force browser to apply it immediately
         screensaverEl.classList.add('no-active-members');
-        void screensaverEl.offsetWidth;  // force reflow
-    } else {
-        console.log("HAS active members → SHOW avatars + REMOVE red border class");
-        // Your avatar + code generation here...
-        membersContainer.innerHTML = activeMembers.map(m => {
-            // ... your existing avatar HTML with member code ...
-            return `<div style="text-align:center;">...</div>`;
-        }).join('');
-        
-        membersContainer.style.display = 'flex';
-        warningContainer.style.display = 'none';
-        
-        // Explicitly remove class + force reflow
-        screensaverEl.classList.remove('no-active-members');
-        void screensaverEl.offsetWidth;  // force style update
+        return;
     }
+
+    // We have active members → build avatars + codes
+    console.log("Building avatars + member codes for screensaver");
+
+    let html = '';
+    activeMembers.forEach(m => {
+        const bgImage = avatar(m.gender, m.dob) || '/static/assets/default.png';
+        const code    = m.member_code || '—';
+        const name    = m.name ? `<div style="font-size:14px; color:rgba(255,255,255,0.8);">${m.name}</div>` : '';
+
+        html += `
+            <div style="text-align:center; min-width:100px;">
+                <div class="mini-avatar" style="
+                    width:100px; height:100px; 
+                    border-radius:50%; 
+                    background:url('${bgImage}') center/cover no-repeat;
+                    border:3px solid rgba(255,255,255,0.6);
+                    box-shadow:0 4px 15px rgba(0,0,0,0.5);
+                    margin:0 auto 6px;
+                "></div>
+                <div style="font-size:16px; font-weight:500; color:white; text-shadow:0 1px 3px black;">
+                    ${code}
+                </div>
+                ${name}
+            </div>
+        `;
+    });
+
+    membersContainer.innerHTML = html;
+    membersContainer.style.display = 'flex';
+    warningContainer.style.display = 'none';
+
+    console.log(`Avatars generated: ${activeMembers.length} items added to container`);
 }
    
    // --- Clock update ---
