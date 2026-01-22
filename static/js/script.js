@@ -2528,6 +2528,7 @@ setupScreensaverResetListeners();  // call once
         
         // ADD red pulsing border class
         screensaverEl.classList.add('no-active-members');
+        document.getElementById('screensaver').classList.add('no-active-members');
     } else {
         // Build avatars + codes (your existing code)
         membersContainer.innerHTML = activeMembers.map(m => {
@@ -2539,6 +2540,7 @@ setupScreensaverResetListeners();  // call once
         
         // REMOVE border when there ARE active members
         screensaverEl.classList.remove('no-active-members');
+        document.getElementById('screensaver').classList.remove('no-active-members');
     }
 }
    
