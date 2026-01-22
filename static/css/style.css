@@ -2314,3 +2314,48 @@ button:focus {
         transform: scale(1.003);   /* almost no zoom — very subtle */
     }
 }
+
+/* Base screensaver background transition (smooth color changes) */
+#screensaver {
+    background: black;
+    transition: background 1.2s ease-in-out !important; /* smooth color shift */
+    will-change: background; /* better animation performance */
+}
+
+/* Pulsing red tint when no active members */
+#screensaver.no-active-members {
+    animation: pulse-red-tint 6s infinite ease-in-out !important;
+}
+
+/* Smooth pulsing background color animation */
+@keyframes pulse-red-tint {
+    0%, 100% {
+        background: rgb(20, 0, 0);     /* very dark red-black */
+    }
+    50% {
+        background: rgb(60, 10, 10);   /* noticeable red tint, still dark */
+    }
+}
+
+/* Optional: keep warning text/icon visible and centered */
+.screensaver-warning {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60%;
+    color: white;
+    text-align: center;
+}
+
+.screensaver-warning .material-icons {
+    font-size: 90px;
+    color: #ff4d4d;
+    margin-bottom: 20px;
+    animation: pulse-icon 2s infinite;
+}
+
+@keyframes pulse-icon {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.12); }
+}
