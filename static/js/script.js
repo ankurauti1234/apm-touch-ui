@@ -407,14 +407,14 @@
            return `
            <div class="layout-reset">
            <div class="main-dashboard fixed-layout">
-               <div class="members-grid">
-                   ${members.map((m, i) => `
-                       <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
+               <div class="members-grid" data-count="${members.length}">
+                    ${members.map((m, i) => `
+                    <div class="member-card ${m.active === false ? 'inactive' : 'active'}"
                             onclick="toggleMember(${i})"
-                            style="--bg-image:url('${avatar(m.gender, m.dob)}')">
-                           <div class="name-tag">${m.name || m.member_code || '??'}</div>
-                       </div>
-                   `).join('')}
+                            style="background-image: url('${avatar(m.gender, m.dob)}');">
+                        <div class="name-tag">${m.name || m.member_code || '??'}</div>
+                    </div>
+                `).join('')}
                </div>
        
                <div class="bottom-bar">
@@ -2379,6 +2379,19 @@ setupScreensaverResetListeners();  // call once
         return;
     }
 
+    // Find the card element right away
+    const card = document.querySelector(`.members-grid .member-card:nth-child(${idx + 1})`);
+    if (!card) {
+        console.warn("Could not find card element for index", idx);
+        // still try the server call, but no visual feedback
+    }
+
+    // Optional: immediate visual feedback (prevents double-click + shows something is happening)
+    if (card) {
+        card.style.opacity = '0.65';
+        card.style.pointerEvents = 'none';     // disable clicks while request is in flight
+    }
+
     try {
         const response = await fetch('/api/toggle_member_status', {
             method: 'POST',
@@ -2393,21 +2406,46 @@ setupScreensaverResetListeners();  // call once
         const data = await response.json();
 
         if (data.success) {
-            // Update local state with the new member object returned by server
+            // Update local state with the fresh member object from server
             membersData.members[idx] = data.member;
 
-            // Refresh UI
-            render();                     // redraw main dashboard
-            updateScreensaverMembers();   // update avatars on screensaver
+            // ── Update ONLY this one card (this avoids flicker / full redraw) ──
+            if (card) {
+                // Toggle the visual inactive state
+                if (data.member.active === false) {
+                    card.classList.add('inactive');
+                } else {
+                    card.classList.remove('inactive');
+                }
 
-            // Optional: immediate feedback
-            // showError('Member status updated', 'success'); 
+                // Restore normal appearance
+                card.style.opacity = '';
+                card.style.pointerEvents = '';
+            }
+
+            // Still keep screensaver avatars up to date
+            updateScreensaverMembers();
+
+            // Optional: subtle success feedback
+            // showToast('Member status updated');
         } else {
             showError(data.error || 'Failed to toggle member status');
+
+            // Restore card appearance if failed
+            if (card) {
+                card.style.opacity = '';
+                card.style.pointerEvents = '';
+            }
         }
     } catch (err) {
         console.error('Toggle member failed:', err);
         showError('Network error or server unavailable');
+
+        // Always restore on error
+        if (card) {
+            card.style.opacity = '';
+            card.style.pointerEvents = '';
+        }
     }
 }
    async function shutdown() {
