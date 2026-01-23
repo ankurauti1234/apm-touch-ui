@@ -407,15 +407,15 @@
            return `
            <div class="layout-reset">
            <div class="main-dashboard fixed-layout">
-               <div class="members-grid" data-count="${members.length}">
-                    ${members.map((m, i) => `
-                    <div class="member-card ${m.active === false ? 'inactive' : 'active'}"
-                            onclick="toggleMember(${i})"
-                            style="background-image: url('${avatar(m.gender, m.dob)}');">
-                        <div class="name-tag">${m.name || m.member_code || '??'}</div>
-                    </div>
-                `).join('')}
-               </div>
+           <div class="members-grid" data-member-count="${members.length}">
+            ${members.map((m, i) => `
+                <div class="member-card ${m.active === false ? 'inactive' : 'active'}"
+                    onclick="toggleMember(${i})"
+                    style="background-image: url('${avatar(m.gender, m.dob)}');">
+                <div class="name-tag">${m.name || m.member_code || '??'}</div>
+                </div>
+            `).join('')}
+            </div>
        
                <div class="bottom-bar">
                    <div class="bar-left">

@@ -2357,116 +2357,114 @@ button:focus {
     0%, 100% { transform: scale(1); }
     50%      { transform: scale(1.12); }
 }
-.members-grid {
-    --min-card-size: 180px;     /* smallest allowed card when many members */
-    --ideal-card-size: 38vmin;  /* 38% of viewport min dimension when few members */
+/* ────────────────────────────────────────────────────────────────
+   DYNAMIC MEMBER GRID — size adapts to how many members exist
+───────────────────────────────────────────────────────────────── */
 
+.members-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(var(--min-card-size), 1fr));
-    gap: 1.5rem;                /* 24px – adjust to taste */
+    gap: 1.8rem 1.6rem;
     padding: 2rem 1.5rem;
     align-content: center;
     justify-content: center;
-    min-height: 70vh;           /* give it breathing room */
-}
-
-/* ── Make cards bigger when there are few members ──────────────────────── */
-
-.members-grid[data-count="1"] {
-    grid-template-columns: 1fr;
-    padding: 1rem;
-}
-
-.members-grid[data-count="1"] .member-card,
-.members-grid[data-count="2"] .member-card,
-.members-grid[data-count="3"] .member-card {
-    aspect-ratio: 1 / 1;
-    width: var(--ideal-card-size);
-    max-width: 85vmin;
-    margin: 0 auto;
-}
-
-/* For 2 items → side by side if enough space */
-@media (min-width: 700px) {
-    .members-grid[data-count="2"] {
-        grid-template-columns: repeat(2, minmax(300px, 1fr));
-        max-width: 1100px;
-        margin: 0 auto;
-    }
-}
-
-/* 3–4 items get generous size */
-.members-grid[data-count="3"],
-.members-grid[data-count="4"] {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-/* When many members → compact grid */
-.members-grid[data-count="8"],
-.members-grid[data-count="9"],
-.members-grid[data-count="10"],
-.members-grid[data-count="11"],
-.members-grid[data-count="12"] {
-    --min-card-size: 140px;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    padding: 1.2rem;
-}
-
-/* The card itself */
-.member-card {
+    min-height: 65vh;
+  }
+  
+  /* ── Base card size ─────────────────────────────────────────────── */
+  .member-card {
     position: relative;
     overflow: hidden;
-    border-radius: 1.2rem;
+    border-radius: 1.3rem;
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
-    background-color: #333;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-    transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-    will-change: transform, box-shadow;
-    transform: translateZ(0);           /* GPU hint */
-    backface-visibility: hidden;
-
-    transition: 
-        opacity 0.25s ease,
-        transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-        filter 0.35s ease,
-        box-shadow 0.28s ease;
-    
-    will-change: opacity, transform, filter, box-shadow;
+    background-color: #2a2a2a;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.38);
+    transition: all 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    will-change: transform, opacity, filter, box-shadow;
     transform: translateZ(0);
-    backface-visibility: hidden;
-}
-
-.member-card:hover,
-.member-card:active {
-    transform: scale(1.06) translateZ(0);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-}
-
-.member-card.inactive {
-    opacity: 0.58;
-    filter: grayscale(0.7) brightness(0.85);
-    transform: scale(0.94);
-}
-
-.name-tag {
+    aspect-ratio: 1 / 1;
+  }
+  
+  /* ── Very few members → make them BIG ───────────────────────────── */
+  .members-grid[data-member-count="1"] .member-card,
+  .members-grid[data-member-count="2"] .member-card,
+  .members-grid[data-member-count="3"] .member-card {
+    width: min(85vmin, 620px);
+    margin: 0 auto;
+  }
+  
+  /* 1 member → centered full attention */
+  .members-grid[data-member-count="1"] {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+  }
+  
+  /* 2 members → nice side-by-side when screen allows */
+  @media (min-width: 680px) {
+    .members-grid[data-member-count="2"] {
+      grid-template-columns: repeat(2, minmax(340px, 520px));
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+  }
+  
+  /* 3–5 members → generous but still balanced */
+  .members-grid[data-member-count="3"],
+  .members-grid[data-member-count="4"],
+  .members-grid[data-member-count="5"] {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  /* 6+ members → start shrinking gracefully */
+  .members-grid[data-member-count="6"],
+  .members-grid[data-member-count="7"],
+  .members-grid[data-member-count="8"] {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  
+  /* Many members (9–12) → compact grid */
+  .members-grid[data-member-count="9"],
+  .members-grid[data-member-count="10"],
+  .members-grid[data-member-count="11"],
+  .members-grid[data-member-count="12"] {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.2rem 1rem;
+    padding: 1.4rem;
+  }
+  
+  /* ── Inactive style (used by toggleMember) ──────────────────────── */
+  .member-card.inactive {
+    opacity: 0.62;
+    filter: grayscale(0.7) brightness(0.9);
+    transform: scale(0.95);
+  }
+  
+  /* ── Hover / tap feedback ───────────────────────────────────────── */
+  .member-card:not(.inactive):hover,
+  .member-card:not(.inactive):active {
+    transform: scale(1.07) translateZ(0);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  }
+  
+  /* Name tag style */
+  .name-tag {
     position: absolute;
-    bottom: 0.9rem;
+    bottom: 1rem;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0,0,0,0.65);
+    background: rgba(0,0,0,0.68);
     color: white;
-    padding: 0.5rem 1.1rem;
-    border-radius: 2rem;
+    padding: 0.6rem 1.3rem;
+    border-radius: 2.2rem;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: clamp(1rem, 2.2vw, 1.25rem);
     white-space: nowrap;
     pointer-events: none;
-}
-
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  }
+  
 .toggle-spinner {
     position: absolute;
     inset: 0;
