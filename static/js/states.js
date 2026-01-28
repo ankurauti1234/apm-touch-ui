@@ -282,52 +282,54 @@ const states = {
     </div>`,
 
     main: () => {
-        const max = 8;
+        const MAX_MEMBERS = 12;
+    
         const members = membersData?.members || [];
-        const shown = members.slice(0, max);
-        const empty = max - shown.length;
-
+        const shown = members.slice(0, MAX_MEMBERS);
+    
         return `
-    <div class="layout-reset">
-        <div class="main-dashboard fixed-layout">
-            <div class="members-grid">
-                ${shown.map((m, i) => `
-                    <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
-                         onclick="toggleMember(${i})"
-                         style="--bg-image:url('${avatar(m.gender, m.dob)}')">
-                        <div class="name-tag">${m.name || m.member_code || '??'}</div>
-                    </div>`).join('')}
-                ${Array(empty).fill().map(() => `
-                    <div class="member-card-grid empty"><div class="name-tag">—</div></div>
-                `).join('')}
-            </div>
-            <div class="bottom-bar">
-                <div class="bar-left">
-                    <button class="bar-btn" id="bar-btn-settings" onclick="showSettingsPopup()">
-                        <span class="material-icons" style="font-size:1.7rem;">settings</span>
-                    </button>
-                    <button class="bar-btn" id="bar-btn-edit_member" onclick="showEditMemberPopup()">
-                        <span class="material-icons" style="font-size:1.7rem;">edit</span>
-                    </button>
-                    <button class="bar-btn" id="bar-btn-details" onclick="showMeterIdPopup()">
-                        <span class="material-icons" style="font-size:1.7rem;">info</span>
-                    </button>
-                </div>
-                <div class="bar-right">
-                    <button class="bar-btn" id="bar-btn-add_guest" onclick="openDialog()">
-                        <span class="material-icons">add</span>
-                        <span class="btn-text">Add Guest &nbsp;</span>
-                        <span class="guest-count">${guests.length} / 8</span>
-                    </button>
-                    <div id="bar-wifi-status">
-                    
+        <div class="layout-reset">
+            <div class="main-dashboard fixed-layout">
+                <!-- Members grid with proper containment -->
+                <div class="members-grid-container">
+                    <div class="members-grid">
+                        ${shown.map((m, i) => `
+                            <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
+                                 onclick="toggleMember(${i})"
+                                 style="--bg-image:url('${avatar(m.gender, m.dob)}')">
+                                <div class="name-tag">${m.name || m.member_code || '??'}</div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
-            </div>
-            <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+    
+                <!-- Bottom bar – make sure it's always at bottom -->
+                <div class="bottom-bar">
+                    <div class="bar-left">
+                        <button class="bar-btn" id="bar-btn-settings" onclick="showSettingsPopup()">
+                            <span class="material-icons" style="font-size:1.7rem;">settings</span>
+                        </button>
+                        <button class="bar-btn" id="bar-btn-edit_member" onclick="showEditMemberPopup()">
+                            <span class="material-icons" style="font-size:1.7rem;">edit</span>
+                        </button>
+                        <button class="bar-btn" id="bar-btn-details" onclick="showMeterIdPopup()">
+                            <span class="material-icons" style="font-size:1.7rem;">info</span>
+                        </button>
+                    </div>
+                    <div class="bar-right">
+                        <button class="bar-btn" id="bar-btn-add_guest" onclick="openDialog()">
+                            <span class="material-icons">add</span>
+                            <span class="btn-text">Add Guest &nbsp;</span>
+                            <span class="guest-count">${guests.length} / 8</span>
+                        </button>
+                        <div id="bar-wifi-status"></div>
+                    </div>
+                </div>
+    
+                <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+                </div>
             </div>
         </div>
-    </div>
-    <div id="screensaver"></div>`;
+        <div id="screensaver"></div>`;
     },
 };
