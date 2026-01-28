@@ -41,7 +41,6 @@ def check_wifi():
                 return jsonify({"success": True}), 200
 
         print("for loop over")
-
         return jsonify({"success": False}), 200
     except Exception:
         print("reached except block ")
@@ -126,6 +125,20 @@ def wifi_disconnect():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+def get_signal_priority(net):
+    """Helper for sorting: returns negative number (higher = better signal), 0 for None/invalid"""
+    sig = net.get("signal_strength")
+    if sig is None or not isinstance(sig, str):
+        return 0
+    try:
+        cleaned = sig.rstrip("%").strip()
+        if not cleaned.isdigit():
+            return 0
+        return -int(cleaned)
+    except (ValueError, TypeError):
+        return 0
+
+
 @wifi_bp.route("/wifi/networks", methods=["GET"])
 def list_wifi_networks():
     try:
@@ -153,7 +166,9 @@ def list_wifi_networks():
                 continue
             seen_ssids.add(ssid)
 
-            signal = parts[1].strip()
+            signal_raw = parts[1].strip()
+            # Protect against non-numeric or empty signal
+            signal = signal_raw if signal_raw.isdigit() else "0"
             security = parts[2].strip() or "Open"
 
             available.append({
@@ -201,7 +216,7 @@ def list_wifi_networks():
 
                     saved.append({
                         "ssid": ssid_val,
-                        "signal_strength": None,
+                        "signal_strength": None,           # still None for saved-only
                         "security": key_mgmt.title().replace("Psk", "PSK").replace("Eap", "EAP"),
                         "saved": True,
                         "password": password
@@ -219,7 +234,10 @@ def list_wifi_networks():
 
         result = sorted(
             merged.values(),
-            key=lambda x: (not x["saved"], -(int(x["signal_strength"].rstrip("%") or "0")))
+            key=lambda x: (
+                not x["saved"],           # saved networks first
+                get_signal_priority(x)    # then strongest signal
+            )
         )
 
         return jsonify({"success": True, "networks": result}), 200
