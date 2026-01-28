@@ -119,7 +119,8 @@
                boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
                zIndex: '100',
                textAlign: 'center',
-               display: 'none'
+               display: 'none',
+               background: 'red',              // ← temporary
            });
            msg.textContent = 'Change the active members';
            saver.appendChild(msg);
