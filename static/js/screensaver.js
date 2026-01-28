@@ -80,8 +80,17 @@ updateClock();
 function showScreensaver() {
     saver.style.visibility = 'visible';
     saver.style.opacity = '1';
-    try { saver.focus({ preventScroll: true }); } catch (e) { }
+
+    // 🔥 SYNC MEMBERS HERE
+    if (window.Screensaver && membersData?.members) {
+        Screensaver.setMembers(membersData.members);
+    }
+
+    try {
+        saver.focus({ preventScroll: true });
+    } catch (e) {}
 }
+
 
 function hideScreensaver() {
     saver.style.opacity = '0';
