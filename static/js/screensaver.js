@@ -234,8 +234,8 @@
            activeMembers.forEach(m => {
                const icon = document.createElement('div');
                Object.assign(icon.style, {
-                   width: '102px',
-                   height: '102px',
+                   width: '170px',
+                   height: '170px',
                    borderRadius: '50%',
                    backgroundImage: `url(${m.avatar})`,
                    backgroundSize: 'cover',
