@@ -51,7 +51,7 @@ async function apiPost(url, data = {}) {
             // preserve avatar
             membersData.members[idx].avatar =
                 membersData.members[idx].avatar ||
-                avatar(d.member.gender, d.member.dob);
+                avatar(d.member.gender, d.member.dob, d.member.active);
                 
             render();
 
