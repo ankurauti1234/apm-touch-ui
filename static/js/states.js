@@ -155,6 +155,9 @@ const states = {
             <button class="button secondary" onclick="retryOTP()">
                 <span class="material-icons">refresh</span> Resend OTP
             </button>
+            <button class="button secondary" onclick="navigate('display_meter')">
+                <span class="material-icons">arrow_back</span> Back
+            </button>
         </div>
          
         </div>
