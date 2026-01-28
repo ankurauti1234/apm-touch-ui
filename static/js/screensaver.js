@@ -245,8 +245,8 @@
             // Avatar icon
             const icon = document.createElement('div');
             Object.assign(icon.style, {
-                width: '140px',
-                height: '140px',      // square for better circle look
+                width: '120px',
+                height: '120px',      // square for better circle look
                 borderRadius: '50%',
                 backgroundImage: `url(${m.avatar})`,
                 backgroundSize: 'cover',
