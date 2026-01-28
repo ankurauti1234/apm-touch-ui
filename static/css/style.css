@@ -2172,53 +2172,74 @@ input[type="number"] {
     -moz-appearance: textfield;
 }
 
-/* Make sure the dashboard takes full height but allows scrolling or proper spacing */
+/* Make dashboard full height and column layout */
 .main-dashboard.fixed-layout {
-    height: 100vh;               /* or 100% if parent allows */
+    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    position: relative;          /* important for absolute/fixed children */
+    overflow: hidden;           /* prevent scroll on whole page */
 }
 
-/* NEW container to prevent grid from pushing bottom bar */
+/* Container for grid – takes remaining space */
 .members-grid-container {
-    flex: 1;                     /* takes available space */
-    overflow-y: auto;            /* scroll if too many members */
+    flex: 1 1 auto;             /* grow and shrink */
+    overflow-y: auto;           /* scroll if too many cards */
     display: flex;
-    align-items: center;         /* center vertically when few members */
-    justify-content: center;     /* center horizontally */
+    align-items: center;        /* center vertically when few cards */
+    justify-content: center;    /* center horizontally */
     padding: 20px 40px;
 }
 
-/* Grid itself – responsive and centered */
+/* The actual grid */
 .members-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 24px;
+    gap: 24px 32px;
     width: 100%;
-    max-width: 1400px;
+    max-width: 1600px;
     justify-items: center;
+    align-content: center;
 }
 
-/* Bottom bar – fixed at bottom or sticky */
+/* Card size – consistent and visible */
+.member-card-grid {
+    width: 180px;
+    height: 240px;
+    background: var(--bg-image) center/cover no-repeat;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.member-card-grid:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Bottom bar pinned at bottom */
 .bottom-bar {
-    position: sticky;
-    bottom: 0;
-    width: 100%;
-    background: rgba(0,0,0,0.8);  /* or your bar background */
-    padding: 12px 24px;
+    flex-shrink: 0;             /* never shrink */
+    background: rgba(0,0,0,0.85);
+    padding: 16px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     z-index: 999;
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(255,255,255,0.1);
 }
 
-/* Optional: when very few members, make grid larger */
-@media (max-width: 800px) {
+/* Responsive adjustments */
+@media (max-width: 900px) {
     .members-grid {
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 16px;
+        gap: 20px;
+    }
+    .member-card-grid {
+        width: 140px;
+        height: 200px;
     }
 }
 

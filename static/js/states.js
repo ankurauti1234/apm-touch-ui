@@ -290,7 +290,7 @@ const states = {
         return `
         <div class="layout-reset">
             <div class="main-dashboard fixed-layout">
-                <!-- Members grid with proper containment -->
+                <!-- Members grid container -->
                 <div class="members-grid-container">
                     <div class="members-grid">
                         ${shown.map((m, i) => `
@@ -303,7 +303,7 @@ const states = {
                     </div>
                 </div>
     
-                <!-- Bottom bar – make sure it's always at bottom -->
+                <!-- Bottom bar stays at the bottom -->
                 <div class="bottom-bar">
                     <div class="bar-left">
                         <button class="bar-btn" id="bar-btn-settings" onclick="showSettingsPopup()">
