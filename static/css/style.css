@@ -2173,58 +2173,52 @@ input[type="number"] {
 }
 
 
+/* Make sure the dashboard takes full height but allows scrolling or proper spacing */
+.main-dashboard.fixed-layout {
+    height: 100vh;               /* or 100% if parent allows */
+    display: flex;
+    flex-direction: column;
+    position: relative;          /* important for absolute/fixed children */
+}
+
+/* NEW container to prevent grid from pushing bottom bar */
+.members-grid-container {
+    flex: 1;                     /* takes available space */
+    overflow-y: auto;            /* scroll if too many members */
+    display: flex;
+    align-items: center;         /* center vertically when few members */
+    justify-content: center;     /* center horizontally */
+    padding: 20px 40px;
+}
+
+/* Grid itself – responsive and centered */
 .members-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* responsive columns */
-    gap: 24px;                  /* space between cards */
-    padding: 40px;
-    max-width: 1400px;          /* prevent too wide on large screens */
-    margin: 0 auto;             /* center the grid */
-    justify-items: center;      /* center cards in their cells */
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 24px;
+    width: 100%;
+    max-width: 1400px;
+    justify-items: center;
 }
 
-/* Optional: make cards look better when there are few members */
-.member-card-grid {
-    width: 180px;               /* fixed card size */
-    height: 240px;              /* adjust as needed */
-    background-size: cover;
-    background-position: center;
-    border-radius: 16px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    position: relative;
-    overflow: hidden;
+/* Bottom bar – fixed at bottom or sticky */
+.bottom-bar {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    background: rgba(0,0,0,0.8);  /* or your bar background */
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 999;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.4);
 }
 
-.member-card-grid:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-.name-tag {
-    position: absolute;
-    bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.7);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-/* When few members → larger cards or more centered feel */
+/* Optional: when very few members, make grid larger */
 @media (max-width: 800px) {
     .members-grid {
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 16px;
-        padding: 20px;
-    }
-    .member-card-grid {
-        width: 140px;
-        height: 200px;
     }
 }
