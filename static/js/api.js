@@ -47,6 +47,12 @@ async function apiPost(url, data = {}) {
 
         if (d.success) {
             membersData.members[idx] = d.member;
+
+            // preserve avatar
+            membersData.members[idx].avatar =
+                membersData.members[idx].avatar ||
+                avatar(d.member.gender, d.member.dob);
+                
             render();
 
             // 🔥 notify screensaver about updated members

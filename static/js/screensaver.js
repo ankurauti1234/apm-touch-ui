@@ -182,7 +182,9 @@ function updateScreensaverMembers(members = []) {
                 borderRadius: '50%',
                 backgroundImage: `url(${m.avatar})`,
                 backgroundSize: 'cover',
-                backgroundPosition: 'center'
+                backgroundPosition: 'center',
+                backgroundColor: 'red', // DEBUG
+
             });
             row.appendChild(icon);
         });
