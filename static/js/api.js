@@ -34,7 +34,7 @@ async function apiPost(url, data = {}) {
    Member actions
    ============================================================== */
 
-async function toggleMember(idx) {
+   async function toggleMember(idx) {
     if (!membersData?.members?.[idx]) return;
 
     try {
@@ -44,9 +44,16 @@ async function toggleMember(idx) {
             body: JSON.stringify({ index: idx })
         });
         const d = await r.json();
+
         if (d.success) {
             membersData.members[idx] = d.member;
             render();
+
+            // 🔥 notify screensaver about updated members
+            if (window.Screensaver) {
+                Screensaver.setMembers(membersData.members);
+            }
+
         } else {
             showError(d.error || 'Failed to update member');
         }
@@ -55,6 +62,7 @@ async function toggleMember(idx) {
         console.error('Toggle member failed:', err);
     }
 }
+
 
 
 // Add this to the bottom of api.js

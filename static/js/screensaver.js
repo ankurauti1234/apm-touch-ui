@@ -152,3 +152,44 @@ saver.addEventListener('click', () => {
         if (currentState === 'main') resetScreensaverTimer();
     }, { passive: true });
 });
+
+// Showing active memebers on screen saver 
+
+const membersRow = document.createElement('div');
+membersRow.id = 'screensaver-members';
+Object.assign(membersRow.style, {
+    display: 'flex',
+    gap: '16px',
+    marginTop: '30px',
+    flexWrap: 'wrap',
+    justifyContent: 'center'
+});
+wrapper.appendChild(membersRow);
+
+function updateScreensaverMembers(members = []) {
+    const row = document.getElementById('screensaver-members');
+    if (!row) return;
+
+    row.innerHTML = '';
+
+    members
+        .filter(m => m.active === true)
+        .forEach(m => {
+            const icon = document.createElement('div');
+            Object.assign(icon.style, {
+                width: '72px',
+                height: '72px',
+                borderRadius: '50%',
+                backgroundImage: `url(${m.avatar})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+            });
+            row.appendChild(icon);
+        });
+}
+
+window.Screensaver = {
+    show: showScreensaver,
+    hide: hideScreensaver,
+    setMembers: updateScreensaverMembers
+};
