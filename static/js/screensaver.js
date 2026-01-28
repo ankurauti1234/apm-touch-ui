@@ -122,7 +122,7 @@
                display: 'none',
                background: 'red',              // ← temporary
            });
-           msg.textContent = 'Change the active members';
+           msg.textContent = 'Change the active members if needed';
            saver.appendChild(msg);
        }
        msg.style.display = 'block';
