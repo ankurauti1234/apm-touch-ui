@@ -1,11 +1,13 @@
 /* ==============================================================
    screensaver.js
    Full screensaver + clock + pre-dim + brightness control
-   FIXED & CLEAN – no syntax errors
+   WITH LEFT CLOCK / RIGHT MEMBERS LAYOUT
    ============================================================== */
 
    let wrapper;
+   let membersRow;
    let saver = document.getElementById('screensaver');
+   
    if (!saver) {
        saver = document.createElement('div');
        saver.id = 'screensaver';
@@ -34,30 +36,77 @@
        saver.tabIndex = -1;
        document.body.appendChild(saver);
    
+       // Main horizontal container (left: clock, right: members)
+       const mainContainer = document.createElement('div');
+       mainContainer.id = 'screensaver-main';
+       Object.assign(mainContainer.style, {
+           width: '100%',
+           height: '100%',
+           display: 'flex',
+           flexDirection: 'row',
+           justifyContent: 'space-between',
+           alignItems: 'center',
+           padding: '0 80px',           // breathing room on sides
+           boxSizing: 'border-box'
+       });
+       saver.appendChild(mainContainer);
+   
+       // LEFT: Clock wrapper
        wrapper = document.createElement('div');
        wrapper.id = 'clock-wrapper';
        Object.assign(wrapper.style, {
-           width: '100%', height: '100%',
-           display: 'flex', flexDirection: 'column',
-           justifyContent: 'center', alignItems: 'center'
+           flex: '1',
+           display: 'flex',
+           flexDirection: 'column',
+           justifyContent: 'center',
+           alignItems: 'flex-start',     // left aligned
+           maxWidth: '50%'
        });
    
        const timeEl = document.createElement('div');
        timeEl.id = 'clock-time';
        Object.assign(timeEl.style, {
-           fontSize: '100px', fontWeight: '600',
-           marginBottom: '10px', lineHeight: '1', textAlign: 'center'
+           fontSize: '160px',            // larger for prominence
+           fontWeight: '700',
+           lineHeight: '1',
+           marginBottom: '20px',
+           textAlign: 'left'
        });
    
        const dateEl = document.createElement('div');
        dateEl.id = 'clock-date';
        Object.assign(dateEl.style, {
-           fontSize: '50px', fontWeight: '400', textAlign: 'center'
+           fontSize: '70px',
+           fontWeight: '400',
+           textAlign: 'left'
        });
    
        wrapper.appendChild(timeEl);
        wrapper.appendChild(dateEl);
-       saver.appendChild(wrapper);
+       mainContainer.appendChild(wrapper);
+   
+       // RIGHT: Members container
+       const membersContainer = document.createElement('div');
+       membersContainer.id = 'members-container';
+       Object.assign(membersContainer.style, {
+           flex: '1',
+           display: 'flex',
+           justifyContent: 'flex-end',
+           alignItems: 'center',
+           maxWidth: '50%'
+       });
+   
+       membersRow = document.createElement('div');
+       membersRow.id = 'screensaver-members';
+       Object.assign(membersRow.style, {
+           display: 'flex',
+           gap: '32px',
+           flexWrap: 'wrap',
+           justifyContent: 'flex-end',
+           maxWidth: '100%'
+       });
+       membersContainer.appendChild(membersRow);
+       mainContainer.appendChild(membersContainer);
    }
    
    // Clock update
@@ -81,18 +130,15 @@
        saver.style.visibility = 'visible';
        saver.style.opacity = '1';
    
-       // 🔥 SYNC MEMBERS HERE - fallback if membersData not loaded yet
+       // Sync members
        if (window.Screensaver && membersData?.members) {
            Screensaver.setMembers(membersData.members);
-       } else {
-           // If membersData not ready, fetch it (assuming fetchMembers exists)
-           if (typeof fetchMembers === 'function') {
-               fetchMembers().then(() => {
-                   if (membersData?.members) {
-                       Screensaver.setMembers(membersData.members);
-                   }
-               });
-           }
+       } else if (typeof fetchMembers === 'function') {
+           fetchMembers().then(() => {
+               if (membersData?.members) {
+                   Screensaver.setMembers(membersData.members);
+               }
+           });
        }
    
        try {
@@ -144,7 +190,7 @@
        screensaverTimeout = setTimeout(showScreensaver, 30000);  // 30s → screensaver
    }
    
-   // Block all input when screensaver is active
+   // Block input when screensaver active
    function blockEventIfActive(e) {
        if (saver.style.visibility === 'visible' && saver.style.opacity !== '0' && !saver.contains(e.target)) {
            e.preventDefault();
@@ -154,127 +200,100 @@
    }
    
    ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click',
-       'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
-           document.addEventListener(evt, blockEventIfActive, { capture: true, passive: false })
-       });
+    'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
+       document.addEventListener(evt, blockEventIfActive, { capture: true, passive: false });
+   });
    
    saver.addEventListener('click', () => {
        hideScreensaver();
        resetScreensaverTimer();
    }, { capture: true });
    
-   // Wake on any movement/touch when on main screen
+   // Wake on interaction when on main screen
    ['mousemove', 'keypress', 'click', 'touchstart'].forEach(evt => {
        document.addEventListener(evt, () => {
            if (currentState === 'main') resetScreensaverTimer();
        }, { passive: true });
    });
    
-   // Showing active members on screensaver
-   const membersRow = document.createElement('div');
-   membersRow.id = 'screensaver-members';
-   Object.assign(membersRow.style, {
-       display: 'flex',
-       gap: '16px',
-       marginTop: '30px',
-       flexWrap: 'wrap',
-       justifyContent: 'center'
-   });
-   wrapper.appendChild(membersRow);
-   
-   // New: Warning message element
+   // Warning message (centered when no members)
    const warningMsg = document.createElement('div');
    warningMsg.id = 'screensaver-warning';
    Object.assign(warningMsg.style, {
-       fontSize: '40px',
+       fontSize: '48px',
        fontWeight: 'bold',
        textAlign: 'center',
        color: 'white',
-       marginTop: '20px',
-       display: 'none' // Hidden by default
+       position: 'absolute',
+       top: '50%',
+       left: '50%',
+       transform: 'translate(-50%, -50%)',
+       display: 'none',
+       maxWidth: '80%',
+       padding: '0 40px'
    });
    warningMsg.textContent = 'No active members! Please activate at least one.';
-   wrapper.appendChild(warningMsg);
+   saver.appendChild(warningMsg);
    
-   // New: Add CSS for blinking background (inline style sheet)
-   const styleSheet = document.createElement('style');
-   styleSheet.textContent = `
-       @keyframes blink {
-           0% { background-color: red; }
-           50% { background-color: darkred; }
-           100% { background-color: red; }
-       }
-       .blinking {
-           animation: blink 1s infinite;
-       }
-   `;
-   document.head.appendChild(styleSheet);
-   
+   // Update members display
    function updateScreensaverMembers(members = []) {
-    const row = document.getElementById('screensaver-members');
-    const warning = document.getElementById('screensaver-warning');
-    if (!row || !warning) return;
-
-    row.innerHTML = '';  // clear previous icons/labels
-
-    const activeMembers = members.filter(m => m.active === true);
-
-    if (activeMembers.length === 0) {
-        // No active members → warning mode
-        saver.style.background = 'red';
-        saver.classList.add('blinking');
-        row.style.display = 'none';
-        warning.style.display = 'block';
-    } else {
-        // Active members → show avatars + codes
-        saver.style.background = 'black';
-        saver.classList.remove('blinking');
-        row.style.display = 'flex';
-        warning.style.display = 'none';
-
-        activeMembers.forEach(m => {
-            // Create a container for icon + label
-            const container = document.createElement('div');
-            Object.assign(container.style, {
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '8px',           // space between icon and text
-            });
-
-            // Avatar icon
-            const icon = document.createElement('div');
-            Object.assign(icon.style, {
-                width: '120px',
-                height: '120px',      // square for better circle look
-                borderRadius: '50%',
-                backgroundImage: `url(${m.avatar})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundColor: 'black',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',  // optional: nice shadow
-            });
-
-            // Member code label
-            const label = document.createElement('div');
-            Object.assign(label.style, {
-                fontSize: '44px',
-                fontWeight: '600',
-                color: 'white',
-                textShadow: '0 2px 4px rgba(0,0,0,0.6)',  // better readability
-                textAlign: 'center',
-                maxWidth: '140px',
-                wordBreak: 'break-word',
-            });
-            label.textContent = m.member_code || m.name || 'Unknown';  // fallback order
-
-            // Assemble
-            container.appendChild(icon);
-            container.appendChild(label);
-            row.appendChild(container);
-        });
-    }
-}
+       const row = document.getElementById('screensaver-members');
+       const warning = document.getElementById('screensaver-warning');
+       if (!row || !warning) return;
+   
+       row.innerHTML = '';
+   
+       const activeMembers = members.filter(m => m.active === true);
+   
+       if (activeMembers.length === 0) {
+           saver.style.background = 'red';
+           saver.classList.add('blinking');
+           row.style.display = 'none';
+           warning.style.display = 'block';
+       } else {
+           saver.style.background = 'black';
+           saver.classList.remove('blinking');
+           row.style.display = 'flex';
+           warning.style.display = 'none';
+   
+           activeMembers.forEach(m => {
+               const container = document.createElement('div');
+               Object.assign(container.style, {
+                   display: 'flex',
+                   flexDirection: 'column',
+                   alignItems: 'center',
+                   gap: '12px',
+               });
+   
+               const icon = document.createElement('div');
+               Object.assign(icon.style, {
+                   width: '140px',
+                   height: '140px',
+                   borderRadius: '50%',
+                   backgroundImage: `url(${m.avatar})`,
+                   backgroundSize: 'cover',
+                   backgroundPosition: 'center',
+                   backgroundColor: 'black',
+                   boxShadow: '0 6px 16px rgba(0,0,0,0.5)',
+               });
+   
+               const label = document.createElement('div');
+               Object.assign(label.style, {
+                   fontSize: '40px',
+                   fontWeight: '600',
+                   color: 'white',
+                   textShadow: '0 2px 6px rgba(0,0,0,0.7)',
+                   textAlign: 'center',
+                   maxWidth: '160px',
+               });
+               label.textContent = m.member_code || m.name || 'Unknown';
+   
+               container.appendChild(icon);
+               container.appendChild(label);
+               row.appendChild(container);
+           });
+       }
+   }
    
    window.Screensaver = {
        show: showScreensaver,
