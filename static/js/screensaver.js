@@ -2,6 +2,7 @@
    screensaver.js
    Full screensaver + clock + pre-dim + brightness control
    FIXED & CLEAN – no syntax errors
+   + 45-minute inactivity warning for same members
    ============================================================== */
 
    let wrapper;
@@ -77,15 +78,76 @@
    setInterval(updateClock, 1000);
    updateClock();
    
+   // ────────────────────────────────────────────────
+   // NEW: 45-minute same-members warning feature
+   let lastMembersChangeTime = Date.now();
+   let lastActiveMemberKeys = '';  // string of sorted member_codes/ids
+   
+   const INACTIVITY_THRESHOLD_MS = 45 * 60 * 1000;   // 45 minutes
+   const WARNING_SHOW_DURATION_MS = 60 * 1000;       // 1 minute
+   
+   function resetInactivityTimer(activeMembers = []) {
+       const currentKeys = activeMembers
+           .map(m => m.member_code || m.id || m.name || '')
+           .filter(Boolean)
+           .sort()
+           .join('|');
+   
+       if (currentKeys !== lastActiveMemberKeys) {
+           lastMembersChangeTime = Date.now();
+           lastActiveMemberKeys = currentKeys;
+           hideInactivityWarning(); // hide immediately on change
+       }
+   }
+   
+   function showInactivityWarning() {
+       let msg = document.getElementById('inactivity-warning');
+       if (!msg) {
+           msg = document.createElement('div');
+           msg.id = 'inactivity-warning';
+           Object.assign(msg.style, {
+               position: 'absolute',
+               top: '15%',
+               left: '50%',
+               transform: 'translateX(-50%)',
+               fontSize: '48px',
+               fontWeight: 'bold',
+               color: '#ffdd00',
+               background: 'rgba(0,0,0,0.75)',
+               padding: '20px 50px',
+               borderRadius: '12px',
+               boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+               zIndex: '100',
+               textAlign: 'center',
+               display: 'none'
+           });
+           msg.textContent = 'Change the active members';
+           saver.appendChild(msg);
+       }
+       msg.style.display = 'block';
+   }
+   
+   function hideInactivityWarning() {
+       const msg = document.getElementById('inactivity-warning');
+       if (msg) msg.style.display = 'none';
+   }
+   
+   function checkAndShowInactivityWarning() {
+       if (Date.now() - lastMembersChangeTime >= INACTIVITY_THRESHOLD_MS) {
+           showInactivityWarning();
+           setTimeout(hideInactivityWarning, WARNING_SHOW_DURATION_MS);
+       }
+   }
+   // ────────────────────────────────────────────────
+   
    function showScreensaver() {
        saver.style.visibility = 'visible';
        saver.style.opacity = '1';
    
-       // 🔥 SYNC MEMBERS HERE - fallback if membersData not loaded yet
+       // Sync members
        if (window.Screensaver && membersData?.members) {
            Screensaver.setMembers(membersData.members);
        } else {
-           // If membersData not ready, fetch it (assuming fetchMembers exists)
            if (typeof fetchMembers === 'function') {
                fetchMembers().then(() => {
                    if (membersData?.members) {
@@ -94,6 +156,9 @@
                });
            }
        }
+   
+       // NEW: Check if we should show the 45-min warning
+       checkAndShowInactivityWarning();
    
        try {
            saver.focus({ preventScroll: true });
@@ -196,7 +261,7 @@
    warningMsg.textContent = 'No active members! Please activate at least one.';
    wrapper.appendChild(warningMsg);
    
-   // New: Add CSS for blinking background (inline style sheet)
+   // New: Add CSS for blinking background
    const styleSheet = document.createElement('style');
    styleSheet.textContent = `
        @keyframes blink {
@@ -211,70 +276,68 @@
    document.head.appendChild(styleSheet);
    
    function updateScreensaverMembers(members = []) {
-    const row = document.getElementById('screensaver-members');
-    const warning = document.getElementById('screensaver-warning');
-    if (!row || !warning) return;
-
-    row.innerHTML = '';  // clear previous icons/labels
-
-    const activeMembers = members.filter(m => m.active === true);
-
-    if (activeMembers.length === 0) {
-        // No active members → warning mode
-        saver.style.background = 'red';
-        saver.classList.add('blinking');
-        row.style.display = 'none';
-        warning.style.display = 'block';
-    } else {
-        // Active members → show avatars + codes
-        saver.style.background = 'black';
-        saver.classList.remove('blinking');
-        row.style.display = 'flex';
-        warning.style.display = 'none';
-
-        activeMembers.forEach(m => {
-            // Create a container for icon + label
-            const container = document.createElement('div');
-            Object.assign(container.style, {
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '8px',           // space between icon and text
-            });
-
-            // Avatar icon
-            const icon = document.createElement('div');
-            Object.assign(icon.style, {
-                width: '110px',
-                height: '110px',      // square for better circle look
-                borderRadius: '50%',
-                backgroundImage: `url(${m.avatar})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundColor: 'black',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',  // optional: nice shadow
-            });
-
-            // Member code label
-            const label = document.createElement('div');
-            Object.assign(label.style, {
-                fontSize: '44px',
-                fontWeight: '600',
-                color: 'white',
-                textShadow: '0 2px 4px rgba(0,0,0,0.6)',  // better readability
-                textAlign: 'center',
-                maxWidth: '140px',
-                wordBreak: 'break-word',
-            });
-            label.textContent = m.member_code || m.name || 'Unknown';  // fallback order
-
-            // Assemble
-            container.appendChild(icon);
-            container.appendChild(label);
-            row.appendChild(container);
-        });
-    }
-}
+       const row = document.getElementById('screensaver-members');
+       const warning = document.getElementById('screensaver-warning');
+       if (!row || !warning) return;
+   
+       row.innerHTML = '';
+   
+       const activeMembers = members.filter(m => m.active === true);
+   
+       // NEW: Reset the 45-minute timer when active members change
+       resetInactivityTimer(activeMembers);
+   
+       if (activeMembers.length === 0) {
+           saver.style.background = 'red';
+           saver.classList.add('blinking');
+           row.style.display = 'none';
+           warning.style.display = 'block';
+           hideInactivityWarning();  // hide inactivity msg if no one active
+       } else {
+           saver.style.background = 'black';
+           saver.classList.remove('blinking');
+           row.style.display = 'flex';
+           warning.style.display = 'none';
+   
+           activeMembers.forEach(m => {
+               const container = document.createElement('div');
+               Object.assign(container.style, {
+                   display: 'flex',
+                   flexDirection: 'column',
+                   alignItems: 'center',
+                   gap: '8px',
+               });
+   
+               const icon = document.createElement('div');
+               Object.assign(icon.style, {
+                   width: '110px',
+                   height: '110px',
+                   borderRadius: '50%',
+                   backgroundImage: `url(${m.avatar})`,
+                   backgroundSize: 'cover',
+                   backgroundPosition: 'center',
+                   backgroundColor: 'black',
+                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+               });
+   
+               const label = document.createElement('div');
+               Object.assign(label.style, {
+                   fontSize: '44px',
+                   fontWeight: '600',
+                   color: 'white',
+                   textShadow: '0 2px 4px rgba(0,0,0,0.6)',
+                   textAlign: 'center',
+                   maxWidth: '140px',
+                   wordBreak: 'break-word',
+               });
+               label.textContent = m.member_code || m.name || 'Unknown';
+   
+               container.appendChild(icon);
+               container.appendChild(label);
+               row.appendChild(container);
+           });
+       }
+   }
    
    window.Screensaver = {
        show: showScreensaver,
