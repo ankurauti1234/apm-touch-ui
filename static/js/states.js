@@ -121,7 +121,7 @@ const states = {
         </div>
 
         <div class="button-group">
-            <button class="button" onclick="submitHHID()">
+            <button class="button" onclick="submitHHID(); navigate(otp_verification)">
                 <span class="material-icons">send</span> Submit & Send OTP
             </button>
             <button class="button secondary" onclick="navigate('display_meter')">
@@ -155,7 +155,7 @@ const states = {
             <button class="button secondary" onclick="retryOTP()">
                 <span class="material-icons">refresh</span> Resend OTP
             </button>
-            <button class="button secondary" onclick="navigate('display_meter')">
+            <button class="button secondary" onclick="navigate('hhid_input')">
                 <span class="material-icons">arrow_back</span> Back
             </button>
         </div>
