@@ -2172,65 +2172,111 @@ input[type="number"] {
     -moz-appearance: textfield;
 }
 
-/* Make dashboard full height and column layout */
+/* Dashboard takes full viewport height */
 .main-dashboard.fixed-layout {
     height: 100vh;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;           /* prevent scroll on whole page */
+    overflow: hidden;
 }
 
-/* Container for grid – takes remaining space */
+/* Container for the grid – fills available space */
 .members-grid-container {
-    flex: 1 1 auto;             /* grow and shrink */
-    overflow-y: auto;           /* scroll if too many cards */
+    flex: 1;
     display: flex;
-    align-items: center;        /* center vertically when few cards */
-    justify-content: center;    /* center horizontally */
+    align-items: center;
+    justify-content: center;
     padding: 20px 40px;
+    overflow: hidden;           /* no scroll */
 }
 
-/* The actual grid */
+/* The grid – responsive card sizes based on count */
 .members-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 24px 32px;
     width: 100%;
-    max-width: 1600px;
-    justify-items: center;
+    max-width: 1000px;          /* safe for 1024px width */
+    height: 100%;
     align-content: center;
+    justify-content: center;
+    gap: 24px;
 }
 
-/* Card size – consistent and visible */
+/* Dynamic card size based on number of items */
 .member-card-grid {
-    width: 180px;
-    height: 240px;
+    aspect-ratio: 3 / 4;        /* nice portrait ratio */
     background: var(--bg-image) center/cover no-repeat;
     border-radius: 16px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     position: relative;
+    overflow: hidden;
 }
 
+/* Name tag at bottom */
+.name-tag {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.75);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+/* Auto-adjust card size based on how many children (members) exist */
+.members-grid:has(.member-card-grid:nth-child(1)) .member-card-grid {
+    width: 380px;               /* 1 member → big & centered */
+    max-height: 480px;
+}
+
+.members-grid:has(.member-card-grid:nth-child(2)) .member-card-grid {
+    width: 320px;               /* 2 members → large side by side */
+    max-height: 420px;
+}
+
+.members-grid:has(.member-card-grid:nth-child(3)) .member-card-grid,
+.members-grid:has(.member-card-grid:nth-child(4)) .member-card-grid {
+    width: 260px;               /* 3–4 members → still quite big */
+    max-height: 340px;
+}
+
+.members-grid:has(.member-card-grid:nth-child(n+5)):has(.member-card-grid:nth-child(-n+8)) .member-card-grid {
+    width: 210px;               /* 5–8 members → medium size */
+    max-height: 280px;
+}
+
+.members-grid:has(.member-card-grid:nth-child(n+9)) .member-card-grid {
+    width: 160px;               /* 9–12 members → smaller but fits */
+    max-height: 220px;
+}
+
+/* Grid columns adjust automatically */
+.members-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+/* When 1–2 members, force 1 or 2 columns */
+.members-grid:has(.member-card-grid:nth-child(1)) {
+    grid-template-columns: 1fr;
+}
+
+.members-grid:has(.member-card-grid:nth-child(2)) {
+    grid-template-columns: repeat(2, minmax(280px, 400px));
+}
+
+/* Hover effect */
 .member-card-grid:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transform: scale(1.06);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
 }
 
-/* Bottom bar pinned at bottom */
-
-/* Responsive adjustments */
-@media (max-width: 900px) {
-    .members-grid {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 20px;
-    }
-    .member-card-grid {
-        width: 140px;
-        height: 200px;
-    }
-}
+/* Bottom bar – always visible at bottom */
 
 
