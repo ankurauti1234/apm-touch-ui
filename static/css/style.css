@@ -2171,3 +2171,60 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
     -moz-appearance: textfield;
 }
+
+
+.members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* responsive columns */
+    gap: 24px;                  /* space between cards */
+    padding: 40px;
+    max-width: 1400px;          /* prevent too wide on large screens */
+    margin: 0 auto;             /* center the grid */
+    justify-items: center;      /* center cards in their cells */
+}
+
+/* Optional: make cards look better when there are few members */
+.member-card-grid {
+    width: 180px;               /* fixed card size */
+    height: 240px;              /* adjust as needed */
+    background-size: cover;
+    background-position: center;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.member-card-grid:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.name-tag {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* When few members → larger cards or more centered feel */
+@media (max-width: 800px) {
+    .members-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 16px;
+        padding: 20px;
+    }
+    .member-card-grid {
+        width: 140px;
+        height: 200px;
+    }
+}
