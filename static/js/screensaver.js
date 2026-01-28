@@ -187,12 +187,14 @@ function updateScreensaverMembers(members = []) {
         .forEach(m => {
             const icon = document.createElement('div');
             Object.assign(icon.style, {
-                width: '102px',
-                height: '102px',
+                width: '72px',
+                height: '72px',
                 borderRadius: '50%',
                 backgroundImage: `url(${m.avatar})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
+                backgroundColor: 'black',
+
             });
             row.appendChild(icon);
         });
