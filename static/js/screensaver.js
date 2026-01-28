@@ -4,6 +4,7 @@
    FIXED & CLEAN – no syntax errors
    ============================================================== */
 
+let wrapper;
 let saver = document.getElementById('screensaver');
 if (!saver) {
     saver = document.createElement('div');
@@ -33,7 +34,7 @@ if (!saver) {
     saver.tabIndex = -1;
     document.body.appendChild(saver);
 
-    const wrapper = document.createElement('div');
+    wrapper = document.createElement('div');
     wrapper.id = 'clock-wrapper';
     Object.assign(wrapper.style, {
         width: '100%', height: '100%',
