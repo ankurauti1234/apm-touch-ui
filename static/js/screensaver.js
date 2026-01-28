@@ -258,7 +258,7 @@
             // Member code label
             const label = document.createElement('div');
             Object.assign(label.style, {
-                fontSize: '24px',
+                fontSize: '44px',
                 fontWeight: '600',
                 color: 'white',
                 textShadow: '0 2px 4px rgba(0,0,0,0.6)',  // better readability
