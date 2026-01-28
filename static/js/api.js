@@ -78,6 +78,13 @@ async function fetchMembers() {
         const data = await res.json();
         if (data.success) {
             membersData = data.data;
+
+            // NEW: immediately push to screensaver (if it exists)
+            if (window.Screensaver && membersData?.members) {
+                Screensaver.setMembers(membersData.members);
+            }
+        } else {
+            console.warn("API returned success:false", data);
         }
     } catch (err) {
         console.error('Failed to fetch members:', err);

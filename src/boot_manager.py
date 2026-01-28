@@ -118,27 +118,55 @@ def clear_guests_and_publish():
     except Exception as e:
         print(f"[BOOT] Error in clear_guests_and_publish: {e}")
 
+# def perform_fresh_boot_reset():
+#     """Main function to call on startup — handles full reset if fresh boot"""
+#     if is_fresh_boot():
+#         print("[BOOT] Fresh boot detected — resetting viewing session")
+
+#         # Reset DB state
+#         deactivate_all_members_and_publish()
+#         clear_guests_and_publish()
+
+#         # Clear any stale queued events
+#         with _q_lock:
+#             old_size = len(_pub_q)
+#             _pub_q.clear()
+#             print(f"[BOOT] Fully cleared queue ({old_size} old/stale events removed)")
+
+#         # Re-queue fresh clean state
+#         deactivate_all_members_and_publish()
+#         clear_guests_and_publish()
+#         print("[BOOT] Re-queued fresh Type 3 and Type 4 events — clean state")
+#     else:
+#         print("[BOOT] Same boot — preserving existing queue (offline events safe)")
+
+#     # Always save current boot_id for next comparison
+#     save_current_boot_id()
+
 def perform_fresh_boot_reset():
-    """Main function to call on startup — handles full reset if fresh boot"""
+    """Reset state on EVERY service start (restart or fresh boot)"""
+    print("[BOOT] Performing full reset on service startup")
+
+    # Always reset members & guests on service start/restart
+    deactivate_all_members_and_publish()
+    clear_guests_and_publish()
+
+    # Clear any stale queued events (safe and recommended on every start)
+    with _q_lock:
+        old_size = len(_pub_q)
+        _pub_q.clear()
+        print(f"[BOOT] Cleared queue ({old_size} old/stale events removed)")
+
+    # Re-queue fresh clean state
+    deactivate_all_members_and_publish()
+    clear_guests_and_publish()
+    print("[BOOT] Re-queued fresh Type 3 and Type 4 events — clean state")
+
+    # Optional: still log whether it was a fresh boot (for debugging)
     if is_fresh_boot():
-        print("[BOOT] Fresh boot detected — resetting viewing session")
-
-        # Reset DB state
-        deactivate_all_members_and_publish()
-        clear_guests_and_publish()
-
-        # Clear any stale queued events
-        with _q_lock:
-            old_size = len(_pub_q)
-            _pub_q.clear()
-            print(f"[BOOT] Fully cleared queue ({old_size} old/stale events removed)")
-
-        # Re-queue fresh clean state
-        deactivate_all_members_and_publish()
-        clear_guests_and_publish()
-        print("[BOOT] Re-queued fresh Type 3 and Type 4 events — clean state")
+        print("[BOOT] This was a fresh system boot (power cycle detected)")
     else:
-        print("[BOOT] Same boot — preserving existing queue (offline events safe)")
+        print("[BOOT] This was a service restart (same boot session)")
 
     # Always save current boot_id for next comparison
     save_current_boot_id()
