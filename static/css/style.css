@@ -2220,16 +2220,6 @@ input[type="number"] {
 }
 
 /* Bottom bar pinned at bottom */
-.bottom-bar {
-    flex-shrink: 0;             /* never shrink */
-    background: rgba(0,0,0,0.85);
-    padding: 16px 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 999;
-    border-top: 1px solid rgba(255,255,255,0.1);
-}
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
