@@ -211,41 +211,70 @@
    document.head.appendChild(styleSheet);
    
    function updateScreensaverMembers(members = []) {
-       const row = document.getElementById('screensaver-members');
-       const warning = document.getElementById('screensaver-warning');
-       if (!row || !warning) return;
-   
-       row.innerHTML = '';
-       const activeMembers = members.filter(m => m.active === true);
-   
-       if (activeMembers.length === 0) {
-           // No active members: red blinking background + warning
-           saver.style.background = 'red';
-           saver.classList.add('blinking');
-           row.style.display = 'none';
-           warning.style.display = 'block';
-       } else {
-           // Active members: normal black, show icons, no warning/blinking
-           saver.style.background = 'black';
-           saver.classList.remove('blinking');
-           row.style.display = 'flex';
-           warning.style.display = 'none';
-   
-           activeMembers.forEach(m => {
-               const icon = document.createElement('div');
-               Object.assign(icon.style, {
-                   width: '170px',
-                   height: '170px',
-                   borderRadius: '50%',
-                   backgroundImage: `url(${m.avatar})`,
-                   backgroundSize: 'cover',
-                   backgroundPosition: 'center',
-                   backgroundColor: 'black',
-               });
-               row.appendChild(icon);
-           });
-       }
-   }
+    const row = document.getElementById('screensaver-members');
+    const warning = document.getElementById('screensaver-warning');
+    if (!row || !warning) return;
+
+    row.innerHTML = '';  // clear previous icons/labels
+
+    const activeMembers = members.filter(m => m.active === true);
+
+    if (activeMembers.length === 0) {
+        // No active members → warning mode
+        saver.style.background = 'red';
+        saver.classList.add('blinking');
+        row.style.display = 'none';
+        warning.style.display = 'block';
+    } else {
+        // Active members → show avatars + codes
+        saver.style.background = 'black';
+        saver.classList.remove('blinking');
+        row.style.display = 'flex';
+        warning.style.display = 'none';
+
+        activeMembers.forEach(m => {
+            // Create a container for icon + label
+            const container = document.createElement('div');
+            Object.assign(container.style, {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '8px',           // space between icon and text
+            });
+
+            // Avatar icon
+            const icon = document.createElement('div');
+            Object.assign(icon.style, {
+                width: '140px',
+                height: '140px',      // square for better circle look
+                borderRadius: '50%',
+                backgroundImage: `url(${m.avatar})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundColor: 'black',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',  // optional: nice shadow
+            });
+
+            // Member code label
+            const label = document.createElement('div');
+            Object.assign(label.style, {
+                fontSize: '24px',
+                fontWeight: '600',
+                color: 'white',
+                textShadow: '0 2px 4px rgba(0,0,0,0.6)',  // better readability
+                textAlign: 'center',
+                maxWidth: '140px',
+                wordBreak: 'break-word',
+            });
+            label.textContent = m.member_code || m.name || 'Unknown';  // fallback order
+
+            // Assemble
+            container.appendChild(icon);
+            container.appendChild(label);
+            row.appendChild(container);
+        });
+    }
+}
    
    window.Screensaver = {
        show: showScreensaver,
