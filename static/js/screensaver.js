@@ -51,7 +51,7 @@ if (!saver) {
     const dateEl = document.createElement('div');
     dateEl.id = 'clock-date';
     Object.assign(dateEl.style, {
-        fontSize: '70px', fontWeight: '400', textAlign: 'center'
+        fontSize: '50px', fontWeight: '400', textAlign: 'center'
     });
 
     wrapper.appendChild(timeEl);
