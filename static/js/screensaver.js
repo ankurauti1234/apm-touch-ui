@@ -172,7 +172,7 @@
            }
    
            if (activeMembers.length > 0) {
-               setTimeout(showInactivityWarning, 20 * 60 * 1000);
+               setTimeout(showInactivityWarning, 1 * 60 * 1000);
                reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
                // Fetch weather when members become active
                fetchWeather();
