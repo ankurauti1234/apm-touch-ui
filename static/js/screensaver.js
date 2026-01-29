@@ -51,7 +51,9 @@
            fontSize: '100px',
            fontWeight: '600',
            lineHeight: '1',
-           textAlign: 'center'
+           textAlign: 'center',
+           marginRight: '300px'
+
        });
    
        const dateEl = document.createElement('div');
@@ -61,7 +63,7 @@
            fontWeight: '400',
            textAlign: 'center',
            marginTop: '10px',
-           marginRight: '200px'
+           marginRight: '300px'
        });
    
        // Weather element – absolute positioned on right, hidden by default
@@ -81,7 +83,8 @@
            opacity: '0',
            transition: 'opacity 0.6s ease',
            pointerEvents: 'none',
-           zIndex: '10'
+           zIndex: '10',
+           marginRight: '30px'
        });
        wrapper.appendChild(timeEl);
        wrapper.appendChild(dateEl);
