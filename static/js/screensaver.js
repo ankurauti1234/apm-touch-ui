@@ -351,7 +351,7 @@
    // ────────────────────────────────────────────────────────────────
    
    let testBannerInterval = null;
-   
+
    function createTestBanner() {
        let banner = document.getElementById('test-active-reminder');
        if (!banner) {
@@ -382,7 +382,7 @@
                <div style="font-size:42px; margin-bottom:10px;">⚠️ ACTIVE MEMBERS ALERT</div>
                <div>The same people have been active for some time now</div>
                <div style="font-size:24px; margin-top:14px; opacity:0.9;">
-                   Check at ${new Date().toLocaleTimeString('en-IN')}
+                   Checked at ${new Date().toLocaleTimeString('en-IN')}
                </div>
            `;
    
@@ -396,22 +396,22 @@
        const hasActive = (membersData?.members || []).some(m => m.active === true);
        if (!hasActive) return;
    
-       // Don't show on top of screensaver (optional – remove if you want it always)
-       if (saver.style.visibility === 'visible') return;
+       // ── Removed the screensaver check ──
+       // Banner will now appear BOTH on main screen and on top of screensaver
    
        const banner = createTestBanner();
        banner.style.display = 'block';
    
-       // Auto hide after 10 seconds
+       // Auto hide after 30 seconds
        setTimeout(() => {
            banner.style.display = 'none';
-       }, 10000);
+       }, 30000);
    }
    
    function startTestReminderLoop() {
        if (testBannerInterval) clearInterval(testBannerInterval);
    
-       testBannerInterval = setInterval(showTestReminder, 60_000); // every 60 seconds
+       testBannerInterval = setInterval(showTestReminder, 60000); // every 60 seconds
    }
    
    // Hook into member updates to start the loop
@@ -422,10 +422,15 @@
        // Start repeating reminder once we have real data
        if (members && Array.isArray(members) && members.length > 0) {
            startTestReminderLoop();
-           // Optional: show immediately for quick testing
+           // Show first one quickly for testing
            setTimeout(showTestReminder, 3000);
        }
    };
+   
+   // Optional: stop the interval when page is hidden / destroyed (good practice)
+   window.addEventListener('beforeunload', () => {
+       if (testBannerInterval) clearInterval(testBannerInterval);
+   });
    
    // ────────────────────────────────────────────────────────────────
    // End of temporary test code – remove from here upward when done
