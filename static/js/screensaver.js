@@ -331,7 +331,7 @@
        restoreBrightness();
    
        preDimTimeout = setTimeout(preDimBrightness, 20000);
-       screensaverTimeout = setTimeout(showScreensaver, 3000);
+       screensaverTimeout = setTimeout(showScreensaver, 20000);
    }
    
    function blockEventIfActive(e) {
