@@ -119,7 +119,7 @@
    
            let icon = '🌤️';
            let condition = 'Clear';
-           if (weatherCode >= 0 && weatherCode <= 3) { icon = 'assets/sunny.svg'; condition = 'Sunny'; }
+           if (weatherCode >= 0 && weatherCode <= 3) { icon = 'static/assets/sunny.svg'; condition = 'Sunny'; }
            else if (weatherCode <= 48) { icon = '☁️'; condition = 'Cloudy'; }
            else if (weatherCode <= 67) { icon = '🌧️'; condition = 'Rain'; }
            else if (weatherCode <= 77) { icon = '❄️'; condition = 'Snow'; }
