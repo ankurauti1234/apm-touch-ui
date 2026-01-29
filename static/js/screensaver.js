@@ -32,7 +32,6 @@
            transition: 'opacity 1s ease',
            visibility: 'hidden',
            outline: 'none',
-           marginBottom: '40px'
        });
        saver.tabIndex = -1;
        document.body.appendChild(saver);
@@ -62,7 +61,8 @@
            fontSize: '50px',
            fontWeight: '400',
            textAlign: 'center',
-           marginRight: '400px'
+           marginRight: '400px',
+           marginBottom: '100px'
        });
    
        // Weather element – absolute positioned on right, hidden by default
