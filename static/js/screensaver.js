@@ -101,30 +101,62 @@
    }
    
    function showInactivityWarning() {
-       let msg = document.getElementById('inactivity-warning');
-       if (!msg) {
-           msg = document.createElement('div');
-           msg.id = 'inactivity-warning';
-           Object.assign(msg.style, {
-               position: 'absolute',
-               top: '15%',
-               left: '50%',
-               transform: 'translateX(-50%)',
-               fontSize: '48px',
-               fontWeight: 'bold',
-               color: '#ffdd00',
-               background: 'rgba(0,0,0,0.75)',
-               padding: '20px 50px',
-               borderRadius: '12px',
-               boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
-               zIndex: '100',
-               textAlign: 'center',
-               display: 'none',
-           });
-           msg.textContent = 'Change the active members if needed';
-           saver.appendChild(msg);          // ← attached to screensaver → visible on clock screen
-       }
-       msg.style.display = 'block';
+    let msg = document.getElementById('inactivity-warning');
+    if (!msg) {
+        msg = document.createElement('div');
+        msg.id = 'inactivity-warning';
+        
+        // Android-like notification card style
+        Object.assign(msg.style, {
+            position: 'fixed',               // better than absolute for overlay feel
+            top: '16px',                     // typical top margin on phone
+            left: '16px',
+            right: '16px',
+            maxWidth: '480px',               // typical notification width
+            margin: '0 auto',                // center horizontally
+            backgroundColor: 'rgba(32, 33, 36, 0.92)', // dark semi-transparent (Material dark surface)
+            color: '#e0e0e0',                // light text
+            borderRadius: '24px',            // modern large radius
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            overflow: 'hidden',
+            zIndex: '9999',
+            display: 'none',
+            fontFamily: 'Roboto, system-ui, sans-serif',
+            padding: '0',
+            opacity: '0',
+            transform: 'translateY(-20px)',
+            transition: 'all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)', // smooth Material motion
+        });
+
+        // Inner structure — mimics Android notification template
+        msg.innerHTML = `
+            <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <!-- Small app icon (replace src with your actual icon path) -->
+                <img src="/icon-48.png" alt="App" style="width:32px; height:32px; border-radius:8px; margin-right:16px; flex-shrink:0;">
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:14px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        Your App Name
+                    </div>
+                    <div style="font-size:12px; color:rgba(255,255,255,0.7);">
+                        just now
+                    </div>
+                </div>
+            </div>
+            <div style="padding:16px 20px;">
+                <div style="font-size:16px; font-weight:500; line-height:1.4; margin-bottom:4px;">
+                    Change the active members if needed
+                </div>
+                <div style="font-size:14px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                    The same team has been active for a long time.
+                </div>
+            </div>
+        `;
+
+        saver.appendChild(msg);
+    }
+
+    // Show with animation
+    msg.style.display = 'block';
    }
    
    function hideInactivityWarning() {
