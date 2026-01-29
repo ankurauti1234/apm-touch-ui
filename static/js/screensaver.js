@@ -68,7 +68,7 @@
        weatherEl.id = 'weather-status';
        Object.assign(weatherEl.style, {
            position: 'absolute',
-           right: '-10px',                    // adjust this % or use px (e.g. '60px')
+           right: '-20px',                    // adjust this % or use px (e.g. '60px')
            top: '200px',
            transform: 'translateY(-50%)',
            fontSize: '28px',
@@ -127,7 +127,7 @@
    
            const weatherEl = document.getElementById('weather-status');
            weatherEl.innerHTML = `
-               <span style="font-size:48px;">${icon}</span>
+               <span style="font-size:58px; margin-left:10px">${icon}</span>
                <div>
                    <div style="font-size:36px; font-weight:600;">${temp}°C</div>
                    <div style="font-size:18px; opacity:0.9;">Yerevan, ${condition}</div>
