@@ -367,7 +367,7 @@
    const warningMsg = document.createElement('div');
    warningMsg.id = 'screensaver-warning';
    Object.assign(warningMsg.style, {
-       fontSize: '40px',
+       fontSize: '35px',
        fontWeight: 'bold',
        textAlign: 'center',
        color: 'white',
