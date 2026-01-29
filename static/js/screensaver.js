@@ -69,7 +69,7 @@
        Object.assign(weatherEl.style, {
            position: 'absolute',
            right: '-10px',                    // adjust this % or use px (e.g. '60px')
-           top: '100px',
+           top: '200px',
            transform: 'translateY(-50%)',
            fontSize: '28px',
            color: '#a0d8ef',
@@ -326,7 +326,7 @@
        restoreBrightness();
    
        preDimTimeout = setTimeout(preDimBrightness, 20000);
-       screensaverTimeout = setTimeout(showScreensaver, 30000);
+       screensaverTimeout = setTimeout(showScreensaver, 3000);
    }
    
    function blockEventIfActive(e) {
