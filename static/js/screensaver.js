@@ -52,7 +52,7 @@
            fontWeight: '600',
            lineHeight: '1',
            textAlign: 'center',
-           marginRight: '300px'
+           marginRight: '330px'
 
        });
    
@@ -63,7 +63,7 @@
            fontWeight: '400',
            textAlign: 'center',
            marginTop: '10px',
-           marginRight: '300px'
+           marginRight: '330px'
        });
    
        // Weather element – absolute positioned on right, hidden by default
@@ -84,7 +84,7 @@
            transition: 'opacity 0.6s ease',
            pointerEvents: 'none',
            zIndex: '10',
-           marginRight: '30px'
+           marginRight: '50px'
        });
        wrapper.appendChild(timeEl);
        wrapper.appendChild(dateEl);
@@ -133,10 +133,10 @@
            weatherEl.innerHTML = `
                 <div>
                     <div style="font-weight:600; display:flex; align-items:center; gap:8px;">
-                    <img src="${icon}" alt="${condition}" style="width:68px; height:68px;" />
-                    <span style="font-size:53px;">${temp}°C</span>
+                    <img src="${icon}" alt="${condition}" style="width:78px; height:78px;" />
+                    <span style="font-size:60px;">${temp}°C</span>
                     </div>
-                    <div style="font-size:24px; opacity:0.9;">
+                    <div style="font-size:30px; opacity:0.9;">
                     Yerevan, ${condition}
                     </div>
                 </div>
