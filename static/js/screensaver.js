@@ -32,7 +32,7 @@
            transition: 'opacity 1s ease',
            visibility: 'hidden',
            outline: 'none',
-           marginBottom: '30px'
+           marginBottom: '40px'
        });
        saver.tabIndex = -1;
        document.body.appendChild(saver);
