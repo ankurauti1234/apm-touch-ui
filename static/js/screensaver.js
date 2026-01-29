@@ -68,8 +68,8 @@
        weatherEl.id = 'weather-status';
        Object.assign(weatherEl.style, {
            position: 'absolute',
-           right: '0px',                    // adjust this % or use px (e.g. '60px')
-           top: '20%',
+           right: '-10px',                    // adjust this % or use px (e.g. '60px')
+           top: '30px',
            transform: 'translateY(-50%)',
            fontSize: '28px',
            color: '#a0d8ef',
