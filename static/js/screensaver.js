@@ -139,11 +139,11 @@
 
         msg.innerHTML = `
             <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-            <div style="font-size:32px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; margin-right:16px; flex-shrink:0;">
-                ⚠️
+            <div style="font-size:38px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; margin-right:16px; flex-shrink:0;">
+                🔔
             </div>                
             <div style="flex:1; min-width:0;">
-                    <div style="font-size:24px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    <div style="font-size:25px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                         APM Meter
                     </div>
                     <div style="font-size:12px; color:rgba(255,255,255,0.7);">
@@ -152,10 +152,10 @@
                 </div>
             </div>
             <div style="padding:16px 20px;">
-                <div style="font-size:30px; font-weight:500; line-height:1.4; margin-bottom:4px;">
+                <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
                     Change the active members if needed
                 </div>
-                <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                <div style="font-size:25px; color:rgba(255,255,255,0.85); line-height:1.4;">
                     The same members have been active for a long time.
                 </div>
             </div>
