@@ -127,11 +127,17 @@
    
            const weatherEl = document.getElementById('weather-status');
            weatherEl.innerHTML = `
-               <div>
-                   <div style="font-size:46px; font-weight:600;">${icon} ${temp}°C</div>
-                   <div style="font-size:28px; opacity:0.9;">Yerevan, ${condition}</div>
-               </div>
+                <div>
+                    <div style="font-weight:600; display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:58px;">${icon}</span>
+                    <span style="font-size:46px;">${temp}°C</span>
+                    </div>
+                    <div style="font-size:28px; opacity:0.9;">
+                    Yerevan, ${condition}
+                    </div>
+                </div>
            `;
+
            weatherEl.style.opacity = '0.9'; // fade in
        } catch (err) {
            console.error('Weather fetch failed:', err);
