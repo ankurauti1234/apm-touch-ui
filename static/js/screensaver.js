@@ -343,3 +343,15 @@
        hide: hideScreensaver,
        setMembers: updateScreensaverMembers
    };
+
+   // Continuous check for the 45-min warning (runs every 30 seconds)
+let inactivityWarningInterval = setInterval(() => {
+    if (saver.style.visibility === 'visible') {
+        checkAndShowInactivityWarning();
+    }
+}, 30000);  // check every 30 seconds while screensaver is shown
+
+// Optional: stop checking when page is closed
+window.addEventListener('beforeunload', () => {
+    clearInterval(inactivityWarningInterval);
+});
