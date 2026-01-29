@@ -153,12 +153,11 @@
             </div>
             <div style="padding:16px 20px;">
                 <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
-                    Change the active members if needed
+                    The same members have been active for a long time change them if needed.
                 </div>
-                <div style="font-size:25px; color:rgba(255,255,255,0.85); line-height:1.4;">
-                    The same members have been active for a long time.
+                <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                    Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժեշտության դեպքում փոխեք նրանց                </div>
                 </div>
-            </div>
         `;
 
         saver.appendChild(msg);
