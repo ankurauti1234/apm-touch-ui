@@ -129,7 +129,7 @@
            weatherEl.innerHTML = `
                 <div>
                     <div style="font-weight:600; display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:58px;">${icon}</span>
+                    <span style="font-size:68px;">${icon}</span>
                     <span style="font-size:46px;">${temp}°C</span>
                     </div>
                     <div style="font-size:28px; opacity:0.9;">
