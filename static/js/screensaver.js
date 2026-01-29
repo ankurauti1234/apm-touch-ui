@@ -31,7 +31,8 @@
            opacity: '0',
            transition: 'opacity 1s ease',
            visibility: 'hidden',
-           outline: 'none'
+           outline: 'none',
+           marginBottom: '30px'
        });
        saver.tabIndex = -1;
        document.body.appendChild(saver);
@@ -52,9 +53,7 @@
            fontWeight: '600',
            lineHeight: '1',
            textAlign: 'center',
-           marginRight: '400px',
-           marginBottom: '20px'
-
+           marginRight: '400px'
        });
    
        const dateEl = document.createElement('div');
@@ -63,8 +62,7 @@
            fontSize: '50px',
            fontWeight: '400',
            textAlign: 'center',
-           marginRight: '400px',
-           marginBottom: '20px'
+           marginRight: '400px'
        });
    
        // Weather element – absolute positioned on right, hidden by default
