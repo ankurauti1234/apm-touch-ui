@@ -3,180 +3,178 @@
    Full screensaver + clock + pre-dim + brightness control
    FIXED & CLEAN – no syntax errors
    + Repeating 20-minute inactivity reminder for same members
-   + Weather status (Yerevan, Armenia) on right side of time
+   + Weather status (Yerevan, Armenia) only on screensaver when members active
    ============================================================== */
 
    let wrapper;
-let saver = document.getElementById('screensaver');
-if (!saver) {
-    saver = document.createElement('div');
-    saver.id = 'screensaver';
-    Object.assign(saver.style, {
-        position: 'fixed',
-        left: '0', top: '0',
-        width: '100%', height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'black',
-        zIndex: '2147483647',
-        pointerEvents: 'all',
-        touchAction: 'none',
-        WebkitUserSelect: 'none',
-        userSelect: 'none',
-        margin: '0', padding: '0',
-        color: 'white',
-        gap: '10px',
-        opacity: '0',
-        transition: 'opacity 1s ease',
-        visibility: 'hidden',
-        outline: 'none'
-    });
-    saver.tabIndex = -1;
-    document.body.appendChild(saver);
-
-    wrapper = document.createElement('div');
-    wrapper.id = 'clock-wrapper';
-    Object.assign(wrapper.style, {
-        width: '100%', height: '100%',
-        display: 'flex', flexDirection: 'column',
-        justifyContent: 'center', alignItems: 'center',
-        position: 'relative'  // ← important for absolute weather positioning
-    });
-
-    const timeEl = document.createElement('div');
-    timeEl.id = 'clock-time';
-    Object.assign(timeEl.style, {
-        fontSize: '100px',
-        fontWeight: '600',
-        lineHeight: '1',
-        textAlign: 'center'
-    });
-
-    const dateEl = document.createElement('div');
-    dateEl.id = 'clock-date';
-    Object.assign(dateEl.style, {
-        fontSize: '50px',
-        fontWeight: '400',
-        textAlign: 'center',
-        marginTop: '10px'
-    });
-
-    wrapper.appendChild(timeEl);
-    wrapper.appendChild(dateEl);
-
-    // Weather - positioned absolutely on the right side
-    const weatherEl = document.createElement('div');
-    weatherEl.id = 'weather-status';
-    Object.assign(weatherEl.style, {
-        position: 'absolute',
-        right: '5%',               // distance from right edge
-        top: '50%',
-        transform: 'translateY(-50%)',
-        fontSize: '28px',
-        color: '#a0d8ef',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        minWidth: '280px',
-        opacity: '0',
-        transition: 'opacity 0.6s ease',
-        pointerEvents: 'none'
-    });
-    wrapper.appendChild(weatherEl);
-
-    saver.appendChild(wrapper);
-}
+   let saver = document.getElementById('screensaver');
+   if (!saver) {
+       saver = document.createElement('div');
+       saver.id = 'screensaver';
+       Object.assign(saver.style, {
+           position: 'fixed',
+           left: '0', top: '0',
+           width: '100%', height: '100%',
+           display: 'flex',
+           flexDirection: 'column',
+           alignItems: 'center',
+           justifyContent: 'center',
+           background: 'black',
+           zIndex: '2147483647',
+           pointerEvents: 'all',
+           touchAction: 'none',
+           WebkitUserSelect: 'none',
+           userSelect: 'none',
+           margin: '0', padding: '0',
+           color: 'white',
+           gap: '10px',
+           opacity: '0',
+           transition: 'opacity 1s ease',
+           visibility: 'hidden',
+           outline: 'none'
+       });
+       saver.tabIndex = -1;
+       document.body.appendChild(saver);
    
-   // Clock + Weather update
-   function updateClockAndWeather() {
-    const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });
-    const day = now.getDate();
-    const month = now.toLocaleDateString('en-IN', { month: 'short' });
-    const year = now.getFullYear();
-    const date = `${weekday}, ${day} ${month} ${year}`;
-
-    document.getElementById('clock-time').textContent = time;
-    document.getElementById('clock-date').textContent = date;
-
-    // Check if weather needs update (every 30 min)
-    const lastUpdate = localStorage.getItem('lastWeatherUpdate');
-    const nowMs = Date.now();
-    if (!lastUpdate || nowMs - parseInt(lastUpdate) > 30 * 60 * 1000) {
-        fetchWeather();
-    }
-}
-
-async function fetchWeather() {
-    try {
-        const response = await fetch(
-            'https://api.open-meteo.com/v1/forecast?latitude=40.18&longitude=44.51&current=temperature_2m,weather_code&timezone=Asia/Yerevan'
-        );
-        const data = await response.json();
-        const current = data.current;
-        const temp = Math.round(current.temperature_2m);
-        const weatherCode = current.weather_code;
-
-        let icon = '🌤️';
-        let condition = 'Clear';
-        if (weatherCode >= 0 && weatherCode <= 3) { icon = '☀️'; condition = 'Sunny'; }
-        else if (weatherCode <= 48) { icon = '☁️'; condition = 'Cloudy'; }
-        else if (weatherCode <= 67) { icon = '🌧️'; condition = 'Rain'; }
-        else if (weatherCode <= 77) { icon = '❄️'; condition = 'Snow'; }
-        else if (weatherCode <= 99) { icon = '⛈️'; condition = 'Thunderstorm'; }
-
-        const weatherEl = document.getElementById('weather-status');
-        weatherEl.innerHTML = `
-            <span style="font-size:48px;">${icon}</span>
-            <div>
-                <div style="font-size:36px; font-weight:600;">${temp}°C</div>
-                <div style="font-size:18px; opacity:0.9;">Yerevan, ${condition}</div>
-            </div>
-        `;
-        weatherEl.style.opacity = '0.9'; // fade in
-
-        localStorage.setItem('lastWeatherUpdate', Date.now());
-    } catch (err) {
-        console.error('Weather fetch failed:', err);
-        const weatherEl = document.getElementById('weather-status');
-        weatherEl.innerHTML = '<div style="font-size:24px; opacity:0.7;">Weather unavailable</div>';
-        weatherEl.style.opacity = '0.7';
-    }
-}
-
-setInterval(updateClockAndWeather, 1000);
-updateClockAndWeather(); // initial
-
-// ────────────────────────────────────────────────
-// Repeating reminder every 20 minutes
-let lastActiveMemberKeys = '';
-let reminderInterval = null;
-
-function resetReminderTimer(activeMembers = []) {
-    const currentKeys = activeMembers
-        .map(m => m.member_code || m.id || m.name || '')
-        .filter(Boolean)
-        .sort()
-        .join('|');
-
-    if (currentKeys !== lastActiveMemberKeys) {
-        lastActiveMemberKeys = currentKeys;
-        hideInactivityWarning();
-
-        if (reminderInterval) {
-            clearInterval(reminderInterval);
-            reminderInterval = null;
-        }
-
-        if (activeMembers.length > 0) {
-            setTimeout(showInactivityWarning, 20 * 60 * 1000);
-            reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
-        }
-    }
-}
+       wrapper = document.createElement('div');
+       wrapper.id = 'clock-wrapper';
+       Object.assign(wrapper.style, {
+           width: '100%', height: '100%',
+           display: 'flex', flexDirection: 'column',
+           justifyContent: 'center', alignItems: 'center',
+           position: 'relative'  // for absolute positioning of weather
+       });
+   
+       const timeEl = document.createElement('div');
+       timeEl.id = 'clock-time';
+       Object.assign(timeEl.style, {
+           fontSize: '100px',
+           fontWeight: '600',
+           lineHeight: '1',
+           textAlign: 'center'
+       });
+   
+       const dateEl = document.createElement('div');
+       dateEl.id = 'clock-date';
+       Object.assign(dateEl.style, {
+           fontSize: '50px',
+           fontWeight: '400',
+           textAlign: 'center',
+           marginTop: '10px'
+       });
+   
+       // Weather element – absolute positioned on right, hidden by default
+       const weatherEl = document.createElement('div');
+       weatherEl.id = 'weather-status';
+       Object.assign(weatherEl.style, {
+           position: 'absolute',
+           right: '5%',                    // adjust this % or use px (e.g. '60px')
+           top: '50%',
+           transform: 'translateY(-50%)',
+           fontSize: '28px',
+           color: '#a0d8ef',
+           display: 'flex',
+           alignItems: 'center',
+           gap: '12px',
+           minWidth: '280px',
+           opacity: '0',
+           transition: 'opacity 0.6s ease',
+           pointerEvents: 'none',
+           zIndex: '10'
+       });
+       wrapper.appendChild(timeEl);
+       wrapper.appendChild(dateEl);
+       wrapper.appendChild(weatherEl);
+   
+       saver.appendChild(wrapper);
+   }
+   
+   // Clock update
+   function updateClock() {
+       const now = new Date();
+       const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+       const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });
+       const day = now.getDate();
+       const month = now.toLocaleDateString('en-IN', { month: 'short' });
+       const year = now.getFullYear();
+       const date = `${weekday}, ${day} ${month} ${year}`;
+   
+       document.getElementById('clock-time').textContent = time;
+       document.getElementById('clock-date').textContent = date;
+   }
+   
+   setInterval(updateClock, 1000);
+   updateClock();
+   
+   // Fetch weather – called only when needed
+   async function fetchWeather() {
+       try {
+           const response = await fetch(
+               'https://api.open-meteo.com/v1/forecast?latitude=40.18&longitude=44.51&current=temperature_2m,weather_code&timezone=Asia/Yerevan'
+           );
+           const data = await response.json();
+           const current = data.current;
+           const temp = Math.round(current.temperature_2m);
+           const weatherCode = current.weather_code;
+   
+           let icon = '🌤️';
+           let condition = 'Clear';
+           if (weatherCode >= 0 && weatherCode <= 3) { icon = '☀️'; condition = 'Sunny'; }
+           else if (weatherCode <= 48) { icon = '☁️'; condition = 'Cloudy'; }
+           else if (weatherCode <= 67) { icon = '🌧️'; condition = 'Rain'; }
+           else if (weatherCode <= 77) { icon = '❄️'; condition = 'Snow'; }
+           else if (weatherCode <= 99) { icon = '⛈️'; condition = 'Thunderstorm'; }
+   
+           const weatherEl = document.getElementById('weather-status');
+           weatherEl.innerHTML = `
+               <span style="font-size:48px;">${icon}</span>
+               <div>
+                   <div style="font-size:36px; font-weight:600;">${temp}°C</div>
+                   <div style="font-size:18px; opacity:0.9;">Yerevan, ${condition}</div>
+               </div>
+           `;
+           weatherEl.style.opacity = '0.9'; // fade in
+       } catch (err) {
+           console.error('Weather fetch failed:', err);
+           const weatherEl = document.getElementById('weather-status');
+           weatherEl.innerHTML = '<div style="font-size:24px; opacity:0.7;">Weather unavailable</div>';
+           weatherEl.style.opacity = '0.7';
+       }
+   }
+   
+   // ────────────────────────────────────────────────
+   // Repeating reminder every 20 minutes
+   let lastActiveMemberKeys = '';
+   let reminderInterval = null;
+   
+   function resetReminderTimer(activeMembers = []) {
+       const currentKeys = activeMembers
+           .map(m => m.member_code || m.id || m.name || '')
+           .filter(Boolean)
+           .sort()
+           .join('|');
+   
+       if (currentKeys !== lastActiveMemberKeys) {
+           lastActiveMemberKeys = currentKeys;
+           hideInactivityWarning();
+   
+           if (reminderInterval) {
+               clearInterval(reminderInterval);
+               reminderInterval = null;
+           }
+   
+           if (activeMembers.length > 0) {
+               setTimeout(showInactivityWarning, 20 * 60 * 1000);
+               reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
+               // Fetch weather when members become active
+               fetchWeather();
+           } else {
+               // Hide weather when no active members
+               const weatherEl = document.getElementById('weather-status');
+               if (weatherEl) weatherEl.style.opacity = '0';
+           }
+       }
+   }
    
    function showInactivityWarning() {
        const now = new Date();
@@ -275,11 +273,21 @@ function resetReminderTimer(activeMembers = []) {
        }
    
        try { saver.focus({ preventScroll: true }); } catch (e) {}
+   
+       // Show weather when screensaver appears (if members active)
+       const weatherEl = document.getElementById('weather-status');
+       if (weatherEl && membersData?.members?.some(m => m.active)) {
+           weatherEl.style.opacity = '0.9';
+       }
    }
    
    function hideScreensaver() {
        saver.style.opacity = '0';
        setTimeout(() => { saver.style.visibility = 'hidden'; }, 1000);
+   
+       // Hide weather when screensaver hides
+       const weatherEl = document.getElementById('weather-status');
+       if (weatherEl) weatherEl.style.opacity = '0';
    }
    
    async function preDimBrightness() {
@@ -389,6 +397,7 @@ function resetReminderTimer(activeMembers = []) {
    function updateScreensaverMembers(members = []) {
        const row = document.getElementById('screensaver-members');
        const warning = document.getElementById('screensaver-warning');
+       const weatherEl = document.getElementById('weather-status');
        if (!row || !warning) return;
    
        row.innerHTML = '';
@@ -402,11 +411,15 @@ function resetReminderTimer(activeMembers = []) {
            row.style.display = 'none';
            warning.style.display = 'block';
            hideInactivityWarning();
+           if (weatherEl) weatherEl.style.opacity = '0'; // hide weather
        } else {
            saver.style.background = 'black';
            saver.classList.remove('blinking');
            row.style.display = 'flex';
            warning.style.display = 'none';
+           if (weatherEl) weatherEl.style.opacity = '0.9'; // show weather
+           // Fetch fresh weather when members are active
+           fetchWeather();
    
            activeMembers.forEach(m => {
                const container = document.createElement('div');
