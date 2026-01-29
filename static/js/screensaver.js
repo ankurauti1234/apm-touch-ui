@@ -68,8 +68,8 @@
        weatherEl.id = 'weather-status';
        Object.assign(weatherEl.style, {
            position: 'absolute',
-           right: '5%',                    // adjust this % or use px (e.g. '60px')
-           top: '50%',
+           right: '2%',                    // adjust this % or use px (e.g. '60px')
+           top: '20%',
            transform: 'translateY(-50%)',
            fontSize: '28px',
            color: '#a0d8ef',
@@ -378,7 +378,7 @@
        display: 'none'
    });
    warningMsg.innerHTML = `
-       No active members! Please activate at least one.<br>
+       No active members! Please activate at least one.<br><br>
        Ակտիվ անդամներ չկան! Խնդրում ենք ակտիվացնել առնվազն մեկին.
    `;
    wrapper.appendChild(warningMsg);
