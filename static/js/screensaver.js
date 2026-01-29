@@ -68,7 +68,7 @@
        weatherEl.id = 'weather-status';
        Object.assign(weatherEl.style, {
            position: 'absolute',
-           right: '-25px',                    // adjust this % or use px (e.g. '60px')
+           right: '-28px',                    // adjust this % or use px (e.g. '60px')
            top: '180px',
            transform: 'translateY(-50%)',
            fontSize: '28px',
