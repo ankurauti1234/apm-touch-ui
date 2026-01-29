@@ -172,7 +172,7 @@
            }
    
            if (activeMembers.length > 0) {
-               setTimeout(showInactivityWarning, 1 * 60 * 1000);
+               setTimeout(showInactivityWarning, 20 * 60 * 1000);
                reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
                // Fetch weather when members become active
                fetchWeather();
@@ -251,7 +251,7 @@
            msg.style.opacity = '0';
            msg.style.transform = 'translateY(-20px)';
            setTimeout(() => { msg.style.display = 'none'; }, 400);
-       }, 60 * 1000);
+       }, 30 * 1000);
    }
    
    function hideInactivityWarning() {
