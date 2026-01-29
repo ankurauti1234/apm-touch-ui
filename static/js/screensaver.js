@@ -140,7 +140,7 @@
         msg.innerHTML = `
             <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
             <div style="font-size:32px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; margin-right:16px; flex-shrink:0;">
-            ⚠️
+                ⚠️
             </div>                
             <div style="flex:1; min-width:0;">
                     <div style="font-size:24px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -178,7 +178,7 @@
         setTimeout(() => {
             msg.style.display = 'none';
         }, 400);
-    }, 20 * 1000);
+    }, 75 * 1000);
 }
    
    function hideInactivityWarning() {
