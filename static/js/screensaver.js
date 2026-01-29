@@ -176,7 +176,7 @@
         setTimeout(() => {
             msg.style.display = 'none';
         }, 400);
-    }, 75 * 1000);
+    }, 20 * 1000);
 }
    
    function hideInactivityWarning() {
