@@ -62,7 +62,7 @@
            fontSize: '50px',
            fontWeight: '400',
            textAlign: 'center',
-           marginTop: '0px',
+           marginTop: '-20px',
            marginRight: '400px'
        });
    
