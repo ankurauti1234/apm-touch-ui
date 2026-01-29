@@ -103,7 +103,7 @@
            // Only start repeating if there are active members
            if (activeMembers.length > 0) {
                // First reminder after 60 seconds, then every 60 seconds
-               reminderInterval = setInterval(showInactivityWarning, 60 * 1000);
+               reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
                // Optional: delay the very first one
                setTimeout(showInactivityWarning, 20 * 60 * 1000);
            }
