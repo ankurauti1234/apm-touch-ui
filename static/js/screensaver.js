@@ -111,6 +111,23 @@
    }
    
    function showInactivityWarning() {
+    
+    const now = new Date();
+    const timestamp = now.toLocaleString('en-IN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+
+    console.log(
+        `[REMINDER SHOWN] ${timestamp} | ` +
+        `Active members unchanged for at least 20 min`
+    );
+
     let msg = document.getElementById('inactivity-warning');
     if (!msg) {
         msg = document.createElement('div');
