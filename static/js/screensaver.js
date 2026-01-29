@@ -120,10 +120,10 @@
            let icon = '🌤️';
            let condition = 'Clear';
            if (weatherCode >= 0 && weatherCode <= 3) { icon = '/static/assets/sunny.png'; condition = 'Sunny'; }
-           else if (weatherCode <= 48) { icon = '☁️'; condition = 'Cloudy'; }
-           else if (weatherCode <= 67) { icon = '🌧️'; condition = 'Rain'; }
-           else if (weatherCode <= 77) { icon = '❄️'; condition = 'Snow'; }
-           else if (weatherCode <= 99) { icon = '⛈️'; condition = 'Thunderstorm'; }
+           else if (weatherCode <= 48) { icon = '/static/assets/cloudy.png'; condition = 'Cloudy'; }
+           else if (weatherCode <= 67) { icon = '🌧️'; condition = '/static/assets/rainy.png'; }
+           else if (weatherCode <= 77) { icon = '❄️'; condition = '/static/assets/snow.png'; }
+           else if (weatherCode <= 99) { icon = '⛈️'; condition = '/static/assets/thunderstrom.png'; }
    
            const weatherEl = document.getElementById('weather-status');
            weatherEl.innerHTML = `
