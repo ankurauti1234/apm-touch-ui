@@ -127,7 +127,7 @@
    
            const weatherEl = document.getElementById('weather-status');
            weatherEl.innerHTML = `
-               <span style="font-size:58px; margin-left:10px">${icon}</span>
+               <span style="font-size:88px; margin-left:60px">${icon}</span>
                <div>
                    <div style="font-size:36px; font-weight:600;">${temp}°C</div>
                    <div style="font-size:18px; opacity:0.9;">Yerevan, ${condition}</div>
