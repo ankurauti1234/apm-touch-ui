@@ -83,7 +83,7 @@
    let lastMembersChangeTime = Date.now();
    let lastActiveMemberKeys = '';  // string of sorted member_codes/ids
    
-   const INACTIVITY_THRESHOLD_MS   = 45 * 60 * 1000;   // 45 minutes
+   const INACTIVITY_THRESHOLD_MS   = 1 * 60 * 1000;   // 45 minutes
    const WARNING_SHOW_DURATION_MS  = 60 * 1000;        // show warning for 1 minute
    
    function resetInactivityTimer(activeMembers = []) {
