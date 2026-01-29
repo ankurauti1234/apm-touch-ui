@@ -52,7 +52,8 @@
            fontWeight: '600',
            lineHeight: '1',
            textAlign: 'center',
-           marginRight: '400px'
+           marginRight: '400px',
+           marginBottom: '20px'
 
        });
    
@@ -62,7 +63,6 @@
            fontSize: '50px',
            fontWeight: '400',
            textAlign: 'center',
-           marginTop: '20px',
            marginRight: '400px'
        });
    
