@@ -52,7 +52,7 @@
            fontWeight: '600',
            lineHeight: '1',
            textAlign: 'center',
-           marginRight: '360px'
+           marginRight: '400px'
 
        });
    
@@ -63,7 +63,7 @@
            fontWeight: '400',
            textAlign: 'center',
            marginTop: '10px',
-           marginRight: '380px'
+           marginRight: '400px'
        });
    
        // Weather element – absolute positioned on right, hidden by default
