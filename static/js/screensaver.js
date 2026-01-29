@@ -3,6 +3,7 @@
    Full screensaver + clock + pre-dim + brightness control
    FIXED & CLEAN – no syntax errors
    + 45-minute inactivity warning for same members
+   + TEMPORARY: 1-minute test notification banner (reminder when members active)
    ============================================================== */
 
    let wrapper;
@@ -79,7 +80,7 @@
    updateClock();
    
    // ────────────────────────────────────────────────
-   // NEW: 45-minute same-members warning feature
+   // 45-minute same-members warning feature
    let lastMembersChangeTime = Date.now();
    let lastActiveMemberKeys = '';  // string of sorted member_codes/ids
    
@@ -120,7 +121,6 @@
                zIndex: '100',
                textAlign: 'center',
                display: 'none',
-               background: 'red',              // ← temporary
            });
            msg.textContent = 'Change the active members if needed';
            saver.appendChild(msg);
@@ -158,7 +158,6 @@
            }
        }
    
-       // NEW: Check if we should show the 45-min warning
        checkAndShowInactivityWarning();
    
        try {
@@ -220,9 +219,9 @@
    }
    
    ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click',
-       'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
-           document.addEventListener(evt, blockEventIfActive, { capture: true, passive: false })
-       });
+    'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
+       document.addEventListener(evt, blockEventIfActive, { capture: true, passive: false })
+   });
    
    saver.addEventListener('click', () => {
        hideScreensaver();
@@ -248,7 +247,7 @@
    });
    wrapper.appendChild(membersRow);
    
-   // New: Warning message element
+   // Warning message element
    const warningMsg = document.createElement('div');
    warningMsg.id = 'screensaver-warning';
    Object.assign(warningMsg.style, {
@@ -257,12 +256,12 @@
        textAlign: 'center',
        color: 'white',
        marginTop: '20px',
-       display: 'none' // Hidden by default
+       display: 'none'
    });
    warningMsg.textContent = 'No active members! Please activate at least one.';
    wrapper.appendChild(warningMsg);
    
-   // New: Add CSS for blinking background
+   // CSS for blinking background
    const styleSheet = document.createElement('style');
    styleSheet.textContent = `
        @keyframes blink {
@@ -285,7 +284,7 @@
    
        const activeMembers = members.filter(m => m.active === true);
    
-       // NEW: Reset the 45-minute timer when active members change
+       // Reset the 45-minute timer when active members change
        resetInactivityTimer(activeMembers);
    
        if (activeMembers.length === 0) {
@@ -293,7 +292,7 @@
            saver.classList.add('blinking');
            row.style.display = 'none';
            warning.style.display = 'block';
-           hideInactivityWarning();  // hide inactivity msg if no one active
+           hideInactivityWarning();
        } else {
            saver.style.background = 'black';
            saver.classList.remove('blinking');
@@ -345,3 +344,89 @@
        hide: hideScreensaver,
        setMembers: updateScreensaverMembers
    };
+   
+   // ────────────────────────────────────────────────────────────────
+   // TEMPORARY – 1 minute repeating test banner (only when members active)
+   // Remove or comment out everything below this line after testing
+   // ────────────────────────────────────────────────────────────────
+   
+   let testBannerInterval = null;
+   
+   function createTestBanner() {
+       let banner = document.getElementById('test-active-reminder');
+       if (!banner) {
+           banner = document.createElement('div');
+           banner.id = 'test-active-reminder';
+           Object.assign(banner.style, {
+               position: 'fixed',
+               top: '32px',
+               left: '50%',
+               transform: 'translateX(-50%)',
+               background: 'rgba(255, 193, 7, 0.95)', // amber yellow – Android warning style
+               color: '#111',
+               padding: '18px 40px',
+               borderRadius: '16px',
+               fontSize: '30px',
+               fontWeight: '700',
+               zIndex: '99999',
+               boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+               border: '4px solid #ff9800',
+               maxWidth: '92%',
+               textAlign: 'center',
+               pointerEvents: 'none',
+               display: 'none',
+               lineHeight: '1.4'
+           });
+   
+           banner.innerHTML = `
+               <div style="font-size:42px; margin-bottom:10px;">⚠️ ACTIVE MEMBERS ALERT</div>
+               <div>The same people have been active for some time now</div>
+               <div style="font-size:24px; margin-top:14px; opacity:0.9;">
+                   Check at ${new Date().toLocaleTimeString('en-IN')}
+               </div>
+           `;
+   
+           document.body.appendChild(banner);
+       }
+       return banner;
+   }
+   
+   function showTestReminder() {
+       // Only show if we have active members
+       const hasActive = (membersData?.members || []).some(m => m.active === true);
+       if (!hasActive) return;
+   
+       // Don't show on top of screensaver (optional – remove if you want it always)
+       if (saver.style.visibility === 'visible') return;
+   
+       const banner = createTestBanner();
+       banner.style.display = 'block';
+   
+       // Auto hide after 10 seconds
+       setTimeout(() => {
+           banner.style.display = 'none';
+       }, 10000);
+   }
+   
+   function startTestReminderLoop() {
+       if (testBannerInterval) clearInterval(testBannerInterval);
+   
+       testBannerInterval = setInterval(showTestReminder, 60_000); // every 60 seconds
+   }
+   
+   // Hook into member updates to start the loop
+   const originalSetMembers = window.Screensaver.setMembers;
+   window.Screensaver.setMembers = function(members) {
+       originalSetMembers.call(window.Screensaver, members);
+   
+       // Start repeating reminder once we have real data
+       if (members && Array.isArray(members) && members.length > 0) {
+           startTestReminderLoop();
+           // Optional: show immediately for quick testing
+           setTimeout(showTestReminder, 3000);
+       }
+   };
+   
+   // ────────────────────────────────────────────────────────────────
+   // End of temporary test code – remove from here upward when done
+   // ────────────────────────────────────────────────────────────────
