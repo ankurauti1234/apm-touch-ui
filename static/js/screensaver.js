@@ -105,7 +105,7 @@
                // First reminder after 60 seconds, then every 60 seconds
                reminderInterval = setInterval(showInactivityWarning, 60 * 1000);
                // Optional: delay the very first one
-               setTimeout(showInactivityWarning, 60 * 1000);
+               setTimeout(showInactivityWarning, 20 * 60 * 1000);
            }
        }
    }
@@ -177,7 +177,7 @@
         setTimeout(() => {
             msg.style.display = 'none';
         }, 400);
-    }, 75 * 1000);
+    }, 60 * 1000);
 }
    
    function hideInactivityWarning() {
