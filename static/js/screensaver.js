@@ -71,7 +71,7 @@
        Object.assign(weatherEl.style, {
            position: 'absolute',
            right: '-28px',                    // adjust this % or use px (e.g. '60px')
-           top: '180px',
+           top: '120px',
            transform: 'translateY(-50%)',
            fontSize: '28px',
            color: '#a0d8ef',
@@ -83,8 +83,7 @@
            transition: 'opacity 0.6s ease',
            pointerEvents: 'none',
            zIndex: '10',
-           marginRight: '70px',
-           marginBottom: '100px'
+           marginRight: '70px'
        });
        wrapper.appendChild(timeEl);
        wrapper.appendChild(dateEl);
