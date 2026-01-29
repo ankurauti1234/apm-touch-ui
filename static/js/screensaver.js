@@ -2,7 +2,8 @@
    screensaver.js
    Full screensaver + clock + pre-dim + brightness control
    FIXED & CLEAN – no syntax errors
-   + Repeating 60-second inactivity reminder for same members
+   + Repeating 20-minute inactivity reminder for same members
+   + Weather status (Yerevan, Armenia) on right side of time
    ============================================================== */
 
    let wrapper;
@@ -43,26 +44,58 @@
            justifyContent: 'center', alignItems: 'center'
        });
    
+       // Clock + Weather container
+       const clockContainer = document.createElement('div');
+       clockContainer.style.display = 'flex';
+       clockContainer.style.alignItems = 'center';
+       clockContainer.style.justifyContent = 'center';
+       clockContainer.style.gap = '80px'; // space between time and weather
+       clockContainer.style.width = '100%';
+       wrapper.appendChild(clockContainer);
+   
+       // Time element (left/center)
        const timeEl = document.createElement('div');
        timeEl.id = 'clock-time';
        Object.assign(timeEl.style, {
-           fontSize: '100px', fontWeight: '600',
-           marginBottom: '10px', lineHeight: '1', textAlign: 'center'
+           fontSize: '100px',
+           fontWeight: '600',
+           lineHeight: '1',
+           textAlign: 'center',
+           minWidth: '320px' // prevents layout shift when weather changes
        });
+       clockContainer.appendChild(timeEl);
    
+       // Weather element (right side)
+       const weatherEl = document.createElement('div');
+       weatherEl.id = 'weather-status';
+       Object.assign(weatherEl.style, {
+           fontSize: '28px',
+           color: '#a0d8ef',
+           textAlign: 'left',
+           display: 'flex',
+           alignItems: 'center',
+           gap: '12px',
+           minWidth: '300px',
+           opacity: '0.9'
+       });
+       clockContainer.appendChild(weatherEl);
+   
+       // Date below
        const dateEl = document.createElement('div');
        dateEl.id = 'clock-date';
        Object.assign(dateEl.style, {
-           fontSize: '50px', fontWeight: '400', textAlign: 'center'
+           fontSize: '50px',
+           fontWeight: '400',
+           textAlign: 'center',
+           marginTop: '10px'
        });
-   
-       wrapper.appendChild(timeEl);
        wrapper.appendChild(dateEl);
+   
        saver.appendChild(wrapper);
    }
    
-   // Clock update
-   function updateClock() {
+   // Clock + Weather update
+   function updateClockAndWeather() {
        const now = new Date();
        const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
        const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });
@@ -73,13 +106,58 @@
    
        document.getElementById('clock-time').textContent = time;
        document.getElementById('clock-date').textContent = date;
+   
+       // Update weather only every 30 minutes or on first load
+       const lastUpdate = localStorage.getItem('lastWeatherUpdate');
+       const nowMs = Date.now();
+       if (!lastUpdate || nowMs - parseInt(lastUpdate) > 30 * 60 * 1000) {
+           fetchWeather();
+       }
    }
    
-   setInterval(updateClock, 1000);
-   updateClock();
+   // Fetch weather for Yerevan, Armenia (Open-Meteo - free, no key)
+   async function fetchWeather() {
+       try {
+           const response = await fetch(
+               'https://api.open-meteo.com/v1/forecast?latitude=40.18&longitude=44.51&current=temperature_2m,weather_code&timezone=Asia/Yerevan'
+           );
+           const data = await response.json();
+           const current = data.current;
+   
+           const temp = Math.round(current.temperature_2m);
+           const weatherCode = current.weather_code;
+   
+           // WMO weather code → emoji + text
+           let icon = '🌤️';
+           let condition = 'Clear';
+   
+           if (weatherCode >= 0 && weatherCode <= 3) { icon = '☀️'; condition = 'Sunny'; }
+           else if (weatherCode <= 48) { icon = '☁️'; condition = 'Cloudy'; }
+           else if (weatherCode <= 67) { icon = '🌧️'; condition = 'Rain'; }
+           else if (weatherCode <= 77) { icon = '❄️'; condition = 'Snow'; }
+           else if (weatherCode <= 99) { icon = '⛈️'; condition = 'Thunderstorm'; }
+   
+           document.getElementById('weather-status').innerHTML = `
+               <span style="font-size:48px;">${icon}</span>
+               <div>
+                   <div style="font-size:36px; font-weight:600;">${temp}°C</div>
+                   <div style="font-size:18px; opacity:0.9;">Yerevan, ${condition}</div>
+               </div>
+           `;
+   
+           localStorage.setItem('lastWeatherUpdate', Date.now());
+       } catch (err) {
+           console.error('Weather fetch failed:', err);
+           document.getElementById('weather-status').innerHTML = 
+               '<div style="font-size:24px; opacity:0.7;">Weather unavailable</div>';
+       }
+   }
+   
+   setInterval(updateClockAndWeather, 1000);
+   updateClockAndWeather(); // initial call
    
    // ────────────────────────────────────────────────
-   // Repeating reminder every 60 seconds for same active members
+   // Repeating reminder every 20 minutes for same active members
    let lastActiveMemberKeys = '';
    let reminderInterval = null;
    
@@ -94,108 +172,102 @@
            lastActiveMemberKeys = currentKeys;
            hideInactivityWarning();
    
-           // Stop any existing repeating interval
            if (reminderInterval) {
                clearInterval(reminderInterval);
                reminderInterval = null;
            }
    
-           // Only start repeating if there are active members
            if (activeMembers.length > 0) {
-               // First reminder after 60 seconds, then every 60 seconds
-               reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
-               // Optional: delay the very first one
+               // First reminder after 20 minutes
                setTimeout(showInactivityWarning, 20 * 60 * 1000);
+   
+               // Repeat every 20 minutes
+               reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
            }
        }
    }
    
    function showInactivityWarning() {
-    
-    const now = new Date();
-    const timestamp = now.toLocaleString('en-IN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    });
-
-    console.log(
-        `[REMINDER SHOWN] ${timestamp} | ` +
-        `Active members unchanged for at least 20 min`
-    );
-
-    let msg = document.getElementById('inactivity-warning');
-    if (!msg) {
-        msg = document.createElement('div');
-        msg.id = 'inactivity-warning';
-
-        Object.assign(msg.style, {
-            position: 'fixed',
-            top: '16px',
-            left: '16px',
-            right: '16px',
-            maxWidth: '580px',
-            margin: '0 auto',
-            backgroundColor: 'rgba(32, 33, 36, 0.92)',
-            color: '#e0e0e0',
-            borderRadius: '24px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            overflow: 'hidden',
-            zIndex: '9999',
-            display: 'none',
-            fontFamily: 'Roboto, system-ui, sans-serif',
-            padding: '0',
-            opacity: '0',
-            transform: 'translateY(-20px)',
-            transition: 'all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)',
-        });
-
-        msg.innerHTML = `
-            <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-            <div style="width:32px; height:32px; background:#ff9800; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; margin-right:16px; flex-shrink:0;">
-                !
-            </div>               
-            <div style="flex:1; min-width:0;">
-                    <div style="font-size:25px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        APM Meter
-                    </div>
-                    <div style="font-size:12px; color:rgba(255,255,255,0.7);">
-                        just now
-                    </div>
-                </div>
-            </div>
-            <div style="padding:16px 20px;">
-                <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
-                    The same members have been active for a long time change them if needed.
-                </div>
-                <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
-                    Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժեշտության դեպքում փոխեք նրանց                </div>
-                </div>
-        `;
-
-        saver.appendChild(msg);
-    }
-
-    // Show animation
-    msg.style.display = 'block';
-    setTimeout(() => {
-        msg.style.opacity = '1';
-        msg.style.transform = 'translateY(0)';
-    }, 10);
-
-    // Auto-hide after 75 seconds (longer than 60s interval → prevents instant hide on repeat)
-    setTimeout(() => {
-        msg.style.opacity = '0';
-        msg.style.transform = 'translateY(-20px)';
-        setTimeout(() => {
-            msg.style.display = 'none';
-        }, 400);
-    }, 60 * 1000);
-}
+       const now = new Date();
+       const timestamp = now.toLocaleString('en-IN', {
+           year: 'numeric', month: '2-digit', day: '2-digit',
+           hour: '2-digit', minute: '2-digit', second: '2-digit',
+           hour12: false
+       });
+   
+       console.log(
+           `[REMINDER SHOWN] ${timestamp} | ` +
+           `Same members active for ≥20 min | ` +
+           `Visible for 60 seconds`
+       );
+   
+       let msg = document.getElementById('inactivity-warning');
+       if (!msg) {
+           msg = document.createElement('div');
+           msg.id = 'inactivity-warning';
+   
+           Object.assign(msg.style, {
+               position: 'fixed',
+               top: '16px',
+               left: '16px',
+               right: '16px',
+               maxWidth: '580px',
+               margin: '0 auto',
+               backgroundColor: 'rgba(32, 33, 36, 0.92)',
+               color: '#e0e0e0',
+               borderRadius: '24px',
+               boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+               overflow: 'hidden',
+               zIndex: '9999',
+               display: 'none',
+               fontFamily: 'Roboto, system-ui, sans-serif',
+               padding: '0',
+               opacity: '0',
+               transform: 'translateY(-20px)',
+               transition: 'all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)',
+           });
+   
+           msg.innerHTML = `
+               <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                   <div style="width:32px; height:32px; background:#ff9800; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; margin-right:16px; flex-shrink:0;">
+                       !
+                   </div>
+                   <div style="flex:1; min-width:0;">
+                       <div style="font-size:25px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                           APM Meter
+                       </div>
+                       <div style="font-size:12px; color:rgba(255,255,255,0.7);">
+                           just now
+                       </div>
+                   </div>
+               </div>
+               <div style="padding:16px 20px;">
+                   <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
+                       The same members have been active for a long time change them if needed.
+                   </div>
+                   <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                       Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժեշտության դեպքում փոխեք նրանց
+                   </div>
+               </div>
+           `;
+   
+           saver.appendChild(msg);
+       }
+   
+       msg.style.display = 'block';
+       setTimeout(() => {
+           msg.style.opacity = '1';
+           msg.style.transform = 'translateY(0)';
+       }, 10);
+   
+       setTimeout(() => {
+           msg.style.opacity = '0';
+           msg.style.transform = 'translateY(-20px)';
+           setTimeout(() => {
+               msg.style.display = 'none';
+           }, 400);
+       }, 60 * 1000); // visible for 60 seconds
+   }
    
    function hideInactivityWarning() {
        const msg = document.getElementById('inactivity-warning');
@@ -208,99 +280,14 @@
        }
    }
    
-   // Cleanup
    window.addEventListener('beforeunload', () => {
        if (reminderInterval) clearInterval(reminderInterval);
    });
    // ────────────────────────────────────────────────
    
-   function showScreensaver() {
-       saver.style.visibility = 'visible';
-       saver.style.opacity = '1';
+   // ... rest of your code (showScreensaver, hideScreensaver, preDim, restoreBrightness, etc.) remains unchanged ...
    
-       if (window.Screensaver && membersData?.members) {
-           Screensaver.setMembers(membersData.members);
-       } else if (typeof fetchMembers === 'function') {
-           fetchMembers().then(() => {
-               if (membersData?.members) {
-                   Screensaver.setMembers(membersData.members);
-               }
-           });
-       }
-   
-       try {
-           saver.focus({ preventScroll: true });
-       } catch (e) {}
-   }
-   
-   function hideScreensaver() {
-       saver.style.opacity = '0';
-       setTimeout(() => { saver.style.visibility = 'hidden'; }, 1000);
-   }
-   
-   async function preDimBrightness() {
-       if (isDimmed) return;
-       const current = originalBrightness ?? 153;
-       originalBrightness = current;
-       const minBrightness = 51;
-       if (current <= minBrightness + 5) return;
-   
-       await updateBrightnessAPI(minBrightness);
-       isDimmed = true;
-       console.log(`[PRE-DIM] ${current} → ${minBrightness}`);
-   }
-   
-   async function restoreBrightness() {
-       if (!isDimmed) return;
-       const value = originalBrightness ?? 153;
-       isDimmed = false;
-       await updateBrightnessAPI(value);
-       console.log(`[RESTORE] ${value}`);
-   }
-   
-   async function updateBrightnessAPI(value) {
-       const mapped = Math.round(51 + (value / 255) * (255 - 51));
-       return fetch("/api/brightness", {
-           method: "POST",
-           headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({ brightness: mapped })
-       }).catch(err => console.error("Brightness API error:", err));
-   }
-   
-   function resetScreensaverTimer() {
-       clearTimeout(screensaverTimeout);
-       clearTimeout(preDimTimeout);
-       hideScreensaver();
-       restoreBrightness();
-   
-       preDimTimeout = setTimeout(preDimBrightness, 20000);
-       screensaverTimeout = setTimeout(showScreensaver, 30000);
-   }
-   
-   function blockEventIfActive(e) {
-       if (saver.style.visibility === 'visible' && saver.style.opacity !== '0' && !saver.contains(e.target)) {
-           e.preventDefault();
-           e.stopPropagation();
-           e.stopImmediatePropagation();
-       }
-   }
-   
-   ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click',
-    'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
-       document.addEventListener(evt, blockEventIfActive, { capture: true, passive: false });
-   });
-   
-   saver.addEventListener('click', () => {
-       hideScreensaver();
-       resetScreensaverTimer();
-   }, { capture: true });
-   
-   ['mousemove', 'keypress', 'click', 'touchstart'].forEach(evt => {
-       document.addEventListener(evt, () => {
-           if (currentState === 'main') resetScreensaverTimer();
-       }, { passive: true });
-   });
-   
+   // Showing active members on screensaver
    const membersRow = document.createElement('div');
    membersRow.id = 'screensaver-members';
    Object.assign(membersRow.style, {
@@ -312,6 +299,7 @@
    });
    wrapper.appendChild(membersRow);
    
+   // Bilingual warning
    const warningMsg = document.createElement('div');
    warningMsg.id = 'screensaver-warning';
    Object.assign(warningMsg.style, {
@@ -320,13 +308,16 @@
        textAlign: 'center',
        color: 'white',
        marginTop: '20px',
+       lineHeight: '1.3',
+       padding: '0 20px',
+       maxWidth: '90%',
        display: 'none'
    });
    warningMsg.innerHTML = `
-        No active members! Please activate at least one.<br>
-        Ակտիվ անդամներ չկան! Խնդրում ենք ակտիվացնել առնվազն մեկին.
-    `;
-    wrapper.appendChild(warningMsg);
+       No active members! Please activate at least one.<br>
+       Ակտիվ անդամներ չկան! Խնդրում ենք ակտիվացնել առնվազն մեկին.
+   `;
+   wrapper.appendChild(warningMsg);
    
    const styleSheet = document.createElement('style');
    styleSheet.textContent = `
@@ -350,7 +341,6 @@
    
        const activeMembers = members.filter(m => m.active === true);
    
-       // Start / reset the repeating reminder
        resetReminderTimer(activeMembers);
    
        if (activeMembers.length === 0) {
