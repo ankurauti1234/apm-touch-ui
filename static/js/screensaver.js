@@ -490,7 +490,7 @@ function startWeatherRefresh() {
 
     weatherRefreshInterval = setInterval(() => {
         fetchWeather();
-    }, 1 * 60 * 1000);
+    }, 30 * 60 * 1000);
 }
 
 // Optional: stop when page is unloading (good practice)
