@@ -306,6 +306,7 @@
        display: 'none'
    });
    warningMsg.textContent = 'No active members! Please activate at least one.';
+   warningMsg.textContent = 'Ակտիվ անդամներ չկան! Խնդրում ենք ակտիվացնել առնվազն մեկին.';
    wrapper.appendChild(warningMsg);
    
    const styleSheet = document.createElement('style');
