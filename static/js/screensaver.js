@@ -60,7 +60,8 @@
            fontSize: '50px',
            fontWeight: '400',
            textAlign: 'center',
-           marginTop: '10px'
+           marginTop: '10px',
+           marginRight: '40px'
        });
    
        // Weather element – absolute positioned on right, hidden by default
