@@ -49,11 +49,11 @@
        clockContainer.style.display = 'flex';
        clockContainer.style.alignItems = 'center';
        clockContainer.style.justifyContent = 'center';
-       clockContainer.style.gap = '80px'; // space between time and weather
+       clockContainer.style.gap = '80px';
        clockContainer.style.width = '100%';
        wrapper.appendChild(clockContainer);
    
-       // Time element (left/center)
+       // Time element
        const timeEl = document.createElement('div');
        timeEl.id = 'clock-time';
        Object.assign(timeEl.style, {
@@ -61,7 +61,7 @@
            fontWeight: '600',
            lineHeight: '1',
            textAlign: 'center',
-           minWidth: '320px' // prevents layout shift when weather changes
+           minWidth: '320px'
        });
        clockContainer.appendChild(timeEl);
    
@@ -107,7 +107,6 @@
        document.getElementById('clock-time').textContent = time;
        document.getElementById('clock-date').textContent = date;
    
-       // Update weather only every 30 minutes or on first load
        const lastUpdate = localStorage.getItem('lastWeatherUpdate');
        const nowMs = Date.now();
        if (!lastUpdate || nowMs - parseInt(lastUpdate) > 30 * 60 * 1000) {
@@ -115,7 +114,6 @@
        }
    }
    
-   // Fetch weather for Yerevan, Armenia (Open-Meteo - free, no key)
    async function fetchWeather() {
        try {
            const response = await fetch(
@@ -123,14 +121,11 @@
            );
            const data = await response.json();
            const current = data.current;
-   
            const temp = Math.round(current.temperature_2m);
            const weatherCode = current.weather_code;
    
-           // WMO weather code → emoji + text
            let icon = '🌤️';
            let condition = 'Clear';
-   
            if (weatherCode >= 0 && weatherCode <= 3) { icon = '☀️'; condition = 'Sunny'; }
            else if (weatherCode <= 48) { icon = '☁️'; condition = 'Cloudy'; }
            else if (weatherCode <= 67) { icon = '🌧️'; condition = 'Rain'; }
@@ -154,10 +149,10 @@
    }
    
    setInterval(updateClockAndWeather, 1000);
-   updateClockAndWeather(); // initial call
+   updateClockAndWeather();
    
    // ────────────────────────────────────────────────
-   // Repeating reminder every 20 minutes for same active members
+   // Repeating reminder every 20 minutes
    let lastActiveMemberKeys = '';
    let reminderInterval = null;
    
@@ -178,10 +173,7 @@
            }
    
            if (activeMembers.length > 0) {
-               // First reminder after 20 minutes
                setTimeout(showInactivityWarning, 20 * 60 * 1000);
-   
-               // Repeat every 20 minutes
                reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
            }
        }
@@ -195,24 +187,16 @@
            hour12: false
        });
    
-       console.log(
-           `[REMINDER SHOWN] ${timestamp} | ` +
-           `Same members active for ≥20 min | ` +
-           `Visible for 60 seconds`
-       );
+       console.log(`[REMINDER SHOWN] ${timestamp} | Same members active for ≥20 min | Visible for 60 seconds`);
    
        let msg = document.getElementById('inactivity-warning');
        if (!msg) {
            msg = document.createElement('div');
            msg.id = 'inactivity-warning';
-   
            Object.assign(msg.style, {
                position: 'fixed',
-               top: '16px',
-               left: '16px',
-               right: '16px',
-               maxWidth: '580px',
-               margin: '0 auto',
+               top: '16px', left: '16px', right: '16px',
+               maxWidth: '580px', margin: '0 auto',
                backgroundColor: 'rgba(32, 33, 36, 0.92)',
                color: '#e0e0e0',
                borderRadius: '24px',
@@ -233,12 +217,10 @@
                        !
                    </div>
                    <div style="flex:1; min-width:0;">
-                       <div style="font-size:25px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                       <div style="font-size:25px; font-weight:500; color:#8ab4f8;">
                            APM Meter
                        </div>
-                       <div style="font-size:12px; color:rgba(255,255,255,0.7);">
-                           just now
-                       </div>
+                       <div style="font-size:12px; color:rgba(255,255,255,0.7);">just now</div>
                    </div>
                </div>
                <div style="padding:16px 20px;">
@@ -263,10 +245,8 @@
        setTimeout(() => {
            msg.style.opacity = '0';
            msg.style.transform = 'translateY(-20px)';
-           setTimeout(() => {
-               msg.style.display = 'none';
-           }, 400);
-       }, 60 * 1000); // visible for 60 seconds
+           setTimeout(() => { msg.style.display = 'none'; }, 400);
+       }, 60 * 1000);
    }
    
    function hideInactivityWarning() {
@@ -274,20 +254,98 @@
        if (msg) {
            msg.style.opacity = '0';
            msg.style.transform = 'translateY(-20px)';
-           setTimeout(() => {
-               msg.style.display = 'none';
-           }, 400);
+           setTimeout(() => { msg.style.display = 'none'; }, 400);
        }
    }
    
    window.addEventListener('beforeunload', () => {
        if (reminderInterval) clearInterval(reminderInterval);
    });
+   
    // ────────────────────────────────────────────────
+   function showScreensaver() {
+       saver.style.visibility = 'visible';
+       saver.style.opacity = '1';
    
-   // ... rest of your code (showScreensaver, hideScreensaver, preDim, restoreBrightness, etc.) remains unchanged ...
+       if (window.Screensaver && membersData?.members) {
+           Screensaver.setMembers(membersData.members);
+       } else if (typeof fetchMembers === 'function') {
+           fetchMembers().then(() => {
+               if (membersData?.members) Screensaver.setMembers(membersData.members);
+           });
+       }
    
-   // Showing active members on screensaver
+       try { saver.focus({ preventScroll: true }); } catch (e) {}
+   }
+   
+   function hideScreensaver() {
+       saver.style.opacity = '0';
+       setTimeout(() => { saver.style.visibility = 'hidden'; }, 1000);
+   }
+   
+   async function preDimBrightness() {
+       if (isDimmed) return;
+       const current = originalBrightness ?? 153;
+       originalBrightness = current;
+       const minBrightness = 51;
+       if (current <= minBrightness + 5) return;
+   
+       await updateBrightnessAPI(minBrightness);
+       isDimmed = true;
+       console.log(`[PRE-DIM] ${current} → ${minBrightness}`);
+   }
+   
+   async function restoreBrightness() {
+       if (!isDimmed) return;
+       const value = originalBrightness ?? 153;
+       isDimmed = false;
+       await updateBrightnessAPI(value);
+       console.log(`[RESTORE] ${value}`);
+   }
+   
+   async function updateBrightnessAPI(value) {
+       const mapped = Math.round(51 + (value / 255) * (255 - 51));
+       return fetch("/api/brightness", {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ brightness: mapped })
+       }).catch(err => console.error("Brightness API error:", err));
+   }
+   
+   function resetScreensaverTimer() {
+       clearTimeout(screensaverTimeout);
+       clearTimeout(preDimTimeout);
+       hideScreensaver();
+       restoreBrightness();
+   
+       preDimTimeout = setTimeout(preDimBrightness, 20000);
+       screensaverTimeout = setTimeout(showScreensaver, 30000);
+   }
+   
+   function blockEventIfActive(e) {
+       if (saver.style.visibility === 'visible' && saver.style.opacity !== '0' && !saver.contains(e.target)) {
+           e.preventDefault();
+           e.stopPropagation();
+           e.stopImmediatePropagation();
+       }
+   }
+   
+   ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click',
+    'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
+       document.addEventListener(evt, blockEventIfActive, { capture: true, passive: false });
+   });
+   
+   saver.addEventListener('click', () => {
+       hideScreensaver();
+       resetScreensaverTimer();
+   }, { capture: true });
+   
+   ['mousemove', 'keypress', 'click', 'touchstart'].forEach(evt => {
+       document.addEventListener(evt, () => {
+           if (currentState === 'main') resetScreensaverTimer();
+       }, { passive: true });
+   });
+   
    const membersRow = document.createElement('div');
    membersRow.id = 'screensaver-members';
    Object.assign(membersRow.style, {
@@ -299,7 +357,6 @@
    });
    wrapper.appendChild(membersRow);
    
-   // Bilingual warning
    const warningMsg = document.createElement('div');
    warningMsg.id = 'screensaver-warning';
    Object.assign(warningMsg.style, {
@@ -326,9 +383,7 @@
            50% { background-color: darkred; }
            100% { background-color: red; }
        }
-       .blinking {
-           animation: blink 1s infinite;
-       }
+       .blinking { animation: blink 1s infinite; }
    `;
    document.head.appendChild(styleSheet);
    
@@ -340,7 +395,6 @@
        row.innerHTML = '';
    
        const activeMembers = members.filter(m => m.active === true);
-   
        resetReminderTimer(activeMembers);
    
        if (activeMembers.length === 0) {
