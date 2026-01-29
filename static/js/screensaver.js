@@ -62,7 +62,7 @@
            fontWeight: '400',
            textAlign: 'center',
            marginRight: '400px',
-           marginBottom: '100px'
+           marginBottom: '80px'
        });
    
        // Weather element – absolute positioned on right, hidden by default
@@ -71,7 +71,7 @@
        Object.assign(weatherEl.style, {
            position: 'absolute',
            right: '-28px',                    // adjust this % or use px (e.g. '60px')
-           top: '150px',
+           top: '170px',
            transform: 'translateY(-50%)',
            fontSize: '28px',
            color: '#a0d8ef',
@@ -83,7 +83,7 @@
            transition: 'opacity 0.6s ease',
            pointerEvents: 'none',
            zIndex: '10',
-           marginRight: '80px'
+           marginRight: '90px'
        });
        wrapper.appendChild(timeEl);
        wrapper.appendChild(dateEl);
