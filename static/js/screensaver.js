@@ -157,7 +157,20 @@
 
     // Show with animation
     msg.style.display = 'block';
-   }
+    setTimeout(() => {
+        msg.style.opacity = '1';
+        msg.style.transform = 'translateY(0)';
+    }, 10);
+
+    // Auto-hide after duration
+    setTimeout(() => {
+        msg.style.opacity = '0';
+        msg.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            msg.style.display = 'none';
+        }, 400); // match transition time
+    }, WARNING_SHOW_DURATION_MS);
+}
    
    function hideInactivityWarning() {
        const msg = document.getElementById('inactivity-warning');
