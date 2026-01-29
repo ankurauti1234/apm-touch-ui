@@ -139,9 +139,9 @@
 
         msg.innerHTML = `
             <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-            <div style="font-size:38px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; margin-right:16px; flex-shrink:0;">
-                🔔
-            </div>                
+            <div style="width:32px; height:32px; background:#ff9800; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; margin-right:16px; flex-shrink:0;">
+                !
+            </div>               
             <div style="flex:1; min-width:0;">
                     <div style="font-size:25px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                         APM Meter
