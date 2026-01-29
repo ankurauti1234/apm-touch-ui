@@ -117,26 +117,13 @@
            const temp = Math.round(current.temperature_2m);
            const weatherCode = current.weather_code;
    
-           let icon = '';
-            let condition = '';
-
-            if (weatherCode >= 0 && weatherCode <= 3) {
-            icon = 'https://uxwing.com/wp-content/themes/uxwing/download/weather-weather/sunny-icon.png';
-            condition = 'Sunny';
-            } else if (weatherCode <= 48) {
-            icon = 'https://uxwing.com/wp-content/themes/uxwing/download/weather-weather/cloudy-icon.png';
-            condition = 'Cloudy';
-            } else if (weatherCode <= 67) {
-            icon = 'https://uxwing.com/wp-content/themes/uxwing/download/weather-weather/rain-icon.png';
-            condition = 'Rain';
-            } else if (weatherCode <= 77) {
-            icon = 'https://uxwing.com/wp-content/themes/uxwing/download/weather-weather/snow-icon.png';
-            condition = 'Snow';
-            } else if (weatherCode <= 99) {
-            icon = 'https://uxwing.com/wp-content/themes/uxwing/download/weather-weather/thunderstorm-icon.png';
-            condition = 'Thunderstorm';
-            }
-
+           let icon = '🌤️';
+           let condition = 'Clear';
+           if (weatherCode >= 0 && weatherCode <= 3) { icon = '☀️'; condition = 'Sunny'; }
+           else if (weatherCode <= 48) { icon = '☁️'; condition = 'Cloudy'; }
+           else if (weatherCode <= 67) { icon = '🌧️'; condition = 'Rain'; }
+           else if (weatherCode <= 77) { icon = '❄️'; condition = 'Snow'; }
+           else if (weatherCode <= 99) { icon = '⛈️'; condition = 'Thunderstorm'; }
    
            const weatherEl = document.getElementById('weather-status');
            weatherEl.innerHTML = `
