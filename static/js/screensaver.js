@@ -474,3 +474,32 @@
        hide: hideScreensaver,
        setMembers: updateScreensaverMembers
    };
+
+
+   //Fetch weather 
+
+   // ────────────────────────────────────────────────
+// Periodic weather refresh every 30 minutes
+let weatherRefreshInterval = null;
+
+function startWeatherRefresh() {
+    if (weatherRefreshInterval) return; // already running
+
+    // Immediate fetch + then every 30 min
+    fetchWeather();
+
+    weatherRefreshInterval = setInterval(() => {
+        fetchWeather();
+    }, 30 * 60 * 1000);
+}
+
+// Optional: stop when page is unloading (good practice)
+window.addEventListener('beforeunload', () => {
+    if (weatherRefreshInterval) {
+        clearInterval(weatherRefreshInterval);
+    }
+    if (reminderInterval) clearInterval(reminderInterval);
+});
+
+// Start periodic weather updates right away
+startWeatherRefresh();
