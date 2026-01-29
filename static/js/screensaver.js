@@ -112,7 +112,7 @@
             top: '16px',                     // typical top margin on phone
             left: '16px',
             right: '16px',
-            maxWidth: '480px',               // typical notification width
+            maxWidth: '580px',               // typical notification width
             margin: '0 auto',                // center horizontally
             backgroundColor: 'rgba(32, 33, 36, 0.92)', // dark semi-transparent (Material dark surface)
             color: '#e0e0e0',                // light text
@@ -134,7 +134,7 @@
                 <!-- Small app icon (replace src with your actual icon path) -->
                 <img src="/icon-48.png" alt="App" style="width:32px; height:32px; border-radius:8px; margin-right:16px; flex-shrink:0;">
                 <div style="flex:1; min-width:0;">
-                    <div style="font-size:14px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    <div style="font-size:24px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                         APM Meter
                     </div>
                     <div style="font-size:12px; color:rgba(255,255,255,0.7);">
@@ -143,10 +143,10 @@
                 </div>
             </div>
             <div style="padding:16px 20px;">
-                <div style="font-size:18px; font-weight:500; line-height:1.4; margin-bottom:4px;">
+                <div style="font-size:25px; font-weight:500; line-height:1.4; margin-bottom:4px;">
                     Change the active members if needed
                 </div>
-                <div style="font-size:16px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                <div style="font-size:18px; color:rgba(255,255,255,0.85); line-height:1.4;">
                     The same members have been active for a long time.
                 </div>
             </div>
