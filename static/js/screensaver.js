@@ -127,10 +127,10 @@
    
            const weatherEl = document.getElementById('weather-status');
            weatherEl.innerHTML = `
-               <span style="font-size:88px; margin-left:60px">${icon}</span>
+               <span style="font-size:68px; margin-left:40px">${icon}</span>
                <div>
-                   <div style="font-size:36px; font-weight:600;">${temp}°C</div>
-                   <div style="font-size:18px; opacity:0.9;">Yerevan, ${condition}</div>
+                   <div style="font-size:46px; font-weight:600;">${temp}°C</div>
+                   <div style="font-size:28px; opacity:0.9;">Yerevan, ${condition}</div>
                </div>
            `;
            weatherEl.style.opacity = '0.9'; // fade in
