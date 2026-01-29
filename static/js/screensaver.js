@@ -69,7 +69,7 @@
        Object.assign(weatherEl.style, {
            position: 'absolute',
            right: '-10px',                    // adjust this % or use px (e.g. '60px')
-           top: '-30px',
+           top: '100px',
            transform: 'translateY(-50%)',
            fontSize: '28px',
            color: '#a0d8ef',
