@@ -119,7 +119,7 @@
    
            let icon = '🌤️';
            let condition = 'Clear';
-           if (weatherCode >= 0 && weatherCode <= 3) { icon = '☀️'; condition = 'Sunny'; }
+           if (weatherCode >= 0 && weatherCode <= 3) { icon = '/static/assets/sunny.png'; condition = 'Sunny'; }
            else if (weatherCode <= 48) { icon = '☁️'; condition = 'Cloudy'; }
            else if (weatherCode <= 67) { icon = '🌧️'; condition = 'Rain'; }
            else if (weatherCode <= 77) { icon = '❄️'; condition = 'Snow'; }
@@ -129,7 +129,7 @@
            weatherEl.innerHTML = `
                 <div>
                     <div style="font-weight:600; display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:68px;">${icon}</span>
+                    <img src="${icon}" alt="${condition}" style="width:68px; height:68px;" />
                     <span style="font-size:53px;">${temp}°C</span>
                     </div>
                     <div style="font-size:24px; opacity:0.9;">
