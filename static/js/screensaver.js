@@ -83,7 +83,7 @@
            transition: 'opacity 0.6s ease',
            pointerEvents: 'none',
            zIndex: '10',
-           marginRight: '90px'
+           marginRight: '120px'
        });
        wrapper.appendChild(timeEl);
        wrapper.appendChild(dateEl);
