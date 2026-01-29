@@ -2,7 +2,7 @@
    screensaver.js
    Full screensaver + clock + pre-dim + brightness control
    FIXED & CLEAN – no syntax errors
-   + 45-minute same-members inactivity warning
+   + Repeating 60-second inactivity reminder for same members
    ============================================================== */
 
    let wrapper;
@@ -79,14 +79,11 @@
    updateClock();
    
    // ────────────────────────────────────────────────
-   // 45-minute same-members inactivity warning
-   let lastMembersChangeTime = Date.now();
-   let lastActiveMemberKeys = '';  // string of sorted member_codes/ids
+   // Repeating reminder every 60 seconds for same active members
+   let lastActiveMemberKeys = '';
+   let reminderInterval = null;
    
-   const INACTIVITY_THRESHOLD_MS   = 1 * 60 * 1000;   // 45 minutes
-   const WARNING_SHOW_DURATION_MS  = 60 * 1000;        // show warning for 1 minute
-   
-   function resetInactivityTimer(activeMembers = []) {
+   function resetReminderTimer(activeMembers = []) {
        const currentKeys = activeMembers
            .map(m => m.member_code || m.id || m.name || '')
            .filter(Boolean)
@@ -94,115 +91,124 @@
            .join('|');
    
        if (currentKeys !== lastActiveMemberKeys) {
-           lastMembersChangeTime = Date.now();
            lastActiveMemberKeys = currentKeys;
-           hideInactivityWarning(); // hide immediately on change
+           hideInactivityWarning();
+   
+           // Stop any existing repeating interval
+           if (reminderInterval) {
+               clearInterval(reminderInterval);
+               reminderInterval = null;
+           }
+   
+           // Only start repeating if there are active members
+           if (activeMembers.length > 0) {
+               // First reminder after 60 seconds, then every 60 seconds
+               reminderInterval = setInterval(showInactivityWarning, 60 * 1000);
+               // Optional: delay the very first one
+               setTimeout(showInactivityWarning, 60 * 1000);
+           }
        }
    }
    
    function showInactivityWarning() {
-    let msg = document.getElementById('inactivity-warning');
-    if (!msg) {
-        msg = document.createElement('div');
-        msg.id = 'inactivity-warning';
-        
-        // Android-like notification card style
-        Object.assign(msg.style, {
-            position: 'fixed',               // better than absolute for overlay feel
-            top: '16px',                     // typical top margin on phone
-            left: '16px',
-            right: '16px',
-            maxWidth: '580px',               // typical notification width
-            margin: '0 auto',                // center horizontally
-            backgroundColor: 'rgba(32, 33, 36, 0.92)', // dark semi-transparent (Material dark surface)
-            color: '#e0e0e0',                // light text
-            borderRadius: '24px',            // modern large radius
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            overflow: 'hidden',
-            zIndex: '9999',
-            display: 'none',
-            fontFamily: 'Roboto, system-ui, sans-serif',
-            padding: '0',
-            opacity: '0',
-            transform: 'translateY(-20px)',
-            transition: 'all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)', // smooth Material motion
-        });
-
-        // Inner structure — mimics Android notification template
-        msg.innerHTML = `
-            <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                <!-- Small app icon (replace src with your actual icon path) -->
-                <img src="/icon-48.png" alt="App" style="width:32px; height:32px; border-radius:8px; margin-right:16px; flex-shrink:0;">
-                <div style="flex:1; min-width:0;">
-                    <div style="font-size:24px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        APM Meter
-                    </div>
-                    <div style="font-size:12px; color:rgba(255,255,255,0.7);">
-                        just now
-                    </div>
-                </div>
-            </div>
-            <div style="padding:16px 20px;">
-                <div style="font-size:25px; font-weight:500; line-height:1.4; margin-bottom:4px;">
-                    Change the active members if needed
-                </div>
-                <div style="font-size:18px; color:rgba(255,255,255,0.85); line-height:1.4;">
-                    The same members have been active for a long time.
-                </div>
-            </div>
-        `;
-
-        saver.appendChild(msg);
-    }
-
-    // Show with animation
-    msg.style.display = 'block';
-    setTimeout(() => {
-        msg.style.opacity = '1';
-        msg.style.transform = 'translateY(0)';
-    }, 10);
-
-    // Auto-hide after duration
-    setTimeout(() => {
-        msg.style.opacity = '0';
-        msg.style.transform = 'translateY(-20px)';
-        setTimeout(() => {
-            msg.style.display = 'none';
-        }, 400); // match transition time
-    }, WARNING_SHOW_DURATION_MS);
-}
+       let msg = document.getElementById('inactivity-warning');
+       if (!msg) {
+           msg = document.createElement('div');
+           msg.id = 'inactivity-warning';
+   
+           Object.assign(msg.style, {
+               position: 'fixed',
+               top: '16px',
+               left: '16px',
+               right: '16px',
+               maxWidth: '580px',
+               margin: '0 auto',
+               backgroundColor: 'rgba(32, 33, 36, 0.92)',
+               color: '#e0e0e0',
+               borderRadius: '24px',
+               boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+               overflow: 'hidden',
+               zIndex: '9999',
+               display: 'none',
+               fontFamily: 'Roboto, system-ui, sans-serif',
+               padding: '0',
+               opacity: '0',
+               transform: 'translateY(-20px)',
+               transition: 'all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)',
+           });
+   
+           msg.innerHTML = `
+               <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                   <img src="/icon-48.png" alt="App" style="width:32px; height:32px; border-radius:8px; margin-right:16px; flex-shrink:0;">
+                   <div style="flex:1; min-width:0;">
+                       <div style="font-size:24px; font-weight:500; color:#8ab4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                           APM Meter
+                       </div>
+                       <div style="font-size:12px; color:rgba(255,255,255,0.7);">
+                           just now
+                       </div>
+                   </div>
+               </div>
+               <div style="padding:16px 20px;">
+                   <div style="font-size:25px; font-weight:500; line-height:1.4; margin-bottom:4px;">
+                       Change the active members if needed
+                   </div>
+                   <div style="font-size:18px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                       The same members have been active for a long time.
+                   </div>
+               </div>
+           `;
+   
+           saver.appendChild(msg);
+       }
+   
+       // Show animation
+       msg.style.display = 'block';
+       setTimeout(() => {
+           msg.style.opacity = '1';
+           msg.style.transform = 'translateY(0)';
+       }, 10);
+   
+       // Auto-hide after 60 seconds
+       setTimeout(() => {
+           msg.style.opacity = '0';
+           msg.style.transform = 'translateY(-20px)';
+           setTimeout(() => {
+               msg.style.display = 'none';
+           }, 400);
+       }, 60 * 1000);
+   }
    
    function hideInactivityWarning() {
        const msg = document.getElementById('inactivity-warning');
-       if (msg) msg.style.display = 'none';
-   }
-   
-   function checkAndShowInactivityWarning() {
-       if (Date.now() - lastMembersChangeTime >= INACTIVITY_THRESHOLD_MS) {
-           showInactivityWarning();
-           setTimeout(hideInactivityWarning, WARNING_SHOW_DURATION_MS);
+       if (msg) {
+           msg.style.opacity = '0';
+           msg.style.transform = 'translateY(-20px)';
+           setTimeout(() => {
+               msg.style.display = 'none';
+           }, 400);
        }
    }
+   
+   // Cleanup
+   window.addEventListener('beforeunload', () => {
+       if (reminderInterval) clearInterval(reminderInterval);
+   });
    // ────────────────────────────────────────────────
    
    function showScreensaver() {
        saver.style.visibility = 'visible';
        saver.style.opacity = '1';
    
-       // Sync members
        if (window.Screensaver && membersData?.members) {
            Screensaver.setMembers(membersData.members);
-       } else {
-           if (typeof fetchMembers === 'function') {
-               fetchMembers().then(() => {
-                   if (membersData?.members) {
-                       Screensaver.setMembers(membersData.members);
-                   }
-               });
-           }
+       } else if (typeof fetchMembers === 'function') {
+           fetchMembers().then(() => {
+               if (membersData?.members) {
+                   Screensaver.setMembers(membersData.members);
+               }
+           });
        }
-   
-       checkAndShowInactivityWarning();
    
        try {
            saver.focus({ preventScroll: true });
@@ -249,11 +255,10 @@
        hideScreensaver();
        restoreBrightness();
    
-       preDimTimeout = setTimeout(preDimBrightness, 20000);      // 20s → dim
-       screensaverTimeout = setTimeout(showScreensaver, 30000);  // 30s → screensaver
+       preDimTimeout = setTimeout(preDimBrightness, 20000);
+       screensaverTimeout = setTimeout(showScreensaver, 30000);
    }
    
-   // Block all input when screensaver is active
    function blockEventIfActive(e) {
        if (saver.style.visibility === 'visible' && saver.style.opacity !== '0' && !saver.contains(e.target)) {
            e.preventDefault();
@@ -264,7 +269,7 @@
    
    ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click',
     'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
-       document.addEventListener(evt, blockEventIfActive, { capture: true, passive: false })
+       document.addEventListener(evt, blockEventIfActive, { capture: true, passive: false });
    });
    
    saver.addEventListener('click', () => {
@@ -272,14 +277,12 @@
        resetScreensaverTimer();
    }, { capture: true });
    
-   // Wake on any movement/touch when on main screen
    ['mousemove', 'keypress', 'click', 'touchstart'].forEach(evt => {
        document.addEventListener(evt, () => {
            if (currentState === 'main') resetScreensaverTimer();
        }, { passive: true });
    });
    
-   // Showing active members on screensaver
    const membersRow = document.createElement('div');
    membersRow.id = 'screensaver-members';
    Object.assign(membersRow.style, {
@@ -291,7 +294,6 @@
    });
    wrapper.appendChild(membersRow);
    
-   // Warning message element (no active members)
    const warningMsg = document.createElement('div');
    warningMsg.id = 'screensaver-warning';
    Object.assign(warningMsg.style, {
@@ -305,7 +307,6 @@
    warningMsg.textContent = 'No active members! Please activate at least one.';
    wrapper.appendChild(warningMsg);
    
-   // CSS for blinking background
    const styleSheet = document.createElement('style');
    styleSheet.textContent = `
        @keyframes blink {
@@ -328,8 +329,8 @@
    
        const activeMembers = members.filter(m => m.active === true);
    
-       // Reset the 45-minute timer when active members change
-       resetInactivityTimer(activeMembers);
+       // Start / reset the repeating reminder
+       resetReminderTimer(activeMembers);
    
        if (activeMembers.length === 0) {
            saver.style.background = 'red';
@@ -388,15 +389,3 @@
        hide: hideScreensaver,
        setMembers: updateScreensaverMembers
    };
-
-   // Continuous check for the 45-min warning (runs every 30 seconds)
-let inactivityWarningInterval = setInterval(() => {
-    if (saver.style.visibility === 'visible') {
-        checkAndShowInactivityWarning();
-    }
-}, 30000);  // check every 30 seconds while screensaver is shown
-
-// Optional: stop checking when page is closed
-window.addEventListener('beforeunload', () => {
-    clearInterval(inactivityWarningInterval);
-});
