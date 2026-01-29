@@ -3,7 +3,7 @@
    Full screensaver + clock + pre-dim + brightness control
    FIXED & CLEAN – no syntax errors
    + 45-minute inactivity warning for same members
-   + TEMPORARY: 1-minute test notification banner (reminder when members active)
+   + TEMPORARY: reminder banner every ~60 seconds after last member change
    ============================================================== */
 
    let wrapper;
@@ -346,13 +346,16 @@
    };
    
    // ────────────────────────────────────────────────────────────────
-   // TEMPORARY – 1 minute repeating test banner (only when members active)
-   // Remove or comment out everything below this line after testing
+   // TEMPORARY – Reminder banner every ~60 seconds after last member change
+   // Shows on main screen AND on screensaver
+   // First banner ≈60 seconds after setting members
+   // Remove or comment out this whole block after testing
    // ────────────────────────────────────────────────────────────────
    
-   let testBannerInterval = null;
-
-   function createTestBanner() {
+   let reminderCheckInterval = null;
+   let lastActiveMembersChange = Date.now();
+   
+   function createReminderBanner() {
        let banner = document.getElementById('test-active-reminder');
        if (!banner) {
            banner = document.createElement('div');
@@ -362,7 +365,7 @@
                top: '32px',
                left: '50%',
                transform: 'translateX(-50%)',
-               background: 'rgba(255, 193, 7, 0.95)', // amber yellow – Android warning style
+               background: 'rgba(255, 193, 7, 0.95)',
                color: '#111',
                padding: '18px 40px',
                borderRadius: '16px',
@@ -377,61 +380,68 @@
                display: 'none',
                lineHeight: '1.4'
            });
-   
-           banner.innerHTML = `
-               <div style="font-size:42px; margin-bottom:10px;">⚠️ ACTIVE MEMBERS ALERT</div>
-               <div>The same people have been active for some time now</div>
-               <div style="font-size:24px; margin-top:14px; opacity:0.9;">
-                   Checked at ${new Date().toLocaleTimeString('en-IN')}
-               </div>
-           `;
-   
            document.body.appendChild(banner);
        }
+   
+       const timeStr = new Date().toLocaleTimeString('en-IN', {
+           hour: '2-digit', minute: '2-digit', second: '2-digit'
+       });
+   
+       banner.innerHTML = `
+           <div style="font-size:42px; margin-bottom:10px;">⚠️ ACTIVE MEMBERS ALERT</div>
+           <div>The same people have been active for some time now</div>
+           <div style="font-size:24px; margin-top:14px; opacity:0.9;">
+               Reminder — ${timeStr}
+           </div>
+       `;
        return banner;
    }
    
-   function showTestReminder() {
-       // Only show if we have active members
+   function checkAndShowReminder() {
+       const now = Date.now();
+       const secondsElapsed = (now - lastActiveMembersChange) / 1000;
+   
        const hasActive = (membersData?.members || []).some(m => m.active === true);
        if (!hasActive) return;
    
-       // ── Removed the screensaver check ──
-       // Banner will now appear BOTH on main screen and on top of screensaver
+       // Show banner if 60+ seconds have passed since last change
+       // and approximately every 60 seconds after that
+       if (secondsElapsed >= 60) {
+           const banner = createReminderBanner();
+           banner.style.display = 'block';
    
-       const banner = createTestBanner();
-       banner.style.display = 'block';
+           setTimeout(() => {
+               banner.style.display = 'none';
+           }, 30000); // visible for 30 seconds
    
-       // Auto hide after 30 seconds
-       setTimeout(() => {
-           banner.style.display = 'none';
-       }, 30000);
+           console.log(`[TEST REMINDER] shown after ${Math.round(secondsElapsed)} seconds`);
+       }
    }
    
-   function startTestReminderLoop() {
-       if (testBannerInterval) clearInterval(testBannerInterval);
-   
-       testBannerInterval = setInterval(showTestReminder, 60000); // every 60 seconds
+   function startReminderChecker() {
+       if (reminderCheckInterval) clearInterval(reminderCheckInterval);
+       reminderCheckInterval = setInterval(checkAndShowReminder, 10000); // check every 10s
+       checkAndShowReminder(); // initial check
    }
    
-   // Hook into member updates to start the loop
+   // Hook into setMembers to reset timer when members change
    const originalSetMembers = window.Screensaver.setMembers;
    window.Screensaver.setMembers = function(members) {
        originalSetMembers.call(window.Screensaver, members);
    
-       // Start repeating reminder once we have real data
-       if (members && Array.isArray(members) && members.length > 0) {
-           startTestReminderLoop();
-           // Show first one quickly for testing
-           setTimeout(showTestReminder, 3000);
+       const activeMembers = (members || []).filter(m => m?.active === true);
+       if (activeMembers.length > 0) {
+           lastActiveMembersChange = Date.now();
+           console.log("[TEST] Members changed → reminder timer RESET");
+           startReminderChecker();
        }
    };
    
-   // Optional: stop the interval when page is hidden / destroyed (good practice)
+   // Cleanup
    window.addEventListener('beforeunload', () => {
-       if (testBannerInterval) clearInterval(testBannerInterval);
+       if (reminderCheckInterval) clearInterval(reminderCheckInterval);
    });
    
    // ────────────────────────────────────────────────────────────────
-   // End of temporary test code – remove from here upward when done
+   // End of temporary test code
    // ────────────────────────────────────────────────────────────────
