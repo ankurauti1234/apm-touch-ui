@@ -118,12 +118,24 @@
            const weatherCode = current.weather_code;
    
            let icon = '🌤️';
-           let condition = 'Clear';
-           if (weatherCode >= 0 && weatherCode <= 3) { icon = '☀️'; condition = 'Sunny'; }
-           else if (weatherCode <= 48) { icon = '☁️'; condition = 'Cloudy'; }
-           else if (weatherCode <= 67) { icon = '🌧️'; condition = 'Rain'; }
-           else if (weatherCode <= 77) { icon = '❄️'; condition = 'Snow'; }
-           else if (weatherCode <= 99) { icon = '⛈️'; condition = 'Thunderstorm'; }
+        let condition = 'Clear';
+
+        if (weatherCode >= 0 && weatherCode <= 1) {
+        icon = '☀️'; condition = 'Sunny';
+        } else if (weatherCode <= 3) {
+        icon = '🌤️'; condition = 'Partly cloudy';
+        } else if (weatherCode <= 48) {
+        icon = '☁️'; condition = 'Cloudy';
+        } else if (weatherCode <= 67) {
+        icon = '🌧️'; condition = 'Rain';
+        } else if (weatherCode <= 77) {
+        icon = '🌨️'; condition = 'Snow';
+        } else if (weatherCode <= 82) {
+        icon = '🌦️'; condition = 'Showers';
+        } else if (weatherCode <= 99) {
+        icon = '⛈️'; condition = 'Thunderstorm';
+        }
+
    
            const weatherEl = document.getElementById('weather-status');
            weatherEl.innerHTML = `
