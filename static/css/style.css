@@ -2183,100 +2183,100 @@ input[type="number"] {
 
 /* Container for the grid – fills available space */
 .members-grid-container {
-    flex: 1;
+    height: 100%;
+    padding: 12px;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px 40px;
-    overflow: hidden;           /* no scroll */
 }
 
-/* The grid – responsive card sizes based on count */
+/* ──────────────────────────────────────── */
 .members-grid {
     display: grid;
+    gap: 12px;
     width: 100%;
-    max-width: 1000px;          /* safe for 1024px width */
     height: 100%;
-    align-content: center;
-    justify-content: center;
-    gap: 24px;
+    max-width: 1600px;
+    max-height: 1000px;
+    margin: auto;
+    padding: 8px;
 }
 
-/* Dynamic card size based on number of items */
+/* ───── Solo (1 person) ───── */
+.mode-solo .members-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    gap: 0;
+}
+
+/* ───── Duo (2 people) ───── */
+.mode-duo .members-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+}
+
+/* ───── Small group (3–4) ───── */
+.mode-small-grid .members-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-auto-rows: 1fr;
+}
+
+/* ───── Many members (5–12) ───── */
+.mode-many .members-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-auto-rows: minmax(180px, 1fr);
+}
+
+/* Card styles */
 .member-card-grid {
-    aspect-ratio: 3 / 4;        /* nice portrait ratio */
-    background: var(--bg-image) center/cover no-repeat;
+    background: center / cover no-repeat var(--bg-image);
+    background-color: #444;
     border-radius: 16px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
     overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    transition: transform 0.15s ease, box-shadow 0.2s;
 }
 
-/* Name tag at bottom */
+.member-card-grid:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+}
+
+.member-card-grid.inactive {
+    filter: grayscale(80%) brightness(0.7);
+    transform: scale(0.97);
+}
+
 .name-tag {
     position: absolute;
     bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.75);
+    left: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.65);
     color: white;
-    padding: 8px 16px;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-weight: 500;
+    text-align: center;
+    font-size: clamp(1rem, 3.5vw, 1.4rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
-    z-index: 2;
 }
 
-/* Auto-adjust card size based on how many children (members) exist */
-.members-grid:has(.member-card-grid:nth-child(1)) .member-card-grid {
-    width: 380px;               /* 1 member → big & centered */
-    max-height: 480px;
+/* Make cards fill height better in small counts */
+.mode-solo .member-card-grid,
+.mode-duo .member-card-grid {
+    min-height: 60vh;
+    border-radius: 24px;
 }
 
-.members-grid:has(.member-card-grid:nth-child(2)) .member-card-grid {
-    width: 320px;               /* 2 members → large side by side */
-    max-height: 420px;
+.mode-small-grid .member-card-grid {
+    min-height: 42vh;
 }
-
-.members-grid:has(.member-card-grid:nth-child(3)) .member-card-grid,
-.members-grid:has(.member-card-grid:nth-child(4)) .member-card-grid {
-    width: 260px;               /* 3–4 members → still quite big */
-    max-height: 340px;
-}
-
-.members-grid:has(.member-card-grid:nth-child(n+5)):has(.member-card-grid:nth-child(-n+8)) .member-card-grid {
-    width: 210px;               /* 5–8 members → medium size */
-    max-height: 280px;
-}
-
-.members-grid:has(.member-card-grid:nth-child(n+9)) .member-card-grid {
-    width: 160px;               /* 9–12 members → smaller but fits */
-    max-height: 220px;
-}
-
-/* Grid columns adjust automatically */
-.members-grid {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-}
-
-/* When 1–2 members, force 1 or 2 columns */
-.members-grid:has(.member-card-grid:nth-child(1)) {
-    grid-template-columns: 1fr;
-}
-
-.members-grid:has(.member-card-grid:nth-child(2)) {
-    grid-template-columns: repeat(2, minmax(280px, 400px));
-}
-
-/* Hover effect */
-.member-card-grid:hover {
-    transform: scale(1.06);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
-}
-
 /* Bottom bar – always visible at bottom */
 
 

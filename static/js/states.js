@@ -283,15 +283,21 @@ const states = {
 
     main: () => {
         const MAX_MEMBERS = 12;
-    
         const members = membersData?.members || [];
         const shown = members.slice(0, MAX_MEMBERS);
+        
+        // Decide layout mode
+        let gridMode = 'many';
+        if (shown.length === 1) gridMode = 'solo';
+        else if (shown.length === 2) gridMode = 'duo';
+        else if (shown.length <= 4) gridMode = 'small-grid';
+        // else → many (default 3–4 columns)
     
         return `
         <div class="layout-reset">
             <div class="main-dashboard fixed-layout">
                 <!-- Members grid container -->
-                <div class="members-grid-container">
+                <div class="members-grid-container mode-${gridMode}" data-count="${shown.length}">
                     <div class="members-grid">
                         ${shown.map((m, i) => `
                             <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
@@ -319,7 +325,7 @@ const states = {
                     <div class="bar-right">
                         <button class="bar-btn" id="bar-btn-add_guest" onclick="openDialog()">
                             <span class="material-icons">add</span>
-                            <span class="btn-text">Add Guest &nbsp;</span>
+                            <span class="btn-text">Add Guest  </span>
                             <span class="guest-count">${guests.length} / 8</span>
                         </button>
                         <div id="bar-wifi-status"></div>
