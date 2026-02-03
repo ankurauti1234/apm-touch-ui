@@ -34,12 +34,12 @@ function createWifiWarning() {
     });
 
     wifiWarningElement.innerHTML = `
-        <span class="material-icons" style="font-size:42px; color:#ff9800;">wifi_off</span>
+        <span class="material-icons" style="font-size:52px; color:#ff9800;">wifi_off</span>
         <div>
-            <div style="font-size:28px; color:#ff9800; margin-bottom:4px;">
+            <div style="font-size:32px; color:#ff9800; margin-bottom:4px;">
                 Wi-Fi Disconnected
             </div>
-            <div style="font-size:22px; color:rgba(255,255,255,0.9);">
+            <div style="font-size:28px; color:rgba(255,255,255,0.9);">
                 Please connect to continue → Tap here to open Wi-Fi settings
             </div>
         </div>
