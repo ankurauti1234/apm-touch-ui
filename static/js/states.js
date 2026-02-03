@@ -40,14 +40,7 @@ const states = {
                 </button>
             </div>
         ` : `
-            <div class="button-group">
-                <button class="button" onclick="checkWiFi()">
-                    <span class="material-icons">wifi</span> Wi-Fi
-                </button>
-                <button class="button" onclick="navigate('network_test','gsm')">
-                    <span class="material-icons">cell_tower</span> GSM
-                </button>
-            </div>
+            
         `}
          `,
 
