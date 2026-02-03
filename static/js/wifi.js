@@ -3,103 +3,6 @@
    Wi-Fi popup, scanning, connection, lift/lower logic
    ============================================================== */
 
-   let wifiPopupLifted = false;
-   let selectedSSID = null;
-   let availableNetworks = [];
-
-   function createWifiWarningElement() {
-    if (document.getElementById('wifi-disconnected-warning')) {
-        return document.getElementById('wifi-disconnected-warning');
-    }
-
-    const warning = document.createElement('div');
-    warning.id = 'wifi-disconnected-warning';
-    warning.innerHTML = `
-        <div style="text-align:center; padding: 2rem; max-width: 480px;">
-            <h2 style="color: white; margin-bottom: 1.2rem; font-size: 2.1rem;">
-                Wi-Fi Disconnected
-            </h2>
-            <p style="color: rgba(255,255,255,0.95); margin-bottom: 2rem; font-size: 1.15rem;">
-                Please connect to a Wi-Fi network to continue.
-            </p>
-            <button style="
-                background: white;
-                color: #e65100;
-                border: none;
-                padding: 14px 36px;
-                font-size: 1.1rem;
-                font-weight: 600;
-                border-radius: 12px;
-                cursor: pointer;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            ">
-                Connect to Wi-Fi
-            </button>
-        </div>
-    `;
-
-    warning.addEventListener('click', () => {
-        showWiFiPopup();
-    });
-
-    document.body.appendChild(warning);
-    return warning;
-}
-
-function updateWifiWarningVisibility(isConnected) {
-    const warning = createWifiWarningElement();
-    warning.style.display = isConnected ? 'none' : 'flex';
-}
-
-if (!document.getElementById('wifi-warning-style')) {
-    const style = document.createElement('style');
-    style.id = 'wifi-warning-style';
-    style.textContent = `
-        #wifi-disconnected-warning {
-            position: fixed;
-            inset: 0 0 70px 0;           /* leave space for bottom bar */
-            background: rgba(230, 81, 0, 0.92);   /* deep orange */
-            z-index: 9999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
-            transition: opacity 0.4s ease;
-        }
-
-        #wifi-disconnected-warning button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-async function refreshWifiStatusAndUI() {
-    try {
-        const response = await fetch('/api/current_wifi');
-        const data = await response.json();
-
-        const isConnected = data.success && !!data.ssid;
-
-        // Update UI elements
-        if (currentState === 'main') {
-            updateMainDashboardWiFiStatus();
-        } else {
-            updateBottomBarWiFiStatus();
-        }
-
-        // Show / hide full-screen warning
-        updateWifiWarningVisibility(isConnected);
-
-    } catch (err) {
-        console.warn("Could not refresh Wi-Fi status", err);
-        updateWifiWarningVisibility(false);
-    }
-}
-
 async function showWiFiPopup() {
     closeSettingsPopup();
     closeWiFiPopup();
@@ -156,21 +59,25 @@ async function showWiFiPopup() {
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
 
+    // Focus + lift handling for password field
     const passwordInput = document.getElementById('password');
     passwordInput.addEventListener('focus', () => {
         showKeyboard(passwordInput);
         liftWiFiPopup();
     });
 
+    // Lower popup when buttons are clicked
     popup.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', () => {
             document.getElementById('wifi-popup')?.classList.remove('lifted');
         });
     });
 
+    // Start scanning
     document.getElementById('fetching').textContent = 'fetching wifi...';
     await scanWiFi();
 
+    // Auto-open dropdown if networks found
     setTimeout(() => {
         const trigger = document.getElementById('selected-network');
         const list = document.getElementById('network-list');
@@ -181,6 +88,7 @@ async function showWiFiPopup() {
         document.getElementById('fetching').textContent = 'Select Network';
     }, 20);
 
+    // Dropdown toggle
     document.getElementById('selected-network').onclick = (e) => {
         e.stopPropagation();
         const list = document.getElementById('network-list');
@@ -334,27 +242,33 @@ async function connectWiFi() {
         if (d.success) {
             setTimeout(async () => {
                 closeWiFiPopup();
-
+        
                 try {
                     const cur = await fetch('/api/current_wifi');
                     const cd = await cur.json();
-
+        
+                    // Only navigate to connect_select if we were already there
                     if (currentState === 'connect_select') {
                         if (cd.success && cd.ssid) {
-                            navigate('connect_select', cd.ssid);
+                            navigate('connect_select', cd.ssid);  // show connected SSID
                         } else {
-                            navigate('connect_select');
+                            navigate('connect_select');  // show Wi-Fi/GSM choice (no SSID)
                         }
                     }
+                    // Else: do NOTHING — stay on current page (main, settings, etc.)
                 } catch (e) {
                     if (currentState === 'connect_select') {
-                        navigate('connect_select');
+                        navigate('connect_select');  // fallback
                     }
                 }
-
-                // Refresh status + warning
-                await refreshWifiStatusAndUI();
-            }, 1800);
+        
+                // Always update Wi-Fi status indicators
+                if (currentState === 'main') {
+                    updateMainDashboardWiFiStatus();
+                } else {
+                    updateBottomBarWiFiStatus();
+                }
+            }, 2000);
         }
     } catch (e) {
         err.innerHTML = '<span class="material-icons">error</span> Connection failed';
@@ -362,7 +276,13 @@ async function connectWiFi() {
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
-        refreshWifiStatusAndUI();  // immediate feedback
+
+        // Immediate UI update even if navigation is delayed
+        if (currentState === 'main') {
+            updateMainDashboardWiFiStatus();
+        } else {
+            updateBottomBarWiFiStatus();
+        }
     }
 }
 
@@ -372,9 +292,9 @@ async function disconnectWiFi() {
 
     if (!loading || !err) return;
 
-    loading.style.display = 'block';
-
     try {
+        loading.style.display = 'block';
+
         const r = await fetch('/api/wifi/disconnect', { method: 'POST' });
         const d = await r.json();
 
@@ -383,14 +303,21 @@ async function disconnectWiFi() {
         err.style.display = 'flex';
 
         if (d.success) {
-            setTimeout(async () => {
+            setTimeout(() => {
                 closeWiFiPopup();
-
+        
+                // Only go back to connect_select if we were already there
                 if (currentState === 'connect_select') {
-                    navigate('connect_select');
+                    navigate('connect_select');  // no SSID → shows Wi-Fi/GSM buttons
                 }
-
-                await refreshWifiStatusAndUI();
+                // Else: stay on current page (main dashboard, etc.)
+        
+                // Always update status
+                if (currentState === 'main') {
+                    updateMainDashboardWiFiStatus();
+                } else {
+                    updateBottomBarWiFiStatus();
+                }
             }, 1200);
         }
     } catch (e) {
@@ -399,29 +326,15 @@ async function disconnectWiFi() {
         err.style.display = 'flex';
     } finally {
         loading.style.display = 'none';
-        refreshWifiStatusAndUI();
+
+        // Force update Wi-Fi status in UI
+        if (currentState === 'main') {
+            updateMainDashboardWiFiStatus();
+        } else {
+            updateBottomBarWiFiStatus();
+        }
     }
 }
-
-function startWiFiStatusPolling() {
-    if (wifiPollingInterval) clearInterval(wifiPollingInterval);
-
-    // Initial check
-    refreshWifiStatusAndUI();
-
-    wifiPollingInterval = setInterval(refreshWifiStatusAndUI, 12000);
-}
-
-function stopWiFiStatusPolling() {
-    if (wifiPollingInterval) {
-        clearInterval(wifiPollingInterval);
-        wifiPollingInterval = null;
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    startWiFiStatusPolling();
-});
 
 function closeWiFiPopup() {
     lowerWiFiPopup();
