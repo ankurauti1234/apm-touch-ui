@@ -384,7 +384,7 @@ if (!document.getElementById('wifi-spinner-style')) {
             align-items: center;
             gap: 12px;
             font-weight: 500;
-            max-width: 90%;
+            max-width: 100px;
         `;
     
         banner.innerHTML = `
