@@ -265,6 +265,7 @@ async function connectWiFi() {
                 // Always update Wi-Fi status indicators
                 if (currentState === 'main') {
                     updateMainDashboardWiFiStatus();
+                    showWifiDisconnectedWarning();
                 } else {
                     updateBottomBarWiFiStatus();
                 }

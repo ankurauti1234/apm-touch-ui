@@ -14,7 +14,6 @@ function render(details = null) {
 
     if (currentState === 'main') {
         // Main dashboard – no progress bar, full reset
-        showWifiDisconnectedWarning();
         resetScreensaverTimer();
         container.innerHTML = html;
         progressBar.style.display = 'none';
