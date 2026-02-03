@@ -420,42 +420,61 @@
    }
    
    async function updateMainDashboardWiFiStatus() {
-       const statusEl = document.getElementById('bar-wifi-status');
-       if (!statusEl) return;
-   
-       try {
-           const res = await fetch('/api/current_wifi');
-           const data = await res.json();
-   
-           let icon = 'wifi_off';
-           let iconColor = '#000000ff';
-           let textColor = '#000000ff';
-           let backgroundColor = '#f1f3f4';
-           let text = 'Disconnected';
-   
-           if (data.success && data.ssid) {
-               icon = 'wifi';
-               iconColor = '#4caf50';
-               text = data.ssid;
-           }
-   
-           statusEl.innerHTML = `
-               <button class="bar-btn" id="bar-btn-wifi" style="background-color:${backgroundColor};" onclick="showWiFiPopup()">
-                   <span style="color:${textColor}; max-width:350px; overflow:hidden; text-overflow:ellipsis; display:inline-block; vertical-align:middle;">
-                       ${text}  
-                   </span>
-                   <span class="material-icons" style="color:${iconColor}; font-size:28px; vertical-align:middle;">${icon}</span>
-               </button>
-           `;
-       } catch (e) {
-           statusEl.innerHTML = `
-               <button class="bar-btn" id="bar-btn-wifi" style="background-color:#f1f3f4;" onclick="showWiFiPopup()">
-                   <span style="color:#000000ff; vertical-align:middle;">Disconnected  </span>
-                   <span class="material-icons" style="color:#000000ff; font-size:28px; vertical-align:middle;">wifi_off</span>
-               </button>
-           `;
-       }
-   }
+    const statusEl = document.getElementById('bar-wifi-status');
+    
+    // If element doesn't exist yet → skip silently (will be called again later)
+    if (!statusEl) {
+        console.debug("Wi-Fi status container not found yet – skipping update");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/current_wifi');
+        const data = await res.json();
+
+        const isConnected = data.success && !!data.ssid;
+
+        let icon = 'wifi_off';
+        let iconColor = '#000000ff';
+        let textColor = '#000000ff';
+        let backgroundColor = '#f1f3f4';
+        let text = 'Disconnected';
+
+        if (isConnected) {
+            icon = 'wifi';
+            iconColor = '#4caf50';     // green
+            text = data.ssid;
+        }
+
+        statusEl.innerHTML = `
+            <button class="bar-btn" id="bar-btn-wifi" 
+                    style="background-color:${backgroundColor};" 
+                    onclick="showWiFiPopup()">
+                <span style="color:${textColor}; max-width:320px; overflow:hidden; text-overflow:ellipsis; display:inline-block; vertical-align:middle;">
+                    ${text}  
+                </span>
+                <span class="material-icons" style="color:${iconColor}; font-size:26px; vertical-align:middle;">
+                    ${icon}
+                </span>
+            </button>
+        `;
+
+        // Optional: also update warning overlay
+        updateWifiDisconnectedWarning(isConnected);
+
+    } catch (e) {
+        console.warn("Failed to update main dashboard Wi-Fi status", e);
+        // Fallback UI even on error
+        statusEl.innerHTML = `
+            <button class="bar-btn" id="bar-btn-wifi" 
+                    style="background-color:#f1f3f4;" 
+                    onclick="showWiFiPopup()">
+                <span style="color:#000000ff; vertical-align:middle;">Disconnected  </span>
+                <span class="material-icons" style="color:#000000ff; font-size:26px; vertical-align:middle;">wifi_off</span>
+            </button>
+        `;
+    }
+}
    
    async function updateBottomBarWiFiStatus() {
        const bottomBars = document.getElementById("bottom-bar-right");
