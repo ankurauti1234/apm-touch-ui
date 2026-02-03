@@ -363,36 +363,64 @@ if (!document.getElementById('wifi-spinner-style')) {
     ============================================================== */
 
     function showWifiDisconnectedWarning() {
-        // Avoid creating multiple banners
-        if (document.getElementById('wifi-disconnected-banner')) return;
+        // Remove any existing banner first (prevents stacking)
+        const existing = document.getElementById('wifi-disconnected-banner');
+        if (existing) existing.remove();
     
         const banner = document.createElement('div');
         banner.id = 'wifi-disconnected-banner';
-        banner.style.cssText = `
-            position: fixed;
-            top: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #fff3cd;
-            color: #856404;
-            padding: 12px 24px;
-            border-radius: 8px;
-            border: 1px solid #ffeeba;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 900;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 500;
-            max-width: 90%;           /* ← most flexible on all screen sizes */
-            width: 100%;              /* ← helps it stretch when screen is narrow */
-        `;
+    
+        Object.assign(banner.style, {
+            position: 'fixed',
+            top: '16px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(30, 33, 40, 0.92)',
+            color: '#ff9800',
+            padding: '16px 32px',
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            fontSize: '24px',
+            fontWeight: '500',
+            zIndex: '1000',
+            maxWidth: '90%',
+            pointerEvents: 'auto',
+            cursor: 'pointer',
+            opacity: '1',                    // ← start visible, no fade-in needed
+            transition: 'none',              // ← remove fade transition
+        });
     
         banner.innerHTML = `
-            <span class="material-icons" style="color:#b76e00; font-size:58px;">warning</span>
-            <span style="font-size:36px; font-weight:500;">Wi-Fi is disconnected — <a href="#" style="color:#b76e00; text-decoration:underline; cursor:pointer;" onclick="showWiFiPopup(); return false;">Connect now</a></span>
-            <button onclick="this.parentElement.remove()" style="margin-left:auto; background:none; border:none; cursor:pointer; color:#856404; font-size:50px;">×</button>
+            <span class="material-icons" style="font-size:42px; color:#ff9800;">wifi_off</span>
+            <div style="flex:1;">
+                <div style="font-size:28px; color:#ff9800; margin-bottom:4px;">
+                    Wi-Fi Disconnected
+                </div>
+                <div style="font-size:22px; color:rgba(255,255,255,0.9);">
+                    Please connect to continue → Tap here
+                </div>
+            </div>
+            <button id="wifi-banner-close"
+                    style="margin-left:16px; background:none; border:none; color:#aaa; font-size:32px; cursor:pointer; padding:0 8px;">
+                ×
+            </button>
         `;
+    
+        // Click on banner (except close button) → open Wi-Fi popup
+        banner.addEventListener('click', (e) => {
+            if (e.target.id !== 'wifi-banner-close' && e.target.closest('#wifi-banner-close') === null) {
+                showWiFiPopup();
+            }
+        });
+    
+        // Close button just removes it — but polling will bring it back if still disconnected
+        banner.querySelector('#wifi-banner-close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            banner.remove();
+        });
     
         document.body.appendChild(banner);
     }
