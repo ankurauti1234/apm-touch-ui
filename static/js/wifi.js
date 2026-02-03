@@ -384,7 +384,8 @@ if (!document.getElementById('wifi-spinner-style')) {
             align-items: center;
             gap: 12px;
             font-weight: 500;
-            max-width: 1000px;
+            max-width: 90%;           /* ← most flexible on all screen sizes */
+            width: 100%;              /* ← helps it stretch when screen is narrow */
         `;
     
         banner.innerHTML = `
