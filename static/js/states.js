@@ -319,7 +319,7 @@ const states = {
                         <span class="btn-text">Add Guest &nbsp;</span>
                         <span class="guest-count">${guests.length} / 8</span>
                     </button>
-                    
+                    <div id="bar-wifi-status">
                     
                     </div>
                 </div>

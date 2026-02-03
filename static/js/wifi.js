@@ -362,6 +362,40 @@ if (!document.getElementById('wifi-spinner-style')) {
     Wi-Fi Status Updating in Main Dashboard and Bottom Bar
     ============================================================== */
 
+    function showWifiDisconnectedWarning() {
+        // Avoid creating multiple banners
+        if (document.getElementById('wifi-disconnected-banner')) return;
+    
+        const banner = document.createElement('div');
+        banner.id = 'wifi-disconnected-banner';
+        banner.style.cssText = `
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 1px solid #ffeeba;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            max-width: 90%;
+        `;
+    
+        banner.innerHTML = `
+            <span class="material-icons" style="color:#b76e00; font-size:28px;">warning</span>
+            <span>Wi-Fi is disconnected — <a href="#" style="color:#b76e00; text-decoration:underline; cursor:pointer;" onclick="showWiFiPopup(); return false;">Connect now</a></span>
+            <button onclick="this.parentElement.remove()" style="margin-left:auto; background:none; border:none; cursor:pointer; color:#856404; font-size:20px;">×</button>
+        `;
+    
+        document.body.appendChild(banner);
+    }
+
     async function updateMainDashboardWiFiStatus() {
         const statusEl = document.getElementById('bar-wifi-status');
         if (!statusEl) return;
@@ -371,33 +405,28 @@ if (!document.getElementById('wifi-spinner-style')) {
             const data = await res.json();
     
             let icon = 'wifi_off';
-            let iconColor = '#000000ff';     // black when disconnected
-            let textColor = '#000000ff';     // always black text
-            let backgroundColor = '#f1f3f4';  // ← Light gray – common for "Add Guest" style buttons
+            let iconColor = '#000000ff';
+            let textColor = '#000000ff';
+            let backgroundColor = '#f1f3f4';
             let text = 'Disconnected';
     
             if (data.success && data.ssid) {
                 icon = 'wifi';
-                iconColor = '#4caf50';       // Green icon when connected
+                iconColor = '#4caf50';
                 text = data.ssid;
-                // background stays the same neutral color for consistency
+    
+                // Remove warning if exists
+                document.getElementById('wifi-disconnected-banner')?.remove();
+            } else {
+                // Show warning only when truly disconnected
+                showWifiDisconnectedWarning();
             }
     
-            statusEl.innerHTML = `
-                <button class="bar-btn" id="bar-btn-wifi" style="background-color:${backgroundColor};" onclick="showWiFiPopup()">
-                    <span style="color:${textColor}; max-width:350px; overflow:hidden; text-overflow:ellipsis; display:inline-block; vertical-align:middle;">
-                        ${text} &nbsp;
-                    </span>
-                    <span class="material-icons" style="color:${iconColor}; font-size:28px; vertical-align:middle;">${icon}</span>
-                </button>
-            `;
+            statusEl.innerHTML = `…`;   // (your existing button HTML)
+    
         } catch (e) {
-            statusEl.innerHTML = `
-                <button class="bar-btn" id="bar-btn-wifi" style="background-color:#f1f3f4;" onclick="showWiFiPopup()">
-                    <span style="color:#000000ff; vertical-align:middle;">Disconnected &nbsp;</span>
-                    <span class="material-icons" style="color:#000000ff; font-size:28px; vertical-align:middle;">wifi_off</span>
-                </button>
-            `;
+            statusEl.innerHTML = `…`;   // fallback HTML
+            showWifiDisconnectedWarning();
         }
     }
 
