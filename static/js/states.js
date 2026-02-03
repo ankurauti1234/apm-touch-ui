@@ -50,9 +50,9 @@ const states = {
                     <span class="material-icons">cell_tower</span> GSM
                 </button>
             </div>
-            <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-            </div>
         `}
+        <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+        </div>
          `,
 
     network_test: (status = null) => `
