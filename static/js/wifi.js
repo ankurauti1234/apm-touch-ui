@@ -387,6 +387,7 @@ if (!document.getElementById('wifi-spinner-style')) {
             fontWeight: '500',
             zIndex: '1000',
             maxWidth: '90%',
+            width: '100%',
             pointerEvents: 'auto',
             cursor: 'pointer',
             opacity: '1',                    // ← start visible, no fade-in needed
