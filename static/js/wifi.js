@@ -422,10 +422,18 @@ if (!document.getElementById('wifi-spinner-style')) {
                 showWifiDisconnectedWarning();
             }
     
-            statusEl.innerHTML = `…`;   // (your existing button HTML)
+            statusEl.innerHTML = `<button class="bar-btn" id="bar-btn-wifi" style="background-color:${backgroundColor};" onclick="showWiFiPopup()">
+                <span style="color:${textColor}; max-width:350px; overflow:hidden; text-overflow:ellipsis; display:inline-block; vertical-align:middle;">
+                    ${text} &nbsp;
+                </span>
+                <span class="material-icons" style="color:${iconColor}; font-size:28px; vertical-align:middle;">${icon}</span>
+            </button>`;   // (your existing button HTML)
     
         } catch (e) {
-            statusEl.innerHTML = `…`;   // fallback HTML
+            statusEl.innerHTML = `<button class="bar-btn" id="bar-btn-wifi" style="background-color:#f1f3f4;" onclick="showWiFiPopup()">
+            <span style="color:#000000ff; vertical-align:middle;">Disconnected &nbsp;</span>
+            <span class="material-icons" style="color:#000000ff; font-size:28px; vertical-align:middle;">wifi_off</span>
+        </button>`;   // fallback HTML
             showWifiDisconnectedWarning();
         }
     }
