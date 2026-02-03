@@ -388,9 +388,9 @@ if (!document.getElementById('wifi-spinner-style')) {
         `;
     
         banner.innerHTML = `
-            <span class="material-icons" style="color:#b76e00; font-size:28px;">warning</span>
-            <span>Wi-Fi is disconnected — <a href="#" style="color:#b76e00; text-decoration:underline; cursor:pointer;" onclick="showWiFiPopup(); return false;">Connect now</a></span>
-            <button onclick="this.parentElement.remove()" style="margin-left:auto; background:none; border:none; cursor:pointer; color:#856404; font-size:20px;">×</button>
+            <span class="material-icons" style="color:#b76e00; font-size:58px;">warning</span>
+            <span style="font-size:16px; font-weight:500;">Wi-Fi is disconnected — <a href="#" style="color:#b76e00; text-decoration:underline; cursor:pointer;" onclick="showWiFiPopup(); return false;">Connect now</a></span>
+            <button onclick="this.parentElement.remove()" style="margin-left:auto; background:none; border:none; cursor:pointer; color:#856404; font-size:30px;">×</button>
         `;
     
         document.body.appendChild(banner);
