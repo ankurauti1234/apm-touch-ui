@@ -1,3 +1,136 @@
+
+// ────────────────────────────────────────────────
+// Wi-Fi Disconnected Warning (only visible in screensaver)
+let wifiWarningElement = null;
+let wifiCheckInterval = null;
+
+function createWifiWarning() {
+    if (wifiWarningElement) return; // already exists
+
+    wifiWarningElement = document.createElement('div');
+    wifiWarningElement.id = 'screensaver-wifi-warning';
+    
+    Object.assign(wifiWarningElement.style, {
+        position: 'absolute',
+        bottom: '40px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'rgba(30, 33, 40, 0.92)',     // dark semi-transparent
+        color: '#ff9800',                           // orange accent
+        padding: '16px 32px',
+        borderRadius: '16px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        fontSize: '26px',
+        fontWeight: '500',
+        zIndex: '100',
+        opacity: '0',
+        transition: 'opacity 0.5s ease, transform 0.5s ease',
+        maxWidth: '90%',
+        pointerEvents: 'auto',
+        cursor: 'pointer',
+    });
+
+    wifiWarningElement.innerHTML = `
+        <span class="material-icons" style="font-size:42px; color:#ff9800;">wifi_off</span>
+        <div>
+            <div style="font-size:28px; color:#ff9800; margin-bottom:4px;">
+                Wi-Fi Disconnected
+            </div>
+            <div style="font-size:22px; color:rgba(255,255,255,0.9);">
+                Please connect to continue → Tap here to open Wi-Fi settings
+            </div>
+        </div>
+    `;
+
+    // Tap/click → open Wi-Fi popup (assuming showWiFiPopup is global/accessible)
+    wifiWarningElement.addEventListener('click', () => {
+        if (typeof showWiFiPopup === 'function') {
+            showWiFiPopup();
+            // Optional: hide screensaver after opening popup
+            // hideScreensaver();
+        }
+    });
+
+    // Append to wrapper or saver — wrapper is better (centered with clock)
+    const target = document.getElementById('clock-wrapper') || saver;
+    target.appendChild(wifiWarningElement);
+}
+
+function showWifiWarningInSaver() {
+    if (!wifiWarningElement) createWifiWarning();
+    
+    wifiWarningElement.style.opacity = '1';
+    wifiWarningElement.style.transform = 'translateX(-50%) translateY(0)';
+}
+
+function hideWifiWarningInSaver() {
+    if (!wifiWarningElement) return;
+    wifiWarningElement.style.opacity = '0';
+    wifiWarningElement.style.transform = 'translateX(-50%) translateY(20px)';
+}
+
+async function checkWifiInScreensaver() {
+    // Only check if screensaver is actually visible
+    if (saver.style.visibility !== 'visible' || saver.style.opacity < '0.9') {
+        hideWifiWarningInSaver();
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/current_wifi');
+        const data = await res.json();
+
+        if (data.success && data.ssid) {
+            // Connected → hide warning
+            hideWifiWarningInSaver();
+        } else {
+            // Disconnected → show warning
+            showWifiWarningInSaver();
+        }
+    } catch (err) {
+        // On error (network issue?) treat as disconnected
+        showWifiWarningInSaver();
+        console.warn('Wi-Fi status check failed in screensaver:', err);
+    }
+}
+
+// Start periodic check ONLY when screensaver becomes visible
+function startWifiCheckInSaver() {
+    if (wifiCheckInterval) clearInterval(wifiCheckInterval);
+    
+    checkWifiInScreensaver(); // immediate check
+    wifiCheckInterval = setInterval(checkWifiInScreensaver, 15000); // every 15 seconds
+}
+
+function stopWifiCheckInSaver() {
+    if (wifiCheckInterval) {
+        clearInterval(wifiCheckInterval);
+        wifiCheckInterval = null;
+    }
+    hideWifiWarningInSaver();
+}
+
+// Hook into show/hide
+const originalShowScreensaver = showScreensaver;
+showScreensaver = function() {
+    originalShowScreensaver();
+    startWifiCheckInSaver();
+};
+
+const originalHideScreensaver = hideScreensaver;
+hideScreensaver = function() {
+    originalHideScreensaver();
+    stopWifiCheckInSaver();
+};
+
+// Cleanup on unload
+window.addEventListener('beforeunload', () => {
+    stopWifiCheckInSaver();
+});
+
 /* ==============================================================
    screensaver.js
    Full screensaver + clock + pre-dim + brightness control
