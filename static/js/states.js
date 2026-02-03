@@ -39,6 +39,8 @@ const states = {
                     <span class="material-icons">settings</span> Change Wi-Fi
                 </button>
             </div>
+            <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+            </div>
         ` : `
             <div class="button-group">
                 <button class="button" onclick="checkWiFi()">
@@ -47,6 +49,8 @@ const states = {
                 <button class="button" onclick="navigate('network_test','gsm')">
                     <span class="material-icons">cell_tower</span> GSM
                 </button>
+            </div>
+            <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
             </div>
         `}
          `,
