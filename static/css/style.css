@@ -2173,3 +2173,52 @@ input[type="number"] {
 }
 
 
+/* Full-screen Wi-Fi disconnected warning */
+#wifi-disconnected-warning {
+    position: fixed;
+    inset: 0 0 60px 0;          /* leave space for bottom bar (~60px) */
+    background: rgba(245, 158, 11, 0.92);  /* amber/orange warning */
+    color: white;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 900;
+    text-align: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+#wifi-disconnected-warning.visible {
+    display: flex;
+}
+
+#wifi-disconnected-warning h2 {
+    margin: 0 0 16px 0;
+    font-size: 2.1rem;
+}
+
+#wifi-disconnected-warning p {
+    margin: 0 0 28px 0;
+    font-size: 1.15rem;
+    opacity: 0.95;
+}
+
+#wifi-disconnected-warning .connect-btn {
+    background: white;
+    color: #f59e0b;
+    border: none;
+    padding: 14px 32px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: all 0.2s;
+}
+
+#wifi-disconnected-warning .connect-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
