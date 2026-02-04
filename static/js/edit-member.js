@@ -154,17 +154,30 @@ async function saveMemberName() {
         const d = await r.json();
 
         if (d.success) {
-            // Update the local member with the new name
-            membersData.members[selectedMemberIndex].name = name;
-
-            // Optional: if backend returns updated member object
+            const idx = selectedMemberIndex;
+            const member = membersData.members[idx];
+        
+            const preservedAvatar = member.avatar;  // save it NOW
+        
+            member.name = name;
+        
             if (d.member) {
-                membersData.members[selectedMemberIndex] = d.member;
+                membersData.members[idx] = {
+                    ...d.member,
+                    avatar: d.member.avatar || preservedAvatar   // prevent backend from dropping it
+                };
             }
-
-            render(); // Refresh the member list UI
+        
+            render();
+        
+            // Force screensaver refresh with current data
+            if (saver.style.visibility === 'visible' && window.Screensaver) {
+                Screensaver.setMembers(membersData.members);
+            }
+        
             closeEditMemberPopup();
-        } else {
+        }
+        else {
             showErrorInPopup(d.error || 'Failed to save name', err);
         }
     } catch (e) {
