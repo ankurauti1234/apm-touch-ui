@@ -402,31 +402,25 @@ window.addEventListener('beforeunload', () => {
    
    // ────────────────────────────────────────────────
    function showScreensaver() {
-    saver.style.visibility = 'visible';
-    saver.style.opacity = '1';
-
-    if (window.Screensaver) {
-        if (membersData?.members?.length > 0) {
-            // Prefer current in-memory data (has your recent name edits)
-            Screensaver.setMembers(membersData.members);
-        } else {
-            // Only fetch if we really have nothing
-            console.warn("No members in memory → fetching fresh data for screensaver");
-            fetchMembers().then(() => {
-                if (membersData?.members) {
-                    Screensaver.setMembers(membersData.members);
-                }
-            });
-        }
-    }
-
-    try { saver.focus({ preventScroll: true }); } catch (e) {}
-
-    const weatherEl = document.getElementById('weather-status');
-    if (weatherEl && membersData?.members?.some(m => m.active)) {
-        weatherEl.style.opacity = '0.9';
-    }
-}
+       saver.style.visibility = 'visible';
+       saver.style.opacity = '1';
+   
+       if (window.Screensaver && membersData?.members) {
+           Screensaver.setMembers(membersData.members);
+       } else if (typeof fetchMembers === 'function') {
+           fetchMembers().then(() => {
+               if (membersData?.members) Screensaver.setMembers(membersData.members);
+           });
+       }
+   
+       try { saver.focus({ preventScroll: true }); } catch (e) {}
+   
+       // Show weather when screensaver appears (if members active)
+       const weatherEl = document.getElementById('weather-status');
+       if (weatherEl && membersData?.members?.some(m => m.active)) {
+           weatherEl.style.opacity = '0.9';
+       }
+   }
    
    function hideScreensaver() {
        saver.style.opacity = '0';
