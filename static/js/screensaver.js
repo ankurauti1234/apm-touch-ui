@@ -593,7 +593,7 @@ window.addEventListener('beforeunload', () => {
                    maxWidth: '140px',
                    wordBreak: 'break-word',
                });
-               label.textContent = m.member_code || m.name || 'Unknown';
+               label.textContent = m.name || m.member_code || 'Unknown';
    
                container.appendChild(icon);
                container.appendChild(label);

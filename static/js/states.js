@@ -39,8 +39,6 @@ const states = {
                     <span class="material-icons">settings</span> Change Wi-Fi
                 </button>
             </div>
-            <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
-            </div>
         ` : `
             <div class="button-group">
                 <button class="button" onclick="checkWiFi()">
@@ -323,6 +321,7 @@ const states = {
                         <span class="btn-text">Add Guest &nbsp;</span>
                         <span class="guest-count">${guests.length} / 8</span>
                     </button>
+                    <button onclick="uploadImage('M3')">Upload Photo</button>
                     <div id="bar-wifi-status">
                     
                     </div>
