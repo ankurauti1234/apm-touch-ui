@@ -585,7 +585,7 @@ window.addEventListener('beforeunload', () => {
    
                const label = document.createElement('div');
                Object.assign(label.style, {
-                   fontSize: '44px',
+                   fontSize: '30px',
                    fontWeight: '600',
                    color: 'white',
                    textShadow: '0 2px 4px rgba(0,0,0,0.6)',
