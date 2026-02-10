@@ -1,10 +1,11 @@
+
 // ────────────────────────────────────────────────
 // Wi-Fi Disconnected Warning (only visible in screensaver)
 let wifiWarningElement = null;
 let wifiCheckInterval = null;
 
 function createWifiWarning() {
-    if (wifiWarningElement) return;
+    if (wifiWarningElement) return; // already exists
 
     wifiWarningElement = document.createElement('div');
     wifiWarningElement.id = 'screensaver-wifi-warning';
@@ -14,8 +15,8 @@ function createWifiWarning() {
         bottom: '40px',
         left: '50%',
         transform: 'translateX(-50%)',
-        background: 'rgba(30, 33, 40, 0.92)',
-        color: '#ff9800',
+        background: 'rgba(30, 33, 40, 0.92)',     // dark semi-transparent
+        color: '#ff9800',                           // orange accent
         padding: '16px 32px',
         borderRadius: '16px',
         boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
@@ -44,18 +45,23 @@ function createWifiWarning() {
         </div>
     `;
 
+    // Tap/click → open Wi-Fi popup (assuming showWiFiPopup is global/accessible)
     wifiWarningElement.addEventListener('click', () => {
         if (typeof showWiFiPopup === 'function') {
             showWiFiPopup();
+            // Optional: hide screensaver after opening popup
+            // hideScreensaver();
         }
     });
 
-    const target = document.getElementById('clock-wrapper') || document.getElementById('screensaver');
+    // Append to wrapper or saver — wrapper is better (centered with clock)
+    const target = document.getElementById('clock-wrapper') || saver;
     target.appendChild(wifiWarningElement);
 }
 
 function showWifiWarningInSaver() {
     if (!wifiWarningElement) createWifiWarning();
+    
     wifiWarningElement.style.opacity = '1';
     wifiWarningElement.style.transform = 'translateX(-50%) translateY(0)';
 }
@@ -67,8 +73,8 @@ function hideWifiWarningInSaver() {
 }
 
 async function checkWifiInScreensaver() {
-    const saver = document.getElementById('screensaver');
-    if (!saver || saver.style.visibility !== 'visible' || saver.style.opacity < '0.9') {
+    // Only check if screensaver is actually visible
+    if (saver.style.visibility !== 'visible' || saver.style.opacity < '0.9') {
         hideWifiWarningInSaver();
         return;
     }
@@ -76,21 +82,27 @@ async function checkWifiInScreensaver() {
     try {
         const res = await fetch('/api/current_wifi');
         const data = await res.json();
+
         if (data.success && data.ssid) {
+            // Connected → hide warning
             hideWifiWarningInSaver();
         } else {
+            // Disconnected → show warning
             showWifiWarningInSaver();
         }
     } catch (err) {
+        // On error (network issue?) treat as disconnected
         showWifiWarningInSaver();
-        console.warn('Wi-Fi status check failed:', err);
+        console.warn('Wi-Fi status check failed in screensaver:', err);
     }
 }
 
+// Start periodic check ONLY when screensaver becomes visible
 function startWifiCheckInSaver() {
     if (wifiCheckInterval) clearInterval(wifiCheckInterval);
-    checkWifiInScreensaver();
-    wifiCheckInterval = setInterval(checkWifiInScreensaver, 15000);
+    
+    checkWifiInScreensaver(); // immediate check
+    wifiCheckInterval = setInterval(checkWifiInScreensaver, 15000); // every 15 seconds
 }
 
 function stopWifiCheckInSaver() {
@@ -101,14 +113,35 @@ function stopWifiCheckInSaver() {
     hideWifiWarningInSaver();
 }
 
-// ────────────────────────────────────────────────
-// Screensaver + Clock + Weather + Members layout
-// ────────────────────────────────────────────────
+// Hook into show/hide
+const originalShowScreensaver = showScreensaver;
+showScreensaver = function() {
+    originalShowScreensaver();
+    startWifiCheckInSaver();
+};
 
-let saver = document.getElementById('screensaver');
-let wrapper;
+const originalHideScreensaver = hideScreensaver;
+hideScreensaver = function() {
+    originalHideScreensaver();
+    stopWifiCheckInSaver();
+};
 
-if (!saver) {
+// Cleanup on unload
+window.addEventListener('beforeunload', () => {
+    stopWifiCheckInSaver();
+});
+
+/* ==============================================================
+   screensaver.js
+   Full screensaver + clock + pre-dim + brightness control
+   FIXED & CLEAN – no syntax errors
+   + Repeating 20-minute inactivity reminder for same members
+   + Weather status (Yerevan, Armenia) only on screensaver when members active
+   ============================================================== */
+
+   let wrapper;
+   let saver = document.getElementById('screensaver');
+   if (!saver) {
     saver = document.createElement('div');
     saver.id = 'screensaver';
     Object.assign(saver.style, {
@@ -131,62 +164,63 @@ if (!saver) {
     });
     document.body.appendChild(saver);
 
-    // Main content wrapper
+    // ── Main content container ────────────────────────────────
     wrapper = document.createElement('div');
     wrapper.id = 'clock-wrapper';
     Object.assign(wrapper.style, {
         width: '100%',
-        maxWidth: '1600px',
-        height: '90%',
+        maxWidth: '1600px',           // prevent too wide on large screens
+        height: '100%',
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 5vw',
-        gap: '60px',
+        padding: '0 60px',
+        gap: '40px',
         boxSizing: 'border-box',
     });
 
-    // LEFT COLUMN: Clock + Date + Weather
+    // ── LEFT SIDE ── Clock + Date + Weather ───────────────────
     const leftColumn = document.createElement('div');
     Object.assign(leftColumn.style, {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        minWidth: '500px',
+        minWidth: '480px',
         flexShrink: 0,
     });
 
     const timeEl = document.createElement('div');
     timeEl.id = 'clock-time';
     Object.assign(timeEl.style, {
-        fontSize: '140px',
+        fontSize: '120px',            // made a bit bigger
         fontWeight: '700',
         lineHeight: '1',
-        letterSpacing: '-4px',
+        letterSpacing: '-2px',
     });
 
     const dateEl = document.createElement('div');
     dateEl.id = 'clock-date';
     Object.assign(dateEl.style, {
-        fontSize: '48px',
+        fontSize: '42px',
         fontWeight: '400',
-        marginTop: '20px',
-        opacity: '0.9',
+        marginTop: '16px',
+        opacity: '0.92',
     });
 
+    // Weather – now inside left column, below date
     const weatherEl = document.createElement('div');
     weatherEl.id = 'weather-status';
     Object.assign(weatherEl.style, {
-        marginTop: '80px',
+        marginTop: '60px',
+        fontSize: '28px',
+        color: '#a0d8ef',
         display: 'flex',
         alignItems: 'center',
         gap: '16px',
-        fontSize: '28px',
-        color: '#a0d8ef',
         opacity: '0',
-        transition: 'opacity 0.7s ease',
+        transition: 'opacity 0.6s ease',
         pointerEvents: 'none',
     });
 
@@ -194,33 +228,34 @@ if (!saver) {
     leftColumn.appendChild(dateEl);
     leftColumn.appendChild(weatherEl);
 
-    // RIGHT COLUMN: Members grid (3 columns)
+    // ── RIGHT SIDE ── Members grid ────────────────────────────
     const rightColumn = document.createElement('div');
     Object.assign(rightColumn.style, {
         flex: '1',
         display: 'flex',
         justifyContent: 'flex-end',
         alignItems: 'center',
-        height: '100%',
     });
 
-    const membersGrid = document.createElement('div');
-    membersGrid.id = 'screensaver-members';
-    Object.assign(membersGrid.style, {
+    const membersRow = document.createElement('div');
+    membersRow.id = 'screensaver-members';
+    Object.assign(membersRow.style, {
         display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '40px 60px',
+        gridTemplateColumns: 'repeat(3, 1fr)',   // ← 3 per row
+        gap: '32px 48px',
         justifyItems: 'center',
-        maxWidth: '900px',
+        maxWidth: '720px',                        // adjust as needed
     });
 
-    rightColumn.appendChild(membersGrid);
+    rightColumn.appendChild(membersRow);
 
+    // Put both columns into wrapper
     wrapper.appendChild(leftColumn);
     wrapper.appendChild(rightColumn);
+
     saver.appendChild(wrapper);
 
-    // No active members warning (fullscreen overlay)
+    // Warning message (centered when no members)
     const warningMsg = document.createElement('div');
     warningMsg.id = 'screensaver-warning';
     Object.assign(warningMsg.style, {
@@ -229,13 +264,12 @@ if (!saver) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '42px',
+        fontSize: '38px',
         fontWeight: '600',
         textAlign: 'center',
         padding: '0 10%',
         lineHeight: '1.4',
-        background: 'rgba(200,0,0,0.7)',
-        color: 'white',
+        background: 'rgba(0,0,0,0.4)',
         display: 'none',
     });
     warningMsg.innerHTML = `
@@ -244,208 +278,415 @@ if (!saver) {
     `;
     saver.appendChild(warningMsg);
 }
+   
+   // Clock update
+   function updateClock() {
+       const now = new Date();
+       const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+       const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });
+       const day = now.getDate();
+       const month = now.toLocaleDateString('en-IN', { month: 'short' });
+       const year = now.getFullYear();
+       const date = `${weekday}, ${day} ${month} ${year}`;
+   
+       document.getElementById('clock-time').textContent = time;
+       document.getElementById('clock-date').textContent = date;
+   }
+   
+   setInterval(updateClock, 1000);
+   updateClock();
+   
+   // Fetch weather – called only when needed
+   async function fetchWeather() {
+       try {
+           const response = await fetch(
+               'https://api.open-meteo.com/v1/forecast?latitude=40.18&longitude=44.51&current=temperature_2m,weather_code&timezone=Asia/Yerevan'
+           );
+           const data = await response.json();
+           const current = data.current;
+           const temp = Math.round(current.temperature_2m);
+           const weatherCode = current.weather_code;
+   
+           let icon = '🌤️';
+           let condition = 'Clear';
+           if (weatherCode >= 0 && weatherCode <= 3) { icon = '/static/assets/sunny.png'; condition = 'Sunny'; }
+           else if (weatherCode <= 48) { icon = '/static/assets/cloudy.png'; condition = 'Cloudy'; }
+           else if (weatherCode <= 67) { icon = '/static/assets/rainy.png'; condition = 'Rainy'; }
+           else if (weatherCode <= 77) { icon = '/static/assets/snow.png'; condition = 'Snowy'; }
+           else if (weatherCode <= 99) { icon = '/static/assets/thunderstrom.png'; condition = 'Thunderstrom'; }
+   
+           const weatherEl = document.getElementById('weather-status');
+           weatherEl.innerHTML = `
+                <div>
+                    <div style="font-weight:600; display:flex; align-items:center; gap:8px;">
+                    <img src="${icon}" alt="${condition}" style="width:78px; height:78px;" />
+                    <span style="font-size:60px;">${temp}°C</span>
+                    </div>
+                    <div style="font-size:30px; opacity:0.9;">
+                    Yerevan, ${condition}
+                    </div>
+                </div>
+           `;
 
-// ── Clock update ────────────────────────────────────────
-function updateClock() {
-    const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });
-    const day = now.getDate();
-    const month = now.toLocaleDateString('en-IN', { month: 'short' });
-    const year = now.getFullYear();
-    const dateStr = `${weekday}, ${day} ${month} ${year}`;
+           weatherEl.style.opacity = '0.9'; // fade in
+       } catch (err) {
+           console.error('Weather fetch failed:', err);
+           const weatherEl = document.getElementById('weather-status');
+           weatherEl.innerHTML = '<div style="font-size:24px; opacity:0.7;">Weather unavailable</div>';
+           weatherEl.style.opacity = '0.7';
+       }
+   }
+   
+   // ────────────────────────────────────────────────
+   // Repeating reminder every 20 minutes
+   let lastActiveMemberKeys = '';
+   let reminderInterval = null;
+   
+   function resetReminderTimer(activeMembers = []) {
+       const currentKeys = activeMembers
+           .map(m => m.member_code || m.id || m.name || '')
+           .filter(Boolean)
+           .sort()
+           .join('|');
+   
+       if (currentKeys !== lastActiveMemberKeys) {
+           lastActiveMemberKeys = currentKeys;
+           hideInactivityWarning();
+   
+           if (reminderInterval) {
+               clearInterval(reminderInterval);
+               reminderInterval = null;
+           }
+   
+           if (activeMembers.length > 0) {
+               setTimeout(showInactivityWarning, 20 * 60 * 1000);
+               reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
+               // Fetch weather when members become active
+               fetchWeather();
+           } else {
+               // Hide weather when no active members
+               const weatherEl = document.getElementById('weather-status');
+               if (weatherEl) weatherEl.style.opacity = '0';
+           }
+       }
+   }
+   
+   function showInactivityWarning() {
+       const now = new Date();
+       const timestamp = now.toLocaleString('en-IN', {
+           year: 'numeric', month: '2-digit', day: '2-digit',
+           hour: '2-digit', minute: '2-digit', second: '2-digit',
+           hour12: false
+       });
+   
+       console.log(`[REMINDER SHOWN] ${timestamp} | Same members active for ≥20 min | Visible for 60 seconds`);
+   
+       let msg = document.getElementById('inactivity-warning');
+       if (!msg) {
+           msg = document.createElement('div');
+           msg.id = 'inactivity-warning';
+           Object.assign(msg.style, {
+               position: 'fixed',
+               top: '16px', left: '16px', right: '16px',
+               maxWidth: '580px', margin: '0 auto',
+               backgroundColor: 'rgba(32, 33, 36, 0.92)',
+               color: '#e0e0e0',
+               borderRadius: '24px',
+               boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+               overflow: 'hidden',
+               zIndex: '9999',
+               display: 'none',
+               fontFamily: 'Roboto, system-ui, sans-serif',
+               padding: '0',
+               opacity: '0',
+               transform: 'translateY(-20px)',
+               transition: 'all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)',
+           });
+   
+           msg.innerHTML = `
+               <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                   <div style="width:32px; height:32px; background:#ff9800; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; margin-right:16px; flex-shrink:0;">
+                       !
+                   </div>
+                   <div style="flex:1; min-width:0;">
+                       <div style="font-size:25px; font-weight:500; color:#8ab4f8;">
+                           APM Meter
+                       </div>
+                       <div style="font-size:12px; color:rgba(255,255,255,0.7);">just now</div>
+                   </div>
+               </div>
+               <div style="padding:16px 20px;">
+                   <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
+                       The same members have been active for a long time change them if needed.
+                   </div>
+                   <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                       Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժեշտության դեպքում փոխեք նրանց
+                   </div>
+               </div>
+           `;
+   
+           saver.appendChild(msg);
+       }
+   
+       msg.style.display = 'block';
+       setTimeout(() => {
+           msg.style.opacity = '1';
+           msg.style.transform = 'translateY(0)';
+       }, 10);
+   
+       setTimeout(() => {
+           msg.style.opacity = '0';
+           msg.style.transform = 'translateY(-20px)';
+           setTimeout(() => { msg.style.display = 'none'; }, 400);
+       }, 30 * 1000);
+   }
+   
+   function hideInactivityWarning() {
+       const msg = document.getElementById('inactivity-warning');
+       if (msg) {
+           msg.style.opacity = '0';
+           msg.style.transform = 'translateY(-20px)';
+           setTimeout(() => { msg.style.display = 'none'; }, 400);
+       }
+   }
+   
+   window.addEventListener('beforeunload', () => {
+       if (reminderInterval) clearInterval(reminderInterval);
+   });
+   
+   // ────────────────────────────────────────────────
+   function showScreensaver() {
+       saver.style.visibility = 'visible';
+       saver.style.opacity = '1';
+   
+       if (window.Screensaver && membersData?.members) {
+           Screensaver.setMembers(membersData.members);
+       } else if (typeof fetchMembers === 'function') {
+           fetchMembers().then(() => {
+               if (membersData?.members) Screensaver.setMembers(membersData.members);
+           });
+       }
+   
+       try { saver.focus({ preventScroll: true }); } catch (e) {}
+   
+       // Show weather when screensaver appears (if members active)
+       const weatherEl = document.getElementById('weather-status');
+       if (weatherEl && membersData?.members?.some(m => m.active)) {
+           weatherEl.style.opacity = '0.9';
+       }
+   }
+   
+   function hideScreensaver() {
+       saver.style.opacity = '0';
+       setTimeout(() => { saver.style.visibility = 'hidden'; }, 1000);
+   
+       // Hide weather when screensaver hides
+       const weatherEl = document.getElementById('weather-status');
+       if (weatherEl) weatherEl.style.opacity = '0';
+   }
+   
+   async function preDimBrightness() {
+       if (isDimmed) return;
+       const current = originalBrightness ?? 153;
+       originalBrightness = current;
+       const minBrightness = 51;
+       if (current <= minBrightness + 5) return;
+   
+       await updateBrightnessAPI(minBrightness);
+       isDimmed = true;
+       console.log(`[PRE-DIM] ${current} → ${minBrightness}`);
+   }
+   
+   async function restoreBrightness() {
+       if (!isDimmed) return;
+       const value = originalBrightness ?? 153;
+       isDimmed = false;
+       await updateBrightnessAPI(value);
+       console.log(`[RESTORE] ${value}`);
+   }
+   
+   async function updateBrightnessAPI(value) {
+       const mapped = Math.round(51 + (value / 255) * (255 - 51));
+       return fetch("/api/brightness", {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ brightness: mapped })
+       }).catch(err => console.error("Brightness API error:", err));
+   }
+   
+   function resetScreensaverTimer() {
+       clearTimeout(screensaverTimeout);
+       clearTimeout(preDimTimeout);
+       hideScreensaver();
+       restoreBrightness();
+   
+       preDimTimeout = setTimeout(preDimBrightness, 20000);
+       screensaverTimeout = setTimeout(showScreensaver, 20000);
+   }
+   
+   function blockEventIfActive(e) {
+       if (saver.style.visibility === 'visible' && saver.style.opacity !== '0' && !saver.contains(e.target)) {
+           e.preventDefault();
+           e.stopPropagation();
+           e.stopImmediatePropagation();
+       }
+   }
+   
+   ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click',
+    'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
+       document.addEventListener(evt, blockEventIfActive, { capture: true, passive: false });
+   });
+   
+   saver.addEventListener('click', () => {
+       hideScreensaver();
+       resetScreensaverTimer();
+   }, { capture: true });
+   
+   ['mousemove', 'keypress', 'click', 'touchstart'].forEach(evt => {
+       document.addEventListener(evt, () => {
+           if (currentState === 'main') resetScreensaverTimer();
+       }, { passive: true });
+   });
+   
+   const membersRow = document.createElement('div');
+   membersRow.id = 'screensaver-members';
+   Object.assign(membersRow.style, {
+       display: 'flex',
+       gap: '16px',
+       marginTop: '30px',
+       flexWrap: 'wrap',
+       justifyContent: 'center'
+   });
+   wrapper.appendChild(membersRow);
+   
+   const warningMsg = document.createElement('div');
+   warningMsg.id = 'screensaver-warning';
+   Object.assign(warningMsg.style, {
+       fontSize: '35px',
+       fontWeight: 'bold',
+       textAlign: 'center',
+       color: 'white',
+       marginTop: '20px',
+       lineHeight: '1.3',
+       padding: '0 20px',
+       maxWidth: '90%',
+       display: 'none'
+   });
+   warningMsg.innerHTML = `
+       No active members! Please activate at least one.<br><br>
+       Ակտիվ անդամներ չկան! Խնդրում ենք ակտիվացնել առնվազն մեկին.
+   `;
+   wrapper.appendChild(warningMsg);
+   
+   const styleSheet = document.createElement('style');
+   styleSheet.textContent = `
+       @keyframes blink {
+           0% { background-color: red; }
+           50% { background-color: darkred; }
+           100% { background-color: red; }
+       }
+       .blinking { animation: blink 1s infinite; }
+   `;
+   document.head.appendChild(styleSheet);
+   
+   function updateScreensaverMembers(members = []) {
+    const row       = document.getElementById('screensaver-members');
+    const warning   = document.getElementById('screensaver-warning');
+    const weatherEl = document.getElementById('weather-status');
 
-    document.getElementById('clock-time').textContent = time;
-    document.getElementById('clock-date').textContent = dateStr;
-}
+    if (!row || !warning) return;
 
-setInterval(updateClock, 1000);
-updateClock();
+    row.innerHTML = '';
 
-// ── Weather fetch ────────────────────────────────────────
-async function fetchWeather() {
-    try {
-        const res = await fetch(
-            'https://api.open-meteo.com/v1/forecast?latitude=40.18&longitude=44.51&current=temperature_2m,weather_code&timezone=Asia/Yerevan'
-        );
-        const data = await res.json();
-        const current = data.current;
-        const temp = Math.round(current.temperature_2m);
-        const code = current.weather_code;
+    const activeMembers = members.filter(m => m.active === true);
+    resetReminderTimer(activeMembers);
 
-        let icon = '/static/assets/sunny.png';
-        let condition = 'Sunny';
-        if (code >= 1 && code <= 3) { icon = '/static/assets/sunny.png'; condition = 'Sunny'; }
-        else if (code <= 48)       { icon = '/static/assets/cloudy.png'; condition = 'Cloudy'; }
-        else if (code <= 67)       { icon = '/static/assets/rainy.png';  condition = 'Rainy'; }
-        else if (code <= 77)       { icon = '/static/assets/snow.png';   condition = 'Snowy'; }
-        else if (code <= 99)       { icon = '/static/assets/thunderstrom.png'; condition = 'Thunderstorm'; }
-
-        const weatherEl = document.getElementById('weather-status');
-        weatherEl.innerHTML = `
-            <div style="display:flex; align-items:center; gap:16px;">
-                <img src="${icon}" alt="${condition}" style="width:90px; height:90px;" />
-                <span style="font-size:72px; font-weight:600;">${temp}°C</span>
-            </div>
-            <div style="font-size:34px; opacity:0.9; margin-top:8px;">
-                Yerevan, ${condition}
-            </div>
-        `;
-        weatherEl.style.opacity = '0.92';
-    } catch (err) {
-        console.error('Weather fetch failed:', err);
-        const weatherEl = document.getElementById('weather-status');
-        weatherEl.innerHTML = '<div style="font-size:28px; opacity:0.7;">Weather unavailable</div>';
-        weatherEl.style.opacity = '0.7';
-    }
-}
-
-// Periodic weather refresh
-let weatherRefreshInterval = null;
-function startWeatherRefresh() {
-    if (weatherRefreshInterval) return;
-    fetchWeather();
-    weatherRefreshInterval = setInterval(fetchWeather, 30 * 60 * 1000);
-}
-startWeatherRefresh();
-
-// ── Inactivity reminder every 20 min ─────────────────────
-let lastActiveMemberKeys = '';
-let reminderInterval = null;
-
-function resetReminderTimer(activeMembers = []) {
-    const currentKeys = activeMembers
-        .map(m => m.member_code || m.id || m.name || '')
-        .filter(Boolean)
-        .sort()
-        .join('|');
-
-    if (currentKeys !== lastActiveMemberKeys) {
-        lastActiveMemberKeys = currentKeys;
-        hideInactivityWarning();
-
-        if (reminderInterval) {
-            clearInterval(reminderInterval);
-            reminderInterval = null;
-        }
-
-        if (activeMembers.length > 0) {
-            setTimeout(showInactivityWarning, 20 * 60 * 1000);
-            reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
-            fetchWeather();
-        } else {
-            document.getElementById('weather-status')?.style.setProperty('opacity', '0');
-        }
-    }
-}
-
-function showInactivityWarning() {
-    console.log(`[Inactivity reminder] ${new Date().toLocaleString()}`);
-    let msg = document.getElementById('inactivity-warning');
-    if (!msg) {
-        msg = document.createElement('div');
-        msg.id = 'inactivity-warning';
-        // ... (keep your original inactivity warning styling and content)
-        // For brevity I'm not repeating the full HTML here — copy from your original if needed
-        saver.appendChild(msg);
-    }
-    // ... show logic (fade in, timeout fade out after 30s)
-}
-
-function hideInactivityWarning() {
-    const msg = document.getElementById('inactivity-warning');
-    if (msg) {
-        // ... hide logic
-    }
-}
-
-// ── Show / Hide screensaver ──────────────────────────────
-function showScreensaver() {
-    saver.style.visibility = 'visible';
-    saver.style.opacity = '1';
-    startWifiCheckInSaver();
-    startWeatherRefresh();
-
-    if (window.Screensaver && membersData?.members) {
-        Screensaver.setMembers(membersData.members);
-    }
-}
-
-function hideScreensaver() {
-    saver.style.opacity = '0';
-    setTimeout(() => { saver.style.visibility = 'hidden'; }, 1000);
-    stopWifiCheckInSaver();
-}
-
-// ── Members display ──────────────────────────────────────
-function updateScreensaverMembers(members = []) {
-    const grid    = document.getElementById('screensaver-members');
-    const warning = document.getElementById('screensaver-warning');
-    const weather = document.getElementById('weather-status');
-
-    if (!grid || !warning) return;
-
-    grid.innerHTML = '';
-
-    const active = members.filter(m => m.active === true);
-    resetReminderTimer(active);
-
-    if (active.length === 0) {
+    if (activeMembers.length === 0) {
         saver.style.background = 'red';
-        // blinking class if you still use it
-        wrapper.style.display = 'none';
+        saver.classList.add('blinking');
+        wrapper.style.display = 'none';           // hide clock + members
         warning.style.display = 'flex';
-        if (weather) weather.style.opacity = '0';
         hideInactivityWarning();
+        if (weatherEl) weatherEl.style.opacity = '0';
     } else {
         saver.style.background = 'black';
+        saver.classList.remove('blinking');
         wrapper.style.display = 'flex';
         warning.style.display = 'none';
-        if (weather) weather.style.opacity = '0.92';
+        if (weatherEl) weatherEl.style.opacity = '0.9';
+
+        // Fetch weather only when we have active members
         fetchWeather();
 
-        active.forEach(m => {
-            const item = document.createElement('div');
-            Object.assign(item.style, {
+        activeMembers.forEach(m => {
+            const container = document.createElement('div');
+            Object.assign(container.style, {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '14px',
+                gap: '12px',
             });
 
-            const avatar = document.createElement('div');
-            Object.assign(avatar.style, {
-                width: '160px',
-                height: '160px',
+            const icon = document.createElement('div');
+            Object.assign(icon.style, {
+                width: '140px',
+                height: '140px',
                 borderRadius: '50%',
                 backgroundImage: `url(${m.avatar})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                boxShadow: '0 6px 24px rgba(0,0,0,0.5)',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.5)',
             });
 
-            const name = document.createElement('div');
-            Object.assign(name.style, {
-                fontSize: '30px',
+            const label = document.createElement('div');
+            Object.assign(label.style, {
+                fontSize: '28px',
                 fontWeight: '600',
-                textAlign: 'center',
-                maxWidth: '180px',
-                wordBreak: 'break-word',
                 textShadow: '0 2px 6px #000',
+                textAlign: 'center',
+                maxWidth: '160px',
+                wordBreak: 'break-word',
             });
-            name.textContent = m.name || m.member_code || 'Unknown';
+            label.textContent = m.name || m.member_code || 'Unknown';
 
-            item.appendChild(avatar);
-            item.appendChild(name);
-            grid.appendChild(item);
+            container.appendChild(icon);
+            container.appendChild(label);
+            row.appendChild(container);
         });
     }
 }
+   
+   window.Screensaver = {
+       show: showScreensaver,
+       hide: hideScreensaver,
+       setMembers: updateScreensaverMembers
+   };
 
-window.Screensaver = {
-    show: showScreensaver,
-    hide: hideScreensaver,
-    setMembers: updateScreensaverMembers
-};
 
-// You can add the rest (pre-dim, brightness, event blocking, etc.) from your original code
+   //Fetch weather 
+
+   // ────────────────────────────────────────────────
+// Periodic weather refresh every 30 minutes
+let weatherRefreshInterval = null;
+
+function startWeatherRefresh() {
+    if (weatherRefreshInterval) return; // already running
+
+    // Immediate fetch + then every 30 min
+    fetchWeather();
+
+    weatherRefreshInterval = setInterval(() => {
+        fetchWeather();
+    }, 30 * 60 * 1000);
+}
+
+// Optional: stop when page is unloading (good practice)
+window.addEventListener('beforeunload', () => {
+    if (weatherRefreshInterval) {
+        clearInterval(weatherRefreshInterval);
+    }
+    if (reminderInterval) clearInterval(reminderInterval);
+});
+
+// Start periodic weather updates right away
+startWeatherRefresh();
