@@ -204,7 +204,7 @@ window.addEventListener('beforeunload', () => {
        Object.assign(weatherEl.style, {
            position: 'absolute',
            right: '-28px',                    // adjust this % or use px (e.g. '60px')
-           top: '170px',
+           top: '150px',
            transform: 'translateY(-50%)',
            fontSize: '28px',
            color: '#a0d8ef',
@@ -216,8 +216,7 @@ window.addEventListener('beforeunload', () => {
            transition: 'opacity 0.6s ease',
            pointerEvents: 'none',
            zIndex: '10',
-           marginRight: '120px',
-           marginBottom: '20px'
+           marginRight: '120px'
        });
        wrapper.appendChild(timeEl);
        wrapper.appendChild(dateEl);
