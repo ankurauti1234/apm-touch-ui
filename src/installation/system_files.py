@@ -54,7 +54,7 @@ def get_input_sources():
 
     if os.path.exists(SYSTEM_FILES["jack_status"]):
         sources.append("line_in")
-    if os.path.exists(SYSTEM_FILES["hdmi_input"]):
+    if os.path.exists(SYSTEM_FILES["input_source_hdmi"]):
         sources.append("HDMI")
 
     if not sources:
