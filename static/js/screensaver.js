@@ -186,7 +186,7 @@ window.addEventListener('beforeunload', () => {
            lineHeight: '1',
            textAlign: 'center',
            marginRight: '400px',
-           top: '100px'
+           top: '200px'
        });
    
        const dateEl = document.createElement('div');
