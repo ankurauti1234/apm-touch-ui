@@ -265,7 +265,7 @@ window.addEventListener('beforeunload', () => {
            weatherEl.innerHTML = `
                 <div>
                     <div style="font-weight:600; display:flex; align-items:center; gap:8px;">
-                    <img src="${icon}" alt="${condition}" style="width:78px; height:78px;" />
+                    <img src="${icon}" alt="${condition}" style="width:108px; height:108px;" />
                     <span style="font-size:60px;">${temp}°C</span>
                     </div>
                     <div style="font-size:30px; opacity:0.9;">
