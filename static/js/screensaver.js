@@ -265,7 +265,7 @@ window.addEventListener('beforeunload', () => {
            weatherEl.innerHTML = `
                 <div>
                     <div style="font-weight:600; display:flex; align-items:center; gap:8px;">
-                    <img src="${icon}" alt="${condition}" style="width:108px; height:108px;" />
+                    <img src="${icon}" alt="${condition}" style="width:78px; height:78px;" />
                     <span style="font-size:60px;">${temp}°C</span>
                     </div>
                     <div style="font-size:30px; opacity:0.9;">
@@ -573,8 +573,8 @@ window.addEventListener('beforeunload', () => {
    
                const icon = document.createElement('div');
                Object.assign(icon.style, {
-                   width: '110px',
-                   height: '110px',
+                   width: '210px',
+                   height: '210px',
                    borderRadius: '50%',
                    backgroundImage: `url(${m.avatar})`,
                    backgroundSize: 'cover',
