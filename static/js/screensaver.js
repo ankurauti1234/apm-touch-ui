@@ -573,7 +573,7 @@ window.addEventListener('beforeunload', () => {
    
                const icon = document.createElement('div');
                Object.assign(icon.style, {
-                   width: '210px',
+                   width: '140px',
                    height: '210px',
                    borderRadius: '50%',
                    backgroundImage: `url(${m.avatar})`,
