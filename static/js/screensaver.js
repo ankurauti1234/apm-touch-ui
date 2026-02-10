@@ -165,6 +165,7 @@ window.addEventListener('beforeunload', () => {
            transition: 'opacity 1s ease',
            visibility: 'hidden',
            outline: 'none',
+           top: '50px'
        });
        saver.tabIndex = -1;
        document.body.appendChild(saver);
