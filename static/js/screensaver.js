@@ -165,7 +165,6 @@ window.addEventListener('beforeunload', () => {
            transition: 'opacity 1s ease',
            visibility: 'hidden',
            outline: 'none',
-           top: '50px'
        });
        saver.tabIndex = -1;
        document.body.appendChild(saver);
@@ -186,7 +185,8 @@ window.addEventListener('beforeunload', () => {
            fontWeight: '600',
            lineHeight: '1',
            textAlign: 'center',
-           marginRight: '400px'
+           marginRight: '400px',
+           top: '100px'
        });
    
        const dateEl = document.createElement('div');
