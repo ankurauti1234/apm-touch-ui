@@ -259,7 +259,7 @@ window.addEventListener('beforeunload', () => {
             if (loc.lat && loc.lon) {
                 lat = loc.lat;
                 lon = loc.lon;
-                displayName = loc.name + (loc.country ? `, ${loc.country}` : '');
+                displayName = loc.name;
             }
         }
     } catch (e) {
