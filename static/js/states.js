@@ -374,6 +374,34 @@ function showCityInputPopup() {
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
 
+    let initialViewportHeight = window.visualViewport
+    ? window.visualViewport.height
+    : window.innerHeight;
+
+function handleViewportResize() {
+    const currentHeight = window.visualViewport
+        ? window.visualViewport.height
+        : window.innerHeight;
+
+    const popup = document.getElementById('city-input-popup');
+    if (!popup) return;
+
+    // If height shrinks → keyboard likely open
+    if (currentHeight < initialViewportHeight - 100) {
+        popup.classList.add('lifted');
+    } else {
+        popup.classList.remove('lifted');
+    }
+}
+
+// Listen for viewport resize
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', handleViewportResize);
+} else {
+    window.addEventListener('resize', handleViewportResize);
+}
+
+
     const cityInput = document.getElementById('city-input-field');
 
     if (cityInput) {
@@ -410,9 +438,17 @@ function liftCityPopup() {
 function closeCityInputPopup() {
     const overlay = document.getElementById('city-input-overlay');
     const popup   = document.getElementById('city-input-popup');
+
+    if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportResize);
+    } else {
+        window.removeEventListener('resize', handleViewportResize);
+    }
+
     if (overlay) overlay.remove();
     if (popup)   popup.remove();
 }
+
 
 // Save (unchanged)
 async function saveCityAndUpdate() {

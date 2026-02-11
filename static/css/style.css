@@ -2180,7 +2180,7 @@ input[type="number"] {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: #ffffff;           /* your dark theme */
+    background: #ffffff;
     color: white;
     border-radius: 16px;
     padding: 28px 24px;
@@ -2188,15 +2188,15 @@ input[type="number"] {
     max-width: 460px;
     box-shadow: 0 12px 48px rgba(0,0,0,0.7);
     z-index: 999;
-    transition: margin-top 0.35s ease, transform 0.35s ease;
+
+    transition: transform 0.25s ease;   /* ONLY transform */
 }
 
-/* Lifted state - moves up using margin-top (more stable with keyboard) */
+/* Lifted state */
 .city-popup.city-popup-lifted {
-    transform: translate(-50%, calc(-50% - 120px));
-    margin-top: -160px;            /* ← adjust this value! */
-    /* Try values between -120px and -220px depending on popup height + keyboard size */
+    transform: translate(-50%, -75%);   /* Move upward */
 }
+
 
 /* Optional: make transition smoother or disable during typing if needed */
 .city-popup {
