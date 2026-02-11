@@ -346,7 +346,7 @@ function showCityInputPopup() {
 
     const popup = document.createElement('div');
     popup.id = 'city-input-popup';
-    popup.className = 'city-popup';           // ← new base class name
+    popup.className = 'popup';   // ← use same base class as edit popup for now
 
     popup.innerHTML = `
         <h2 style="margin-top:0;"><span class="material-icons">location_city</span> Set Weather City</h2>
@@ -354,17 +354,15 @@ function showCityInputPopup() {
         <div id="city-error" class="error" style="display:none; color:#ff9800; margin:8px 0;"></div>
 
         <div style="position:relative; width:100%; max-width:400px; margin:1rem auto;">
-            <div style="position:relative; display:flex; align-items:center;">
-                <input
-                    type="text"
-                    id="city-input-field"
-                    placeholder="e.g. Mumbai, Yerevan, Tokyo"
-                    maxlength="60"
-                    autocomplete="off"
-                    style="width:100%; padding:12px 16px; border:1px solid #ccc; border-radius:8px; font-size:18px; outline:none; box-sizing:border-box;"
-                    autofocus
-                >
-            </div>
+            <input
+                type="text"
+                id="city-input-field"
+                placeholder="e.g. Mumbai, Yerevan, Tokyo"
+                maxlength="60"
+                autocomplete="off"
+                style="width:100%; padding:12px 16px; border:1px solid #ccc; border-radius:8px; font-size:18px; outline:none; box-sizing:border-box;"
+                autofocus
+            >
 
             <div class="button-group" style="margin-top:24px; display:flex; gap:12px; justify-content:center;">
                 <button class="button" onclick="saveCityAndUpdate()">Save</button>
@@ -379,45 +377,36 @@ function showCityInputPopup() {
     const cityInput = document.getElementById('city-input-field');
 
     if (cityInput) {
-        // When input gets focus → lift after small delay
-        // cityInput.addEventListener('focus', () => {
-        //     showKeyboard(cityInput);
+        // Mirror edit popup exactly
+        cityInput.addEventListener('focus', () => {
+            showKeyboard(cityInput);
+            liftCityPopup();   // immediate call, like edit
+        });
 
-        //     setTimeout(() => {
-        //         // Only lift if input is still focused (keyboard likely open)
-        //         if (document.activeElement === cityInput) {
-        //             popup.classList.add('city-popup-lifted');
-        //         }
-        //     }, 320);   // 300–400 ms delay helps prevent initial flicker
-        // });
-
-        // // When focus leaves → return to center
-        // cityInput.addEventListener('blur', () => {
-        //     popup.classList.remove('city-popup-lifted');
-        // });
+        // Lower on button click (same as edit)
+        popup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                popup.classList.remove('lifted');
+            });
+        });
     }
 
-    // Also return to center when clicking Save / Cancel
-    // popup.querySelectorAll('button').forEach(btn => {
-    //     btn.addEventListener('click', () => {
-    //         popup.classList.remove('city-popup-lifted');
-    //     });
-    // });
-
-    // Close on overlay click
     overlay.addEventListener('click', closeCityInputPopup);
 
-    // Escape key
+    // Escape key close
     const escHandler = e => {
-        if (e.key === 'Escape') {
-            closeCityInputPopup();
-            document.removeEventListener('keydown', escHandler);
-        }
+        if (e.key === 'Escape') closeCityInputPopup();
     };
     document.addEventListener('keydown', escHandler);
+    // Cleanup listener on close if needed
 }
 
-// Clean close
+// Lift – same function name/style as edit
+function liftCityPopup() {
+    const p = document.getElementById('city-input-popup');
+    if (p) p.classList.add('lifted');   // reuse the same 'lifted' class that works
+}
+
 function closeCityInputPopup() {
     const overlay = document.getElementById('city-input-overlay');
     const popup   = document.getElementById('city-input-popup');
