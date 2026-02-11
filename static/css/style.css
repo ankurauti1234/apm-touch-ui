@@ -2172,8 +2172,32 @@ input[type="number"] {
     -moz-appearance: textfield;
 }
 
-.popup.lifted {
-    margin-top: -140px !important;  /* try -120px to -180px — test what edit popup uses */
-    /* keep transform only for horizontal if needed: */
-    transform: translateX(-50%) !important;
+
+
+/* Base popup style - centered */
+.city-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #1e2128;           /* your dark theme */
+    color: white;
+    border-radius: 16px;
+    padding: 28px 24px;
+    width: 90%;
+    max-width: 460px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.7);
+    z-index: 9999;
+    transition: margin-top 0.35s ease, transform 0.35s ease;
+}
+
+/* Lifted state - moves up using margin-top (more stable with keyboard) */
+.city-popup.city-popup-lifted {
+    margin-top: -160px;            /* ← adjust this value! */
+    /* Try values between -120px and -220px depending on popup height + keyboard size */
+}
+
+/* Optional: make transition smoother or disable during typing if needed */
+.city-popup {
+    transition: margin-top 0.3s ease-out;
 }

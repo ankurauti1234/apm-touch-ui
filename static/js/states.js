@@ -346,7 +346,7 @@ function showCityInputPopup() {
 
     const popup = document.createElement('div');
     popup.id = 'city-input-popup';
-    popup.className = 'popup';
+    popup.className = 'city-popup';           // ← new base class name
 
     popup.innerHTML = `
         <h2 style="margin-top:0;"><span class="material-icons">location_city</span> Set Weather City</h2>
@@ -378,37 +378,36 @@ function showCityInputPopup() {
 
     const cityInput = document.getElementById('city-input-field');
 
-    // ─── Keyboard & lift handling ─ same pattern as edit member ────────
     if (cityInput) {
-        // Single focus listener (no duplicates)
+        // When input gets focus → lift after small delay
         cityInput.addEventListener('focus', () => {
-            showKeyboard(cityInput);  // assume this is what makes edit stable
+            showKeyboard(cityInput);
 
-            // Delay lift — this prevents initial flicker and reduces typing jitter
             setTimeout(() => {
-                if (popup && document.activeElement === cityInput) {
-                    popup.classList.add('lifted');  // use the same class as edit popup
+                // Only lift if input is still focused (keyboard likely open)
+                if (document.activeElement === cityInput) {
+                    popup.classList.add('city-popup-lifted');
                 }
-            }, 350);  // adjust 300–450 if needed; test what matches edit popup feel
+            }, 320);   // 300–400 ms delay helps prevent initial flicker
         });
 
-        // Remove lift on blur
+        // When focus leaves → return to center
         cityInput.addEventListener('blur', () => {
-            popup.classList.remove('lifted');
+            popup.classList.remove('city-popup-lifted');
         });
     }
 
-    // Lower on button clicks (same as edit)
+    // Also return to center when clicking Save / Cancel
     popup.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', () => {
-            popup.classList.remove('lifted');
+            popup.classList.remove('city-popup-lifted');
         });
     });
 
     // Close on overlay click
     overlay.addEventListener('click', closeCityInputPopup);
 
-    // Escape to close
+    // Escape key
     const escHandler = e => {
         if (e.key === 'Escape') {
             closeCityInputPopup();
@@ -418,13 +417,7 @@ function showCityInputPopup() {
     document.addEventListener('keydown', escHandler);
 }
 
-// Correct lift function – targets THIS popup
-function liftCityPopup() {
-    const popup = document.getElementById('city-input-popup');
-    if (popup) popup.classList.add('lifted');
-}
-
-// Clean close – only city elements
+// Clean close
 function closeCityInputPopup() {
     const overlay = document.getElementById('city-input-overlay');
     const popup   = document.getElementById('city-input-popup');
@@ -432,7 +425,7 @@ function closeCityInputPopup() {
     if (popup)   popup.remove();
 }
 
-// Save function (unchanged except safety)
+// Save (unchanged)
 async function saveCityAndUpdate() {
     const input   = document.getElementById('city-input-field');
     const errorEl = document.getElementById('city-error');
