@@ -2173,5 +2173,5 @@ input[type="number"] {
 }
 
 .popup.lifted {
-    transform: translateY(-270px);
+    transform: translate(-50%, calc(-50% - 120px));
 }
