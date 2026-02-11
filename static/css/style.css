@@ -2180,14 +2180,14 @@ input[type="number"] {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: #1e2128;           /* your dark theme */
+    background: #ffffff;           /* your dark theme */
     color: white;
     border-radius: 16px;
     padding: 28px 24px;
     width: 90%;
     max-width: 460px;
     box-shadow: 0 12px 48px rgba(0,0,0,0.7);
-    z-index: 9999;
+    z-index: 10 !important;
     transition: margin-top 0.35s ease, transform 0.35s ease;
 }
 
