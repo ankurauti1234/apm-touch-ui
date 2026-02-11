@@ -435,8 +435,14 @@ function liftCityPopup() {
     }
 }
 
+function lowerEditMemberPopup() {
+    const popup = document.getElementById('edit-member-popup');
+    if (popup) popup.classList.remove('lifted');
+}
+
 // Close function
 function closeCityInputPopup() {
+    lowerEditMemberPopup()
     const overlay = document.getElementById('city-input-overlay');
     const popup   = document.getElementById('city-input-popup');
     if (overlay) overlay.remove();
