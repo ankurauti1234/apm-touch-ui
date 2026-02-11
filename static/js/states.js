@@ -366,7 +366,7 @@ function showCityInputPopup() {
 
             <div class="button-group" style="margin-top:24px; display:flex; gap:12px; justify-content:center;">
                 <button class="button" onclick="saveCityAndUpdate()">Save</button>
-                <button class="button secondary" onclick="closeCityInputPopup()">Cancel</button>
+                <button class="button secondary" onclick="closeEditMemberPopup()">Cancel</button>
             </div>
         </div>
     `;
@@ -409,7 +409,7 @@ function closeEditMemberPopup() {
     });
 
     selectedMemberIndex = -1;  // Reset selection
-}
+}   
 
 
 // Save (unchanged)
