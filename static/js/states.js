@@ -380,29 +380,29 @@ function showCityInputPopup() {
 
     if (cityInput) {
         // When input gets focus → lift after small delay
-        cityInput.addEventListener('focus', () => {
-            showKeyboard(cityInput);
+        // cityInput.addEventListener('focus', () => {
+        //     showKeyboard(cityInput);
 
-            setTimeout(() => {
-                // Only lift if input is still focused (keyboard likely open)
-                if (document.activeElement === cityInput) {
-                    popup.classList.add('city-popup-lifted');
-                }
-            }, 320);   // 300–400 ms delay helps prevent initial flicker
-        });
+        //     setTimeout(() => {
+        //         // Only lift if input is still focused (keyboard likely open)
+        //         if (document.activeElement === cityInput) {
+        //             popup.classList.add('city-popup-lifted');
+        //         }
+        //     }, 320);   // 300–400 ms delay helps prevent initial flicker
+        // });
 
-        // When focus leaves → return to center
-        cityInput.addEventListener('blur', () => {
-            popup.classList.remove('city-popup-lifted');
-        });
+        // // When focus leaves → return to center
+        // cityInput.addEventListener('blur', () => {
+        //     popup.classList.remove('city-popup-lifted');
+        // });
     }
 
     // Also return to center when clicking Save / Cancel
-    popup.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('click', () => {
-            popup.classList.remove('city-popup-lifted');
-        });
-    });
+    // popup.querySelectorAll('button').forEach(btn => {
+    //     btn.addEventListener('click', () => {
+    //         popup.classList.remove('city-popup-lifted');
+    //     });
+    // });
 
     // Close on overlay click
     overlay.addEventListener('click', closeCityInputPopup);

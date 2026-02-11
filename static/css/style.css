@@ -2193,6 +2193,7 @@ input[type="number"] {
 
 /* Lifted state - moves up using margin-top (more stable with keyboard) */
 .city-popup.city-popup-lifted {
+    top: 20%;
     margin-top: -160px;            /* ← adjust this value! */
     /* Try values between -120px and -220px depending on popup height + keyboard size */
 }
