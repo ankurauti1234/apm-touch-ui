@@ -321,6 +321,9 @@ const states = {
                         <span class="btn-text">Add Guest &nbsp;</span>
                         <span class="guest-count">${guests.length} / 8</span>
                     </button>
+                    <button class="bar-btn" id="bar-btn-weather-city" onclick="showCityInputPopup()" title="Change weather city">
+                        <span class="material-icons" style="font-size:1.7rem;">location_city</span>
+                    </button>
                     <div id="bar-wifi-status">
                     
                     </div>
@@ -333,3 +336,101 @@ const states = {
     <div id="screensaver"></div>`;
     },
 };
+
+function showCityInputPopup() {
+    let popup = document.getElementById('city-input-popup');
+    if (!popup) {
+        popup = document.createElement('div');
+        popup.id = 'city-input-popup';
+        popup.style.cssText = `
+            position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+        `;
+
+        popup.innerHTML = `
+            <div style="
+                background: #1e2128; color: white; border-radius: 16px; padding: 32px;
+                width: 90%; max-width: 420px; box-shadow: 0 12px 48px rgba(0,0,0,0.7);
+                text-align: center; position: relative;
+            ">
+                <button onclick="this.closest('#city-input-popup').remove()" style="
+                    position: absolute; top: 12px; right: 16px; background: none; border: none;
+                    color: #aaa; font-size: 28px; cursor: pointer;
+                ">×</button>
+                
+                <h2 style="margin: 0 0 24px; font-size: 28px;">Set Weather Location</h2>
+                
+                <input id="city-input-field" type="text" placeholder="Enter city name (e.g. Mumbai, Yerevan, Tokyo)" style="
+                    width: 100%; padding: 14px 16px; font-size: 20px; border-radius: 12px;
+                    border: 1px solid #444; background: #2a2e36; color: white; margin-bottom: 20px;
+                    outline: none; box-sizing: border-box;
+                " autofocus>
+                
+                <button id="city-submit-btn" style="
+                    background: #3f51b5; color: white; border: none; padding: 14px 32px;
+                    font-size: 20px; border-radius: 12px; cursor: pointer; min-width: 160px;
+                ">Save & Update</button>
+                
+                <div id="city-error" style="color: #ff9800; margin-top: 12px; min-height: 24px;"></div>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+
+        const input = document.getElementById('city-input-field');
+        const btn = document.getElementById('city-submit-btn');
+        const errorEl = document.getElementById('city-error');
+
+        btn.onclick = async () => {
+            const city = input.value.trim();
+            if (!city) {
+                errorEl.textContent = "Please enter a city name";
+                return;
+            }
+
+            errorEl.textContent = "Looking up...";
+
+            try {
+                const geoRes = await fetch(
+                    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`
+                );
+                const geo = await geoRes.json();
+
+                if (!geo.results || geo.results.length === 0) {
+                    errorEl.textContent = "City not found — try another name";
+                    return;
+                }
+
+                const loc = geo.results[0];
+                // Save coordinates + name
+                localStorage.setItem('weatherLocation', JSON.stringify({
+                    name: loc.name,
+                    country: loc.country || '',
+                    lat: loc.latitude,
+                    lon: loc.longitude
+                }));
+
+                // Close popup
+                popup.remove();
+
+                // Immediately refresh weather
+                fetchWeather();
+
+                // Optional: show brief confirmation toast
+                showToast(`Weather updated to ${loc.name}`);
+
+            } catch (err) {
+                errorEl.textContent = "Error fetching location — check connection";
+                console.error(err);
+            }
+        };
+
+        // Close on outside click or Escape
+        popup.addEventListener('click', e => {
+            if (e.target === popup) popup.remove();
+        });
+        window.addEventListener('keydown', e => {
+            if (e.key === 'Escape') popup.remove();
+        });
+    }
+}
