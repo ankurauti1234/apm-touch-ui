@@ -244,44 +244,68 @@ window.addEventListener('beforeunload', () => {
    
    // Fetch weather – called only when needed
    async function fetchWeather() {
-       try {
-           const response = await fetch(
-               'https://api.open-meteo.com/v1/forecast?latitude=40.18&longitude=44.51&current=temperature_2m,weather_code&timezone=Asia/Yerevan'
-           );
-           const data = await response.json();
-           const current = data.current;
-           const temp = Math.round(current.temperature_2m);
-           const weatherCode = current.weather_code;
-   
-           let icon = '🌤️';
-           let condition = 'Clear';
-           if (weatherCode >= 0 && weatherCode <= 3) { icon = '/static/assets/sunny.png'; condition = 'Sunny'; }
-           else if (weatherCode <= 48) { icon = '/static/assets/cloudy.png'; condition = 'Cloudy'; }
-           else if (weatherCode <= 67) { icon = '/static/assets/rainy.png'; condition = 'Rainy'; }
-           else if (weatherCode <= 77) { icon = '/static/assets/snow.png'; condition = 'Snowy'; }
-           else if (weatherCode <= 99) { icon = '/static/assets/thunderstrom.png'; condition = 'Thunderstrom'; }
-   
-           const weatherEl = document.getElementById('weather-status');
-           weatherEl.innerHTML = `
-                <div>
-                    <div style="font-weight:600; display:flex; align-items:center; gap:8px;">
+    const weatherEl = document.getElementById('weather-status');
+    if (!weatherEl) return;
+
+    let lat = 40.18;
+    let lon = 44.51;
+    let displayName = "Yerevan";
+
+    // Try to load user-saved location
+    try {
+        const saved = localStorage.getItem('weatherLocation');
+        if (saved) {
+            const loc = JSON.parse(saved);
+            if (loc.lat && loc.lon) {
+                lat = loc.lat;
+                lon = loc.lon;
+                displayName = loc.name + (loc.country ? `, ${loc.country}` : '');
+            }
+        }
+    } catch (e) {
+        console.warn("Invalid saved location", e);
+    }
+
+    try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`;
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Weather API error");
+
+        const data = await response.json();
+        const current = data.current;
+        const temp = Math.round(current.temperature_2m);
+        const weatherCode = current.weather_code;
+
+        let icon = '/static/assets/sunny.png';
+        let condition = 'Clear';
+
+        if (weatherCode >= 0 && weatherCode <= 3)    { icon = '/static/assets/sunny.png'; condition = 'Sunny'; }
+        else if (weatherCode <= 48)                  { icon = '/static/assets/cloudy.png'; condition = 'Cloudy'; }
+        else if (weatherCode <= 67)                  { icon = '/static/assets/rainy.png'; condition = 'Rainy'; }
+        else if (weatherCode <= 77)                  { icon = '/static/assets/snow.png'; condition = 'Snowy'; }
+        else if (weatherCode <= 99)                  { icon = '/static/assets/thunderstrom.png'; condition = 'Thunderstorm'; }
+
+        weatherEl.innerHTML = `
+            <div>
+                <div style="font-weight:600; display:flex; align-items:center; gap:12px;">
                     <img src="${icon}" alt="${condition}" style="width:78px; height:78px;" />
                     <span style="font-size:60px;">${temp}°C</span>
-                    </div>
-                    <div style="font-size:30px; opacity:0.9;">
-                    Yerevan, ${condition}
-                    </div>
                 </div>
-           `;
+                <div style="font-size:30px; opacity:0.9; margin-top:8px;">
+                    ${displayName}, ${condition}
+                </div>
+            </div>
+        `;
 
-           weatherEl.style.opacity = '0.9'; // fade in
-       } catch (err) {
-           console.error('Weather fetch failed:', err);
-           const weatherEl = document.getElementById('weather-status');
-           weatherEl.innerHTML = '<div style="font-size:24px; opacity:0.7;">Weather unavailable</div>';
-           weatherEl.style.opacity = '0.7';
-       }
-   }
+        weatherEl.style.opacity = '0.9';
+
+    } catch (err) {
+        console.error('Weather fetch failed:', err);
+        weatherEl.innerHTML = `<div style="font-size:24px; opacity:0.7;">Weather unavailable</div>`;
+        weatherEl.style.opacity = '0.7';
+    }
+}
    
    // ────────────────────────────────────────────────
    // Repeating reminder every 20 minutes

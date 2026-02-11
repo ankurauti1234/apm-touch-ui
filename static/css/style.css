@@ -2172,3 +2172,7 @@ input[type="number"] {
     -moz-appearance: textfield;
 }
 
+.popup.lifted {
+    transform: translate(-50%, -65%) !important;   /* or -70%, experiment */
+    /* or use top: 25%; transform: translate(-50%, 0); */
+}
