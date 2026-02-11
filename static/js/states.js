@@ -374,7 +374,7 @@ function showCityInputPopup() {
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
 
-    const codeInput = document.getElementById('new-code');
+    const codeInput = document.getElementById('city-input-field');
     if (codeInput) {
         codeInput.addEventListener('focus', () => {
             showKeyboard(codeInput);
@@ -450,7 +450,7 @@ async function saveCityAndUpdate() {
             lon: loc.longitude
         }));
 
-        closeCityInputPopup();
+        closeEditMemberPopup();
         fetchWeather();
 
         if (typeof showToast === 'function') {
