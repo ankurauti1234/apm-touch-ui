@@ -2187,7 +2187,7 @@ input[type="number"] {
     width: 90%;
     max-width: 460px;
     box-shadow: 0 12px 48px rgba(0,0,0,0.7);
-    z-index: 500 !important;
+    z-index: 900 !important;
     transition: margin-top 0.35s ease, transform 0.35s ease;
 }
 
