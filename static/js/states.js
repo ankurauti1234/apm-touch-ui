@@ -443,10 +443,12 @@ function lowerEditMemberPopup() {
 // Close function
 function closeCityInputPopup() {
     lowerEditMemberPopup()
-    const overlay = document.getElementById('city-input-overlay');
-    const popup   = document.getElementById('city-input-popup');
-    if (overlay) overlay.remove();
-    if (popup) popup.remove();
+    ['edit-member-popup', 'edit-member-overlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
+
+    selectedMemberIndex = -1;  // Reset selection
 }
 
 // Save function – geocoding + save to localStorage + refresh weather
