@@ -338,99 +338,142 @@ const states = {
 };
 
 function showCityInputPopup() {
-    let popup = document.getElementById('city-input-popup');
-    if (!popup) {
-        popup = document.createElement('div');
-        popup.id = 'city-input-popup';
-        popup.style.cssText = `
-            position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 10000;
-            display: flex; align-items: center; justify-content: center;
-        `;
+    if (document.getElementById('city-input-popup')) return;
 
-        popup.innerHTML = `
-            <div style="
-                background: #1e2128; color: white; border-radius: 16px; padding: 32px;
-                width: 90%; max-width: 420px; box-shadow: 0 12px 48px rgba(0,0,0,0.7);
-                text-align: center; position: relative;
-            ">
-                <button onclick="this.closest('#city-input-popup').remove()" style="
-                    position: absolute; top: 12px; right: 16px; background: none; border: none;
-                    color: #aaa; font-size: 28px; cursor: pointer;
-                ">×</button>
-                
-                <h2 style="margin: 0 0 24px; font-size: 28px;">Set Weather Location</h2>
-                
-                <input id="city-input-field" type="text" placeholder="Enter city name (e.g. Mumbai, Yerevan, Tokyo)" style="
-                    width: 100%; padding: 14px 16px; font-size: 20px; border-radius: 12px;
-                    border: 1px solid #444; background: #2a2e36; color: white; margin-bottom: 20px;
-                    outline: none; box-sizing: border-box;
-                " autofocus>
-                
-                <button id="city-submit-btn" style="
-                    background: #3f51b5; color: white; border: none; padding: 14px 32px;
-                    font-size: 20px; border-radius: 12px; cursor: pointer; min-width: 160px;
-                ">Save & Update</button>
-                
-                <div id="city-error" style="color: #ff9800; margin-top: 12px; min-height: 24px;"></div>
+    // Overlay (same as edit popup)
+    const overlay = document.createElement('div');
+    overlay.id = 'city-input-overlay';
+    overlay.className = 'overlay';
+
+    // Popup container (same classes & structure)
+    const popup = document.createElement('div');
+    popup.id = 'city-input-popup';
+    popup.className = 'popup';
+
+    popup.innerHTML = `
+        <h2 style="margin-top:0;"><span class="material-icons">location_city</span> Set Weather City</h2>
+        <p>Enter city name for weather display</p>
+        <div id="city-error" class="error" style="display:none; color:#ff9800; margin:8px 0;"></div>
+
+        <div style="position:relative; width:100%; max-width:400px; margin:1rem auto;">
+            <div style="position:relative; display:flex; align-items:center;">
+                <input
+                    type="text"
+                    id="city-input-field"
+                    placeholder="e.g. Mumbai, Yerevan, Tokyo"
+                    maxlength="60"
+                    autocomplete="off"
+                    style="width:100%; padding:12px 16px; border:1px solid #ccc; border-radius:8px; font-size:18px; outline:none; box-sizing:border-box;"
+                    autofocus
+                >
             </div>
-        `;
 
-        document.body.appendChild(popup);
+            <div class="button-group" style="margin-top:24px; display:flex; gap:12px; justify-content:center;">
+                <button class="button" onclick="saveCityAndUpdate()">Save</button>
+                <button class="button secondary" onclick="closeCityInputPopup()">Cancel</button>
+            </div>
+        </div>
+    `;
 
-        const input = document.getElementById('city-input-field');
-        const btn = document.getElementById('city-submit-btn');
-        const errorEl = document.getElementById('city-error');
+    document.body.appendChild(overlay);
+    document.body.appendChild(popup);
 
-        btn.onclick = async () => {
-            const city = input.value.trim();
-            if (!city) {
-                errorEl.textContent = "Please enter a city name";
-                return;
-            }
-
-            errorEl.textContent = "Looking up...";
-
-            try {
-                const geoRes = await fetch(
-                    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`
-                );
-                const geo = await geoRes.json();
-
-                if (!geo.results || geo.results.length === 0) {
-                    errorEl.textContent = "City not found — try another name";
-                    return;
-                }
-
-                const loc = geo.results[0];
-                // Save coordinates + name
-                localStorage.setItem('weatherLocation', JSON.stringify({
-                    name: loc.name,
-                    country: loc.country || '',
-                    lat: loc.latitude,
-                    lon: loc.longitude
-                }));
-
-                // Close popup
-                popup.remove();
-
-                // Immediately refresh weather
-                fetchWeather();
-
-                // Optional: show brief confirmation toast
-                showToast(`Weather updated to ${loc.name}`);
-
-            } catch (err) {
-                errorEl.textContent = "Error fetching location — check connection";
-                console.error(err);
-            }
-        };
-
-        // Close on outside click or Escape
-        popup.addEventListener('click', e => {
-            if (e.target === popup) popup.remove();
+    // ─── Keyboard & lift handling ────────────────────────────────────────
+    const cityInput = document.getElementById('city-input-field');
+    if (cityInput) {
+        cityInput.addEventListener('focus', () => {
+            showKeyboard(cityInput);     // Reuse your existing working function
+            liftCityPopup();             // We'll define this below
         });
-        window.addEventListener('keydown', e => {
-            if (e.key === 'Escape') popup.remove();
+
+        // Optional: remove lift on blur
+        cityInput.addEventListener('blur', () => {
+            popup.classList.remove('lifted');
         });
+    }
+
+    // Lower popup when buttons clicked (same as edit popup)
+    popup.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            popup.classList.remove('lifted');
+        });
+    });
+
+    // Close on overlay click (but not popup content)
+    overlay.addEventListener('click', () => closeCityInputPopup());
+
+    // Allow Escape key to close
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            closeCityInputPopup();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+// Lift function – mirror what works in edit popup
+function liftCityPopup() {
+    const popup = document.getElementById('city-input-popup');
+    if (popup) {
+        popup.classList.add('lifted');
+    }
+}
+
+// Close function
+function closeCityInputPopup() {
+    const overlay = document.getElementById('city-input-overlay');
+    const popup   = document.getElementById('city-input-popup');
+    if (overlay) overlay.remove();
+    if (popup) popup.remove();
+}
+
+// Save function – geocoding + save to localStorage + refresh weather
+async function saveCityAndUpdate() {
+    const input = document.getElementById('city-input-field');
+    const errorEl = document.getElementById('city-error');
+    const city = input.value.trim();
+
+    if (!city) {
+        errorEl.textContent = "Please enter a city name";
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    errorEl.textContent = "Searching...";
+    errorEl.style.display = 'block';
+
+    try {
+        const geoRes = await fetch(
+            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`
+        );
+        const geo = await geoRes.json();
+
+        if (!geo.results || geo.results.length === 0) {
+            errorEl.textContent = "City not found – try another name";
+            return;
+        }
+
+        const loc = geo.results[0];
+        localStorage.setItem('weatherLocation', JSON.stringify({
+            name: loc.name,
+            country: loc.country || '',
+            lat: loc.latitude,
+            lon: loc.longitude
+        }));
+
+        closeCityInputPopup();
+        fetchWeather();  // Refresh immediately
+
+        // Optional success feedback
+        if (typeof showToast === 'function') {
+            showToast(`Weather set to ${loc.name}`);
+        } else {
+            alert(`Weather updated to ${loc.name}`);
+        }
+
+    } catch (err) {
+        errorEl.textContent = "Error looking up city – check connection";
+        console.error(err);
     }
 }
