@@ -392,6 +392,18 @@ function showCityInputPopup() {
         });
     }
 
+    cityInput.addEventListener('focus', () => {
+        showKeyboard(cityInput);           // keep this as is
+    
+        // Give browser ~300–400 ms to open keyboard first
+        setTimeout(() => {
+            const popup = document.getElementById('city-input-popup');
+            if (popup) {
+                popup.classList.add('lifted');
+            }
+        }, 350);   // 300–450 ms usually works best – test on your device
+    });
+
     // Lower popup when buttons clicked (same as edit popup)
     popup.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', () => {
