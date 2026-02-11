@@ -340,12 +340,10 @@ const states = {
 function showCityInputPopup() {
     if (document.getElementById('city-input-popup')) return;
 
-    // Overlay (same as edit popup)
     const overlay = document.createElement('div');
     overlay.id = 'city-input-overlay';
     overlay.className = 'overlay';
 
-    // Popup container (same classes & structure)
     const popup = document.createElement('div');
     popup.id = 'city-input-popup';
     popup.className = 'popup';
@@ -378,47 +376,41 @@ function showCityInputPopup() {
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
 
-    // ─── Keyboard & lift handling ────────────────────────────────────────
     const cityInput = document.getElementById('city-input-field');
+
+    // ─── Same keyboard + lift pattern as edit member popup ──────────────────
     if (cityInput) {
         cityInput.addEventListener('focus', () => {
-            showKeyboard(cityInput);     // Reuse your existing working function
-            liftCityPopup();             // We'll define this below
+            showKeyboard(cityInput);  // your existing function that works well
+
+            // Delay the lift slightly → this is usually what prevents flicker
+            // (the edit popup likely already has similar timing inside showKeyboard or elsewhere)
+            setTimeout(() => {
+                if (popup && document.activeElement === cityInput) {
+                    popup.classList.add('lifted');
+                }
+            }, 320);   // 300–380 ms is sweet spot on most Android devices
         });
 
-        // Optional: remove lift on blur
         cityInput.addEventListener('blur', () => {
-            const popup = document.getElementById('');
             if (popup) {
                 popup.classList.remove('lifted');
             }
         });
     }
 
-    cityInput.addEventListener('focus', () => {
-        showKeyboard(cityInput);           // keep this as is
-    
-        // Give browser ~300–400 ms to open keyboard first
-        setTimeout(() => {
-            const popup = document.getElementById('city-input-popup');
-            if (popup) {
-                popup.classList.add('lifted');
-            }
-        }, 350);   // 300–450 ms usually works best – test on your device
-    });
-
-    // Lower popup when buttons clicked (same as edit popup)
+    // Lower when clicking buttons (same pattern as edit popup)
     popup.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', () => {
             popup.classList.remove('lifted');
         });
     });
 
-    // Close on overlay click (but not popup content)
+    // Close on overlay click
     overlay.addEventListener('click', () => closeCityInputPopup());
 
-    // Allow Escape key to close
-    const escHandler = (e) => {
+    // Escape key close
+    const escHandler = e => {
         if (e.key === 'Escape') {
             closeCityInputPopup();
             document.removeEventListener('keydown', escHandler);
@@ -427,44 +419,38 @@ function showCityInputPopup() {
     document.addEventListener('keydown', escHandler);
 }
 
-// Lift function – mirror what works in edit popup
+// Lift function – now correctly targets city popup
 function liftCityPopup() {
-    const popup = document.getElementById('edit-member-popup');
-    if (popup) {
-        popup.classList.add('lifted');
-    }
+    const popup = document.getElementById('city-input-popup');
+    if (popup) popup.classList.add('lifted');
 }
 
-function lowerEditMemberPopup() {
-    const popup = document.getElementById('edit-member-popup');
-    if (popup) popup.classList.remove('lifted');
-}
-
-// Close function
+// Close function – clean & correct (no edit popup references)
 function closeCityInputPopup() {
-    lowerEditMemberPopup()
-    ['edit-member-popup', 'edit-member-overlay'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.remove();
-    });
-
-    selectedMemberIndex = -1;  // Reset selection
+    const overlay = document.getElementById('city-input-overlay');
+    const popup   = document.getElementById('city-input-popup');
+    if (overlay) overlay.remove();
+    if (popup)   popup.remove();
 }
 
-// Save function – geocoding + save to localStorage + refresh weather
+// Save function remains mostly the same (minor cleanup)
 async function saveCityAndUpdate() {
-    const input = document.getElementById('city-input-field');
+    const input   = document.getElementById('city-input-field');
     const errorEl = document.getElementById('city-error');
-    const city = input.value.trim();
+    const city    = input?.value?.trim();
 
     if (!city) {
-        errorEl.textContent = "Please enter a city name";
-        errorEl.style.display = 'block';
+        if (errorEl) {
+            errorEl.textContent = "Please enter a city name";
+            errorEl.style.display = 'block';
+        }
         return;
     }
 
-    errorEl.textContent = "Searching...";
-    errorEl.style.display = 'block';
+    if (errorEl) {
+        errorEl.textContent = "Searching...";
+        errorEl.style.display = 'block';
+    }
 
     try {
         const geoRes = await fetch(
@@ -472,8 +458,8 @@ async function saveCityAndUpdate() {
         );
         const geo = await geoRes.json();
 
-        if (!geo.results || geo.results.length === 0) {
-            errorEl.textContent = "City not found – try another name";
+        if (!geo.results?.length) {
+            if (errorEl) errorEl.textContent = "City not found – try another name";
             return;
         }
 
@@ -486,9 +472,8 @@ async function saveCityAndUpdate() {
         }));
 
         closeCityInputPopup();
-        fetchWeather();  // Refresh immediately
+        fetchWeather();
 
-        // Optional success feedback
         if (typeof showToast === 'function') {
             showToast(`Weather set to ${loc.name}`);
         } else {
@@ -496,7 +481,7 @@ async function saveCityAndUpdate() {
         }
 
     } catch (err) {
-        errorEl.textContent = "Error looking up city – check connection";
+        if (errorEl) errorEl.textContent = "Error looking up city – check connection";
         console.error(err);
     }
 }
