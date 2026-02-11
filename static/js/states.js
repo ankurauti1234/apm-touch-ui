@@ -388,7 +388,7 @@ function showCityInputPopup() {
 
         // Optional: remove lift on blur
         cityInput.addEventListener('blur', () => {
-            const popup = document.getElementById('city-input-popup');
+            const popup = document.getElementById('');
             if (popup) {
                 popup.classList.remove('lifted');
             }
@@ -429,7 +429,7 @@ function showCityInputPopup() {
 
 // Lift function – mirror what works in edit popup
 function liftCityPopup() {
-    const popup = document.getElementById('city-input-popup');
+    const popup = document.getElementById('edit-member-popup');
     if (popup) {
         popup.classList.add('lifted');
     }
