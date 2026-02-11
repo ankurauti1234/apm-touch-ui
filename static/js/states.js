@@ -338,14 +338,14 @@ const states = {
 };
 
 function showCityInputPopup() {
-    if (document.getElementById('city-input-popup')) return;
+    if (document.getElementById('edit-member-popup')) return;
 
     const overlay = document.createElement('div');
-    overlay.id = 'city-input-overlay';
+    overlay.id = 'edit-member-overlay';
     overlay.className = 'overlay';
 
     const popup = document.createElement('div');
-    popup.id = 'city-input-popup';
+    popup.id = 'edit-member-popup';
     popup.className = 'popup';   // ← use same base class as edit popup for now
 
     popup.innerHTML = `
@@ -374,79 +374,41 @@ function showCityInputPopup() {
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
 
-    let initialViewportHeight = window.visualViewport
-    ? window.visualViewport.height
-    : window.innerHeight;
-
-function handleViewportResize() {
-    const currentHeight = window.visualViewport
-        ? window.visualViewport.height
-        : window.innerHeight;
-
-    const popup = document.getElementById('city-input-popup');
-    if (!popup) return;
-
-    // If height shrinks → keyboard likely open
-    if (currentHeight < initialViewportHeight - 100) {
-        popup.classList.add('lifted');
-    } else {
-        popup.classList.remove('lifted');
-    }
-}
-
-// Listen for viewport resize
-if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', handleViewportResize);
-} else {
-    window.addEventListener('resize', handleViewportResize);
-}
-
-
-    const cityInput = document.getElementById('city-input-field');
-
-    if (cityInput) {
-        // Mirror edit popup exactly
-        cityInput.addEventListener('focus', () => {
-            showKeyboard(cityInput);
-            liftCityPopup();   // immediate call, like edit
-        });
-
-        // Lower on button click (same as edit)
-        popup.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                popup.classList.remove('lifted');
-            });
+    const codeInput = document.getElementById('new-code');
+    if (codeInput) {
+        codeInput.addEventListener('focus', () => {
+            showKeyboard(codeInput);
+            liftEditMemberPopup();
         });
     }
 
-    overlay.addEventListener('click', closeCityInputPopup);
-
-    // Escape key close
-    const escHandler = e => {
-        if (e.key === 'Escape') closeCityInputPopup();
-    };
-    document.addEventListener('keydown', escHandler);
-    // Cleanup listener on close if needed
+    // Lower popup when buttons are clicked
+    popup.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            popup.classList.remove('lifted');
+        });
+    });
 }
 
-// Lift – same function name/style as edit
-function liftCityPopup() {
-    const p = document.getElementById('city-input-popup');
-    if (p) p.classList.add('lifted');   // reuse the same 'lifted' class that works
+function liftEditMemberPopup() {
+    const p = document.getElementById('edit-member-popup');
+    if (p) p.classList.add('lifted');
 }
 
-function closeCityInputPopup() {
-    const overlay = document.getElementById('city-input-overlay');
-    const popup   = document.getElementById('city-input-popup');
+function lowerEditMemberPopup() {
+    const p = document.getElementById('edit-member-popup');
+    if (p) p.classList.remove('lifted');
+}
 
-    if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleViewportResize);
-    } else {
-        window.removeEventListener('resize', handleViewportResize);
-    }
+function closeEditMemberPopup() {
+    lowerEditMemberPopup();
 
-    if (overlay) overlay.remove();
-    if (popup)   popup.remove();
+    ['edit-member-popup', 'edit-member-overlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
+
+    selectedMemberIndex = -1;  // Reset selection
 }
 
 
