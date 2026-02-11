@@ -388,7 +388,10 @@ function showCityInputPopup() {
 
         // Optional: remove lift on blur
         cityInput.addEventListener('blur', () => {
-            popup.classList.remove('lifted');
+            const popup = document.getElementById('city-input-popup');
+            if (popup) {
+                popup.classList.remove('lifted');
+            }
         });
     }
 
