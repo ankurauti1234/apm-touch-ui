@@ -338,6 +338,45 @@ const states = {
 };
 
 function showCityInputPopup() {
+    if ('visualViewport' in window) {
+        let rafScheduled = false;
+    
+        const adjustLift = () => {
+            if (rafScheduled) return;
+            rafScheduled = true;
+    
+            requestAnimationFrame(() => {
+                rafScheduled = false;
+                if (!popup || document.activeElement !== cityInput) return;
+    
+                const vv = window.visualViewport;
+                const keyboardHeight = window.innerHeight - vv.height;
+    
+                if (keyboardHeight > 100) {
+                    // Apply lift proportional to keyboard (prevents over-lift jitter)
+                    const liftAmount = Math.min(keyboardHeight * 0.45, 220); // cap it
+                    popup.style.marginTop = `-${liftAmount}px`;
+                } else {
+                    popup.style.marginTop = '0';
+                }
+            });
+        };
+    
+        visualViewport.addEventListener('resize', adjustLift);
+        visualViewport.addEventListener('scroll', adjustLift);
+    
+        // Initial call after keyboard likely open
+        setTimeout(adjustLift, 400);
+    
+        // Cleanup on close
+        const origClose = closeCityInputPopup;
+        closeCityInputPopup = () => {
+            visualViewport.removeEventListener('resize', adjustLift);
+            visualViewport.removeEventListener('scroll', adjustLift);
+            popup.style.marginTop = '0';
+            origClose();
+        };
+    }
     if (document.getElementById('city-input-popup')) return;
 
     const overlay = document.createElement('div');
