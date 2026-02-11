@@ -338,45 +338,6 @@ const states = {
 };
 
 function showCityInputPopup() {
-    if ('visualViewport' in window) {
-        let rafScheduled = false;
-    
-        const adjustLift = () => {
-            if (rafScheduled) return;
-            rafScheduled = true;
-    
-            requestAnimationFrame(() => {
-                rafScheduled = false;
-                if (!popup || document.activeElement !== cityInput) return;
-    
-                const vv = window.visualViewport;
-                const keyboardHeight = window.innerHeight - vv.height;
-    
-                if (keyboardHeight > 100) {
-                    // Apply lift proportional to keyboard (prevents over-lift jitter)
-                    const liftAmount = Math.min(keyboardHeight * 0.45, 220); // cap it
-                    popup.style.marginTop = `-${liftAmount}px`;
-                } else {
-                    popup.style.marginTop = '0';
-                }
-            });
-        };
-    
-        visualViewport.addEventListener('resize', adjustLift);
-        visualViewport.addEventListener('scroll', adjustLift);
-    
-        // Initial call after keyboard likely open
-        setTimeout(adjustLift, 400);
-    
-        // Cleanup on close
-        const origClose = closeCityInputPopup;
-        closeCityInputPopup = () => {
-            visualViewport.removeEventListener('resize', adjustLift);
-            visualViewport.removeEventListener('scroll', adjustLift);
-            popup.style.marginTop = '0';
-            origClose();
-        };
-    }
     if (document.getElementById('city-input-popup')) return;
 
     const overlay = document.createElement('div');
@@ -417,28 +378,27 @@ function showCityInputPopup() {
 
     const cityInput = document.getElementById('city-input-field');
 
-    // ─── Same keyboard + lift pattern as edit member popup ──────────────────
+    // ─── Keyboard & lift handling ─ same pattern as edit member ────────
     if (cityInput) {
+        // Single focus listener (no duplicates)
         cityInput.addEventListener('focus', () => {
-            showKeyboard(cityInput);  // your existing function that works well
+            showKeyboard(cityInput);  // assume this is what makes edit stable
 
-            // Delay the lift slightly → this is usually what prevents flicker
-            // (the edit popup likely already has similar timing inside showKeyboard or elsewhere)
+            // Delay lift — this prevents initial flicker and reduces typing jitter
             setTimeout(() => {
                 if (popup && document.activeElement === cityInput) {
-                    popup.classList.add('lifted');
+                    popup.classList.add('lifted');  // use the same class as edit popup
                 }
-            }, 320);   // 300–380 ms is sweet spot on most Android devices
+            }, 350);  // adjust 300–450 if needed; test what matches edit popup feel
         });
 
+        // Remove lift on blur
         cityInput.addEventListener('blur', () => {
-            if (popup) {
-                popup.classList.remove('lifted');
-            }
+            popup.classList.remove('lifted');
         });
     }
 
-    // Lower when clicking buttons (same pattern as edit popup)
+    // Lower on button clicks (same as edit)
     popup.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', () => {
             popup.classList.remove('lifted');
@@ -446,9 +406,9 @@ function showCityInputPopup() {
     });
 
     // Close on overlay click
-    overlay.addEventListener('click', () => closeCityInputPopup());
+    overlay.addEventListener('click', closeCityInputPopup);
 
-    // Escape key close
+    // Escape to close
     const escHandler = e => {
         if (e.key === 'Escape') {
             closeCityInputPopup();
@@ -458,13 +418,13 @@ function showCityInputPopup() {
     document.addEventListener('keydown', escHandler);
 }
 
-// Lift function – now correctly targets city popup
+// Correct lift function – targets THIS popup
 function liftCityPopup() {
     const popup = document.getElementById('city-input-popup');
     if (popup) popup.classList.add('lifted');
 }
 
-// Close function – clean & correct (no edit popup references)
+// Clean close – only city elements
 function closeCityInputPopup() {
     const overlay = document.getElementById('city-input-overlay');
     const popup   = document.getElementById('city-input-popup');
@@ -472,11 +432,11 @@ function closeCityInputPopup() {
     if (popup)   popup.remove();
 }
 
-// Save function remains mostly the same (minor cleanup)
+// Save function (unchanged except safety)
 async function saveCityAndUpdate() {
     const input   = document.getElementById('city-input-field');
     const errorEl = document.getElementById('city-error');
-    const city    = input?.value?.trim();
+    const city    = input?.value?.trim() || '';
 
     if (!city) {
         if (errorEl) {
@@ -497,7 +457,7 @@ async function saveCityAndUpdate() {
         );
         const geo = await geoRes.json();
 
-        if (!geo.results?.length) {
+        if (!geo.results || !geo.results.length) {
             if (errorEl) errorEl.textContent = "City not found – try another name";
             return;
         }
