@@ -396,101 +396,74 @@ window.addEventListener('beforeunload', () => {
    }
    
    function showInactivityWarning() {
-
-        console.log(`[REMINDER SHOWN] ${timestamp} | Same members active for ≥20 min | Visible for 30 seconds`);
-
-        let msg = document.getElementById('inactivity-warning');
-        if (!msg) {
-            msg = document.createElement('div');
-            msg.id = 'inactivity-warning';
-            
-            // We'll set the color dynamically below
-            Object.assign(msg.style, {
-                position: 'fixed',
-                top: '16px', 
-                left: '16px', 
-                right: '16px',
-                maxWidth: '580px', 
-                margin: '0 auto',
-                color: '#e0e0e0',
-                borderRadius: '24px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                overflow: 'hidden',
-                zIndex: '9999',
-                display: 'none',
-                fontFamily: 'Roboto, system-ui, sans-serif',
-                padding: '0',
-                opacity: '0',
-                transform: 'translateY(-20px)',
-                transition: 'all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)',
-            });
-
-            msg.innerHTML = `
-                <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                    <div style="width:32px; height:32px; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; margin-right:16px; flex-shrink:0;">
-                        !
-                    </div>
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-size:25px; font-weight:500; color:#8ab4f8;">
-                            APM Meter
-                        </div>
-                        <!-- Removed "just now" line -->
-                    </div>
-                </div>
-                <div style="padding:16px 20px;">
-                    <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
-                        The same members have been active for a long time change them if needed.
-                    </div>
-                    <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
-                        Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժրության դեպքում փոխեք նրանց
-                    </div>
-                </div>
-            `;
-
-            saver.appendChild(msg);
-        }
-
-        // ── Daily changing background color ────────────────────────────────
-        // Using day of year (0–365/366) to cycle through colors
-        const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-        
-        // You can add/remove colors — at least 4–7 looks nice
-        const colors = [
-            'rgba(244, 67, 54, 0.92)',   // red
-            'rgba(76, 175, 80, 0.92)',   // green
-            'rgba(33, 150, 243, 0.92)',  // blue
-            'rgba(255, 193, 7, 0.92)',   // amber/yellow
-            'rgba(156, 39, 176, 0.92)',  // purple
-            'rgba(255, 87, 34, 0.92)',   // deep orange
-            'rgba(0, 188, 212, 0.92)',   // cyan
-        ];
-
-        // Pick color using modulo (cycles forever)
-        const colorIndex = dayOfYear % colors.length;
-        msg.style.backgroundColor = colors[colorIndex];
-
-        // Optional: make the ! circle match the background color
-        const alertCircle = msg.querySelector('div[style*="border-radius:50%"]');
-        if (alertCircle) {
-            alertCircle.style.background = colors[colorIndex].replace('0.92', '1'); // full opacity
-        }
-
-        // Show animation
-        msg.style.display = 'block';
-        setTimeout(() => {
-            msg.style.opacity = '1';
-            msg.style.transform = 'translateY(0)';
-        }, 10);
-
-        // Auto-hide after 30 seconds (you had 30*1000, I kept it)
-        setTimeout(() => {
-            msg.style.opacity = '0';
-            msg.style.transform = 'translateY(-20px)';
-            setTimeout(() => { 
-                msg.style.display = 'none'; 
-            }, 400);
-        }, 30 * 1000);
-    }
+       const now = new Date();
+       const timestamp = now.toLocaleString('en-IN', {
+           year: 'numeric', month: '2-digit', day: '2-digit',
+           hour: '2-digit', minute: '2-digit', second: '2-digit',
+           hour12: false
+       });
+   
+       console.log(`[REMINDER SHOWN] ${timestamp} | Same members active for ≥20 min | Visible for 60 seconds`);
+   
+       let msg = document.getElementById('inactivity-warning');
+       if (!msg) {
+           msg = document.createElement('div');
+           msg.id = 'inactivity-warning';
+           Object.assign(msg.style, {
+               position: 'fixed',
+               top: '16px', left: '16px', right: '16px',
+               maxWidth: '580px', margin: '0 auto',
+               backgroundColor: 'rgba(32, 33, 36, 0.92)',
+               color: '#e0e0e0',
+               borderRadius: '24px',
+               boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+               overflow: 'hidden',
+               zIndex: '9999',
+               display: 'none',
+               fontFamily: 'Roboto, system-ui, sans-serif',
+               padding: '0',
+               opacity: '0',
+               transform: 'translateY(-20px)',
+               transition: 'all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)',
+           });
+   
+           msg.innerHTML = `
+               <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                   <div style="width:32px; height:32px; background:#ff9800; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; margin-right:16px; flex-shrink:0;">
+                       !
+                   </div>
+                   <div style="flex:1; min-width:0;">
+                       <div style="font-size:25px; font-weight:500; color:#8ab4f8;">
+                           APM Meter
+                       </div>
+                       <div style="font-size:12px; color:rgba(255,255,255,0.7);">just now</div>
+                   </div>
+               </div>
+               <div style="padding:16px 20px;">
+                   <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
+                       The same members have been active for a long time change them if needed.
+                   </div>
+                   <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                       Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժեշտության դեպքում փոխեք նրանց
+                   </div>
+               </div>
+           `;
+   
+           saver.appendChild(msg);
+       }
+   
+       msg.style.display = 'block';
+       setTimeout(() => {
+           msg.style.opacity = '1';
+           msg.style.transform = 'translateY(0)';
+       }, 10);
+   
+       setTimeout(() => {
+           msg.style.opacity = '0';
+           msg.style.transform = 'translateY(-20px)';
+           setTimeout(() => { msg.style.display = 'none'; }, 400);
+       }, 30 * 1000);
+   }
    
    function hideInactivityWarning() {
        const msg = document.getElementById('inactivity-warning');
@@ -621,7 +594,10 @@ window.addEventListener('beforeunload', () => {
        lineHeight: '1.3',
        padding: '0 20px',
        maxWidth: '90%',
-       display: 'none'
+       borderRadius: '16px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+    display: 'none',
+    transition: 'background-color 1.2s ease, opacity 0.6s ease'
    });
    warningMsg.innerHTML = `
        No active members! Please declare your individual profile.<br><br>
@@ -630,82 +606,96 @@ window.addEventListener('beforeunload', () => {
    wrapper.appendChild(warningMsg);
    
    const styleSheet = document.createElement('style');
-   styleSheet.textContent = `
-       @keyframes blink {
-           0% { background-color: red; }
-           50% { background-color: darkred; }
-           100% { background-color: red; }
-       }
-       .blinking { animation: blink 1s infinite; }
+   styleSheet.textContent += `
+    #screensaver-warning {
+        backdrop-filter: blur(8px);
+}
    `;
    document.head.appendChild(styleSheet);
    
    function updateScreensaverMembers(members = []) {
-       const row = document.getElementById('screensaver-members');
-       const warning = document.getElementById('screensaver-warning');
-       const weatherEl = document.getElementById('weather-status');
-       if (!row || !warning) return;
-   
-       row.innerHTML = '';
-   
-       const activeMembers = members.filter(m => m.active === true);
-       resetReminderTimer(activeMembers);
-   
-       if (activeMembers.length === 0) {
-           saver.style.background = 'red';
-           saver.classList.add('blinking');
-           row.style.display = 'none';
-           warning.style.display = 'block';
-           hideInactivityWarning();
-           if (weatherEl) weatherEl.style.opacity = '0'; // hide weather
-       } else {
-           saver.style.background = 'black';
-           saver.classList.remove('blinking');
-           row.style.display = 'flex';
-           warning.style.display = 'none';
-           if (weatherEl) weatherEl.style.opacity = '0.9'; // show weather
-           // Fetch fresh weather when members are active
-           fetchWeather();
-   
-           activeMembers.forEach(m => {
-               const container = document.createElement('div');
-               Object.assign(container.style, {
-                   display: 'flex',
-                   flexDirection: 'column',
-                   alignItems: 'center',
-                   gap: '8px',
-               });
-   
-               const icon = document.createElement('div');
-               Object.assign(icon.style, {
-                   width: '110px',
-                   height: '110px',
-                   borderRadius: '50%',
-                   backgroundImage: `url(${m.avatar})`,
-                   backgroundSize: 'cover',
-                   backgroundPosition: 'center',
-                   backgroundColor: 'black',
-                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-               });
-   
-               const label = document.createElement('div');
-               Object.assign(label.style, {
-                   fontSize: '50px',
-                   fontWeight: '600',
-                   color: 'white',
-                   textShadow: '0 2px 4px rgba(0,0,0,0.6)',
-                   textAlign: 'center',
-                   maxWidth: '140px',
-                   wordBreak: 'break-word',
-               });
-               label.textContent = m.name || m.member_code || 'Unknown';
-   
-               container.appendChild(icon);
-               container.appendChild(label);
-               row.appendChild(container);
-           });
-       }
-   }
+    const row = document.getElementById('screensaver-members');
+    const warning = document.getElementById('screensaver-warning');
+    const weatherEl = document.getElementById('weather-status');
+    if (!row || !warning) return;
+
+    row.innerHTML = '';
+
+    const activeMembers = members.filter(m => m.active === true);
+    resetReminderTimer(activeMembers);
+
+    if (activeMembers.length === 0) {
+        // Daily color cycle for no-members warning
+        const now = new Date();
+        const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+        
+        const colors = [
+            'rgba(244, 67, 54, 0.92)',   // vivid red
+            'rgba(76, 175, 80, 0.92)',   // green
+            'rgba(33, 150, 243, 0.92)',  // blue
+            'rgba(255, 193, 7, 0.92)',   // amber/yellow
+            'rgba(156, 39, 176, 0.92)',  // purple
+            'rgba(255, 87, 34, 0.92)',   // deep orange
+            'rgba(0, 188, 212, 0.92)',   // cyan/teal
+        ];
+        
+        const colorIndex = dayOfYear % colors.length;
+        warning.style.backgroundColor = colors[colorIndex];
+        warning.style.opacity = '0.95';  // slightly more visible
+
+        saver.style.background = 'rgba(0,0,0,0.7)';  // darken whole saver a bit
+        saver.classList.add('blinking');
+        row.style.display = 'none';
+        warning.style.display = 'block';
+        hideInactivityWarning();
+        if (weatherEl) weatherEl.style.opacity = '0';
+    } else {
+        saver.style.background = 'black';
+        saver.classList.remove('blinking');
+        row.style.display = 'flex';
+        warning.style.display = 'none';
+        if (weatherEl) weatherEl.style.opacity = '0.9';
+        fetchWeather();
+
+        activeMembers.forEach(m => {
+            const container = document.createElement('div');
+            Object.assign(container.style, {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '8px',
+            });
+
+            const icon = document.createElement('div');
+            Object.assign(icon.style, {
+                width: '110px',
+                height: '110px',
+                borderRadius: '50%',
+                backgroundImage: `url(${m.avatar})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundColor: 'black',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+            });
+
+            const label = document.createElement('div');
+            Object.assign(label.style, {
+                fontSize: '50px',
+                fontWeight: '600',
+                color: 'white',
+                textShadow: '0 2px 4px rgba(0,0,0,0.6)',
+                textAlign: 'center',
+                maxWidth: '140px',
+                wordBreak: 'break-word',
+            });
+            label.textContent = m.name || m.member_code || 'Unknown';
+
+            container.appendChild(icon);
+            container.appendChild(label);
+            row.appendChild(container);
+        });
+    }
+}
    
    window.Screensaver = {
        show: showScreensaver,
