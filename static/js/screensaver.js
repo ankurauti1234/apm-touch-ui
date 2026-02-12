@@ -586,7 +586,7 @@ window.addEventListener('beforeunload', () => {
    const warningMsg = document.createElement('div');
    warningMsg.id = 'screensaver-warning';
    Object.assign(warningMsg.style, {
-       fontSize: '35px',
+       fontSize: '45px',
        fontWeight: 'bold',
        textAlign: 'center',
        color: 'white',
@@ -626,7 +626,7 @@ window.addEventListener('beforeunload', () => {
        
    
        if (activeMembers.length === 0) {
-           saver.style.background = 'red';
+           saver.style.background = getTodayDarkColor();
            saver.classList.add('blinking');
            row.style.display = 'none';
            warning.style.display = 'block';
@@ -719,6 +719,25 @@ window.addEventListener('beforeunload', () => {
     }
     if (reminderInterval) clearInterval(reminderInterval);
 });
+
+// ────────────────────────────────────────────────
+// Daily rotating dark colors for "no active members"
+const dailyDarkColors = [
+    '#8B0000',  // Dark Red
+    '#0D47A1',  // Dark Blue
+    '#1B5E20',  // Dark Green
+    '#4A148C',  // Dark Purple
+    '#BF360C',  // Dark Orange
+    '#263238',  // Dark Blue Grey
+    '#3E2723'   // Dark Brown
+];
+
+function getTodayDarkColor() {
+    const today = new Date();
+    const dayIndex = today.getDate(); // 1–31
+    return dailyDarkColors[dayIndex % dailyDarkColors.length];
+}
+
 
 // Start periodic weather updates right away
 startWeatherRefresh();
