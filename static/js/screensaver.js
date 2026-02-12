@@ -267,7 +267,8 @@ window.addEventListener('beforeunload', () => {
     }
 
     try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`;
+        // IMPORTANT: added is_day to the query
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`;
         
         const response = await fetch(url);
         if (!response.ok) throw new Error("Weather API error");
@@ -276,15 +277,68 @@ window.addEventListener('beforeunload', () => {
         const current = data.current;
         const temp = Math.round(current.temperature_2m);
         const weatherCode = current.weather_code;
+        const isDay = current.is_day === 1;   // 1 = day, 0 = night
 
         let icon = '/static/assets/sunny.png';
         let condition = 'Clear';
 
-        if (weatherCode >= 0 && weatherCode <= 3)    { icon = '/static/assets/sunny.png'; condition = 'Sunny'; }
-        else if (weatherCode <= 48)                  { icon = '/static/assets/cloudy.png'; condition = 'Cloudy'; }
-        else if (weatherCode <= 67)                  { icon = '/static/assets/rainy.png'; condition = 'Rainy'; }
-        else if (weatherCode <= 77)                  { icon = '/static/assets/snow.png'; condition = 'Snowy'; }
-        else if (weatherCode <= 99)                  { icon = '/static/assets/thunderstrom.png'; condition = 'Thunderstorm'; }
+        // ── Clear / low-cloud situations ── most important for day/night difference
+        if (weatherCode === 0) {
+            if (isDay) {
+                icon = '/static/assets/sunny.png';
+                condition = 'Sunny';
+            } else {
+                icon = '/static/assets/clear-night.png';   // ← prepare this icon (moon/stars)
+                condition = 'Clear';
+            }
+        } 
+        else if (weatherCode === 1) {
+            if (isDay) {
+                icon = '/static/assets/sunny.png';         // or mainly-sunny.png if you have it
+                condition = 'Mainly Sunny';
+            } else {
+                icon = '/static/assets/clear-night.png';
+                condition = 'Mainly Clear';
+            }
+        } 
+        else if (weatherCode === 2) {
+            if (isDay) {
+                icon = '/static/assets/partly-cloudy.png'; // ← recommended to have separate day/night
+                condition = 'Partly Cloudy';
+            } else {
+                icon = '/static/assets/partly-cloudy-night.png';
+                condition = 'Partly Cloudy';
+            }
+        } 
+        else if (weatherCode === 3) {
+            icon = '/static/assets/cloudy.png';
+            condition = 'Overcast';
+        }
+        
+        // Fog
+        else if (weatherCode >= 45 && weatherCode <= 48) {
+            icon = '/static/assets/fog.png';           // or cloudy.png
+            condition = 'Foggy';
+        }
+        
+        // ── Other conditions ── usually same icon day & night
+        else if (weatherCode >= 51 && weatherCode <= 67) {
+            icon = '/static/assets/rainy.png';
+            condition = weatherCode <= 57 ? 'Drizzle' : 'Rain';
+        }
+        else if (weatherCode >= 71 && weatherCode <= 77) {
+            icon = '/static/assets/snow.png';
+            condition = 'Snow';
+        }
+        else if (weatherCode >= 80 && weatherCode <= 99) {
+            icon = '/static/assets/rainy.png';         // or dedicated shower / thunderstorm icons
+            if (weatherCode >= 95) {
+                icon = '/static/assets/thunderstrom.png';
+                condition = 'Thunderstorm';
+            } else {
+                condition = 'Showers';
+            }
+        }
 
         weatherEl.innerHTML = `
             <div>
@@ -543,8 +597,8 @@ window.addEventListener('beforeunload', () => {
        display: 'none'
    });
    warningMsg.innerHTML = `
-       No active members! Please activate at least one.<br><br>
-       Ակտիվ անդամներ չկան! Խնդրում ենք ակտիվացնել առնվազն մեկին.
+       No active members! Please declare your individual profile.<br><br>
+       Ակտիվ անդամներ չկան! Խնդրում ենք նշել ձեր անհատական ​​էջը.
    `;
    wrapper.appendChild(warningMsg);
    
