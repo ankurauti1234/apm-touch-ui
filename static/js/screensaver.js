@@ -631,8 +631,14 @@ window.addEventListener('beforeunload', () => {
            row.style.display = 'none';
            warning.style.display = 'block';
            hideInactivityWarning();
+
+           const timeEl = document.getElementById('clock-time');
+           const dateEl = document.getElementById('clock-date');
+           if (timeEl) timeEl.style.display = 'none';
+           if (dateEl) dateEl.style.display = 'none';
+
+
            if (weatherEl) weatherEl.style.opacity = '0'; // hide weather
-           if (timeEl) timeEl.style.opacity = '0'; // hide weather
        } else {
            saver.style.background = 'black';
            saver.classList.remove('blinking');
