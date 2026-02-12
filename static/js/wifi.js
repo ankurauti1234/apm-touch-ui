@@ -373,7 +373,7 @@ if (!document.getElementById('wifi-spinner-style')) {
     
         Object.assign(banner.style, {
             position: 'fixed',
-            top: '16px',
+            top: '50%',
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'rgba(30, 33, 40, 0.92)',
