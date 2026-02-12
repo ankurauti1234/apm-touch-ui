@@ -596,6 +596,10 @@ window.addEventListener('beforeunload', () => {
        maxWidth: '90%',
        borderRadius: '16px',
         display: 'none',
+        background: 'rgba(0,0,0,0.4)',           // semi-transparent dark overlay → better readability
+    backdropFilter: 'blur(8px)',             // nice frosted effect
+    display: 'none',
+    zIndex: '10',
    });
    warningMsg.innerHTML = `
        No active members! Please declare your individual profile.<br><br>
