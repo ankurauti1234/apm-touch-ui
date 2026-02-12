@@ -595,9 +595,7 @@ window.addEventListener('beforeunload', () => {
        padding: '0 20px',
        maxWidth: '90%',
        borderRadius: '16px',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-    display: 'none',
-    transition: 'background-color 1.2s ease, opacity 0.6s ease'
+        display: 'none',
    });
    warningMsg.innerHTML = `
        No active members! Please declare your individual profile.<br><br>
@@ -606,11 +604,16 @@ window.addEventListener('beforeunload', () => {
    wrapper.appendChild(warningMsg);
    
    const styleSheet = document.createElement('style');
-   styleSheet.textContent += `
-    #screensaver-warning {
-        backdrop-filter: blur(8px);
-}
-   `;
+   styleSheet.textContent = `
+    @keyframes blink {
+        0% { background-color: var(--blink-start); }
+        50% { background-color: var(--blink-mid); }
+        100% { background-color: var(--blink-start); }
+    }
+    .blinking {
+        animation: blink 1.2s infinite;
+    }
+`;
    document.head.appendChild(styleSheet);
    
    function updateScreensaverMembers(members = []) {
@@ -626,9 +629,6 @@ window.addEventListener('beforeunload', () => {
 
     if (activeMembers.length === 0) {
         // Daily color cycle for no-members warning
-        const now = new Date();
-        const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
-        
         const colors = [
             'rgba(244, 67, 54, 0.92)',   // vivid red
             'rgba(76, 175, 80, 0.92)',   // green
