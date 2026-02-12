@@ -13,8 +13,9 @@ function createWifiWarning() {
     Object.assign(wifiWarningElement.style, {
         position: 'absolute',
         bottom: '40px',
+        top: '50%',
         left: '50%',
-        transform: 'translateX(-50%)',
+        transform: 'translate(-50%, -50%)',   // center horizontally + vertically
         background: 'rgba(30, 33, 40, 0.92)',     // dark semi-transparent
         color: '#ff9800',                           // orange accent
         padding: '16px 32px',
@@ -63,13 +64,13 @@ function showWifiWarningInSaver() {
     if (!wifiWarningElement) createWifiWarning();
     
     wifiWarningElement.style.opacity = '1';
-    wifiWarningElement.style.transform = 'translateX(-50%) translateY(0)';
+    wifiWarningElement.style.transform = 'translate(-50%, -50%) scale(1)';
 }
 
 function hideWifiWarningInSaver() {
     if (!wifiWarningElement) return;
     wifiWarningElement.style.opacity = '0';
-    wifiWarningElement.style.transform = 'translateX(-50%) translateY(20px)';
+    wifiWarningElement.style.transform = 'translate(-50%, -50%) scale(0.95)';
 }
 
 async function checkWifiInScreensaver() {
