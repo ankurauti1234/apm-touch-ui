@@ -628,6 +628,8 @@ window.addEventListener('beforeunload', () => {
        if (activeMembers.length === 0) {
            saver.style.background = 'red';
            saver.classList.add('blinking');
+           if (timeEl)     timeEl.style.display     = 'none';
+           if (dateEl)     dateEl.style.display     = 'none';
            row.style.display = 'none';
            warning.style.display = 'block';
            hideInactivityWarning();
