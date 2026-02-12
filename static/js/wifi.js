@@ -375,7 +375,7 @@ if (!document.getElementById('wifi-spinner-style')) {
             position: 'fixed',
             top: '50%',
             left: '50%',
-            transform: 'translateX(-50%)',
+            transform: 'translate(-50%, -50%)', 
             background: 'rgba(30, 33, 40, 0.92)',
             color: '#ff9800',
             padding: '16px 32px',
