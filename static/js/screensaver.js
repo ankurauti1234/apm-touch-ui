@@ -623,77 +623,62 @@ window.addEventListener('beforeunload', () => {
    
        const activeMembers = members.filter(m => m.active === true);
        resetReminderTimer(activeMembers);
-
-       const hasActive = activeMembers.length > 0;
+       
    
-       if (!hasActive) {
-        // ── NO active members ────────────────────────────────
-        saver.style.background = getDailyDarkColor();
-        saver.classList.add('blinking');
-        row.style.display      = 'none';
-        warning.style.display  = 'block';
-
-        // Hide everything visual except warning
-        if (timeEl)    timeEl.style.display   = 'none';
-        if (dateEl)    dateEl.style.display   = 'none';
-        if (weatherEl) weatherEl.style.display = 'none';   // ← changed from opacity
-
-        hideInactivityWarning();
-    } else {
-        // ── HAS active members ───────────────────────────────
-        saver.style.background = 'black';
-        saver.classList.remove('blinking');
-        row.style.display      = 'flex';
-        warning.style.display  = 'none';
-
-        // Show clock + date + weather
-        if (timeEl)    timeEl.style.display   = 'block';
-        if (dateEl)    dateEl.style.display   = 'block';
-        if (weatherEl) {
-            weatherEl.style.display = 'flex';     // or '' / 'block' — match original
-            // weatherEl.style.opacity = '0.9';   // optional — you can keep if you like fade
-        }
-
-        fetchWeather();   // only fetch when we actually want to show it
-
-        activeMembers.forEach(m => {
-            const container = document.createElement('div');
-            Object.assign(container.style, {
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '8px',
-            });
-
-            const icon = document.createElement('div');
-            Object.assign(icon.style, {
-                width: '110px',
-                height: '110px',
-                borderRadius: '50%',
-                backgroundImage: `url(${m.avatar})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundColor: 'black',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-            });
-
-            const label = document.createElement('div');
-            Object.assign(label.style, {
-                fontSize: '50px',
-                fontWeight: '600',
-                color: 'white',
-                textShadow: '0 2px 4px rgba(0,0,0,0.6)',
-                textAlign: 'center',
-                maxWidth: '140px',
-                wordBreak: 'break-word',
-            });
-            label.textContent = m.name || m.member_code || 'Unknown';
-
-            container.appendChild(icon);
-            container.appendChild(label);
-            row.appendChild(container);
-        });
-    }
+       if (activeMembers.length === 0) {
+           saver.style.background = 'red';
+           saver.classList.add('blinking');
+           row.style.display = 'none';
+           warning.style.display = 'block';
+           hideInactivityWarning();
+           if (weatherEl) weatherEl.style.opacity = '0'; // hide weather
+       } else {
+           saver.style.background = 'black';
+           saver.classList.remove('blinking');
+           row.style.display = 'flex';
+           warning.style.display = 'none';
+           if (weatherEl) weatherEl.style.opacity = '0.9'; // show weather
+           // Fetch fresh weather when members are active
+           fetchWeather();
+   
+           activeMembers.forEach(m => {
+               const container = document.createElement('div');
+               Object.assign(container.style, {
+                   display: 'flex',
+                   flexDirection: 'column',
+                   alignItems: 'center',
+                   gap: '8px',
+               });
+   
+               const icon = document.createElement('div');
+               Object.assign(icon.style, {
+                   width: '110px',
+                   height: '110px',
+                   borderRadius: '50%',
+                   backgroundImage: `url(${m.avatar})`,
+                   backgroundSize: 'cover',
+                   backgroundPosition: 'center',
+                   backgroundColor: 'black',
+                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+               });
+   
+               const label = document.createElement('div');
+               Object.assign(label.style, {
+                   fontSize: '50px',
+                   fontWeight: '600',
+                   color: 'white',
+                   textShadow: '0 2px 4px rgba(0,0,0,0.6)',
+                   textAlign: 'center',
+                   maxWidth: '140px',
+                   wordBreak: 'break-word',
+               });
+               label.textContent = m.name || m.member_code || 'Unknown';
+   
+               container.appendChild(icon);
+               container.appendChild(label);
+               row.appendChild(container);
+           });
+       }
    }
    
    window.Screensaver = {
