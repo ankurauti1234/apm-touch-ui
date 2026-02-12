@@ -396,74 +396,107 @@ window.addEventListener('beforeunload', () => {
    }
    
    function showInactivityWarning() {
-       const now = new Date();
-       const timestamp = now.toLocaleString('en-IN', {
-           year: 'numeric', month: '2-digit', day: '2-digit',
-           hour: '2-digit', minute: '2-digit', second: '2-digit',
-           hour12: false
-       });
-   
-       console.log(`[REMINDER SHOWN] ${timestamp} | Same members active for ≥20 min | Visible for 60 seconds`);
-   
-       let msg = document.getElementById('inactivity-warning');
-       if (!msg) {
-           msg = document.createElement('div');
-           msg.id = 'inactivity-warning';
-           Object.assign(msg.style, {
-               position: 'fixed',
-               top: '16px', left: '16px', right: '16px',
-               maxWidth: '580px', margin: '0 auto',
-               backgroundColor: 'rgba(32, 33, 36, 0.92)',
-               color: '#e0e0e0',
-               borderRadius: '24px',
-               boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-               overflow: 'hidden',
-               zIndex: '9999',
-               display: 'none',
-               fontFamily: 'Roboto, system-ui, sans-serif',
-               padding: '0',
-               opacity: '0',
-               transform: 'translateY(-20px)',
-               transition: 'all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)',
-           });
-   
-           msg.innerHTML = `
-               <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                   <div style="width:32px; height:32px; background:#ff9800; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; margin-right:16px; flex-shrink:0;">
-                       !
-                   </div>
-                   <div style="flex:1; min-width:0;">
-                       <div style="font-size:25px; font-weight:500; color:#8ab4f8;">
-                           APM Meter
-                       </div>
-                       <div style="font-size:12px; color:rgba(255,255,255,0.7);">just now</div>
-                   </div>
-               </div>
-               <div style="padding:16px 20px;">
-                   <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
-                       The same members have been active for a long time change them if needed.
-                   </div>
-                   <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
-                       Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժեշտության դեպքում փոխեք նրանց
-                   </div>
-               </div>
-           `;
-   
-           saver.appendChild(msg);
-       }
-   
-       msg.style.display = 'block';
-       setTimeout(() => {
-           msg.style.opacity = '1';
-           msg.style.transform = 'translateY(0)';
-       }, 10);
-   
-       setTimeout(() => {
-           msg.style.opacity = '0';
-           msg.style.transform = 'translateY(-20px)';
-           setTimeout(() => { msg.style.display = 'none'; }, 400);
-       }, 30 * 1000);
-   }
+        const now = new Date();
+        const timestamp = now.toLocaleString('en-IN', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false
+        });
+
+        console.log(`[REMINDER SHOWN] ${timestamp} | Same members active for ≥20 min | Visible for 30 seconds`);
+
+        let msg = document.getElementById('inactivity-warning');
+        if (!msg) {
+            msg = document.createElement('div');
+            msg.id = 'inactivity-warning';
+            
+            // We'll set the color dynamically below
+            Object.assign(msg.style, {
+                position: 'fixed',
+                top: '16px', 
+                left: '16px', 
+                right: '16px',
+                maxWidth: '580px', 
+                margin: '0 auto',
+                color: '#e0e0e0',
+                borderRadius: '24px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                overflow: 'hidden',
+                zIndex: '9999',
+                display: 'none',
+                fontFamily: 'Roboto, system-ui, sans-serif',
+                padding: '0',
+                opacity: '0',
+                transform: 'translateY(-20px)',
+                transition: 'all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)',
+            });
+
+            msg.innerHTML = `
+                <div style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                    <div style="width:32px; height:32px; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; margin-right:16px; flex-shrink:0;">
+                        !
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:25px; font-weight:500; color:#8ab4f8;">
+                            APM Meter
+                        </div>
+                        <!-- Removed "just now" line -->
+                    </div>
+                </div>
+                <div style="padding:16px 20px;">
+                    <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
+                        The same members have been active for a long time change them if needed.
+                    </div>
+                    <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                        Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժրության դեպքում փոխեք նրանց
+                    </div>
+                </div>
+            `;
+
+            saver.appendChild(msg);
+        }
+
+        // ── Daily changing background color ────────────────────────────────
+        // Using day of year (0–365/366) to cycle through colors
+        const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+        
+        // You can add/remove colors — at least 4–7 looks nice
+        const colors = [
+            'rgba(244, 67, 54, 0.92)',   // red
+            'rgba(76, 175, 80, 0.92)',   // green
+            'rgba(33, 150, 243, 0.92)',  // blue
+            'rgba(255, 193, 7, 0.92)',   // amber/yellow
+            'rgba(156, 39, 176, 0.92)',  // purple
+            'rgba(255, 87, 34, 0.92)',   // deep orange
+            'rgba(0, 188, 212, 0.92)',   // cyan
+        ];
+
+        // Pick color using modulo (cycles forever)
+        const colorIndex = dayOfYear % colors.length;
+        msg.style.backgroundColor = colors[colorIndex];
+
+        // Optional: make the ! circle match the background color
+        const alertCircle = msg.querySelector('div[style*="border-radius:50%"]');
+        if (alertCircle) {
+            alertCircle.style.background = colors[colorIndex].replace('0.92', '1'); // full opacity
+        }
+
+        // Show animation
+        msg.style.display = 'block';
+        setTimeout(() => {
+            msg.style.opacity = '1';
+            msg.style.transform = 'translateY(0)';
+        }, 10);
+
+        // Auto-hide after 30 seconds (you had 30*1000, I kept it)
+        setTimeout(() => {
+            msg.style.opacity = '0';
+            msg.style.transform = 'translateY(-20px)';
+            setTimeout(() => { 
+                msg.style.display = 'none'; 
+            }, 400);
+        }, 30 * 1000);
+    }
    
    function hideInactivityWarning() {
        const msg = document.getElementById('inactivity-warning');
@@ -598,7 +631,7 @@ window.addEventListener('beforeunload', () => {
    });
    warningMsg.innerHTML = `
        No active members! Please declare your individual profile.<br><br>
-       Ակտիվ անդամներ չկան! Խնդրում ենք նշել ձեր անհատական ​​էջը.
+       Ակտիվ դիտորդներ չկան! Հաշվի ակտիվացումը պարտադիր է համակարգից օգտվելու համար.
    `;
    wrapper.appendChild(warningMsg);
    
