@@ -614,74 +614,82 @@ window.addEventListener('beforeunload', () => {
    document.head.appendChild(styleSheet);
    
    function updateScreensaverMembers(members = []) {
-       const row = document.getElementById('screensaver-members');
-       const warning = document.getElementById('screensaver-warning');
-       const weatherEl = document.getElementById('weather-status');
-       if (!row || !warning) return;
-   
-       row.innerHTML = '';  
-   
-       const activeMembers = members.filter(m => m.active === true);
-       resetReminderTimer(activeMembers);
-       
-   
-       if (activeMembers.length === 0) {
-           saver.style.background = 'red';
-           saver.classList.add('blinking');
-           if (timeEl)     timeEl.style.display     = 'none';
-           if (dateEl)     dateEl.style.display     = 'none';
-           row.style.display = 'none';
-           warning.style.display = 'block';
-           hideInactivityWarning();
-           if (weatherEl) weatherEl.style.opacity = '0'; // hide weather
-       } else {
-           saver.style.background = 'black';
-           saver.classList.remove('blinking');
-           row.style.display = 'flex';
-           warning.style.display = 'none';
-           if (weatherEl) weatherEl.style.opacity = '0.9'; // show weather
-           // Fetch fresh weather when members are active
-           fetchWeather();
-   
-           activeMembers.forEach(m => {
-               const container = document.createElement('div');
-               Object.assign(container.style, {
-                   display: 'flex',
-                   flexDirection: 'column',
-                   alignItems: 'center',
-                   gap: '8px',
-               });
-   
-               const icon = document.createElement('div');
-               Object.assign(icon.style, {
-                   width: '110px',
-                   height: '110px',
-                   borderRadius: '50%',
-                   backgroundImage: `url(${m.avatar})`,
-                   backgroundSize: 'cover',
-                   backgroundPosition: 'center',
-                   backgroundColor: 'black',
-                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-               });
-   
-               const label = document.createElement('div');
-               Object.assign(label.style, {
-                   fontSize: '50px',
-                   fontWeight: '600',
-                   color: 'white',
-                   textShadow: '0 2px 4px rgba(0,0,0,0.6)',
-                   textAlign: 'center',
-                   maxWidth: '140px',
-                   wordBreak: 'break-word',
-               });
-               label.textContent = m.name || m.member_code || 'Unknown';
-   
-               container.appendChild(icon);
-               container.appendChild(label);
-               row.appendChild(container);
-           });
-       }
-   }
+    const activeMembers = members.filter(m => m.active === true);
+    resetReminderTimer(activeMembers);
+
+    if (activeMembers.length === 0) {
+        // ── NO ACTIVE MEMBERS ──
+        saver.style.background = 'red';
+        saver.classList.add('blinking');
+
+        // Hide clock + members, show warning
+        if (timeEl)     timeEl.style.display     = 'none';
+        if (dateEl)     dateEl.style.display     = 'none';
+        if (membersRow) membersRow.style.display = 'none';
+        if (warningMsg) warningMsg.style.display = 'block';
+
+        hideInactivityWarning();
+
+        if (weatherEl) weatherEl.style.opacity = '0';
+    } 
+    else {
+        // ── HAS ACTIVE MEMBERS ──
+        saver.style.background = 'black';
+        saver.classList.remove('blinking');
+
+        // Show clock + members, hide warning
+        if (timeEl)     timeEl.style.display     = 'block';
+        if (dateEl)     dateEl.style.display     = 'block';
+        if (membersRow) membersRow.style.display = 'flex';
+        if (warningMsg) warningMsg.style.display = 'none';
+
+        if (weatherEl) {
+            weatherEl.style.opacity = '0.9';
+            fetchWeather();           // refresh when members become active
+        }
+
+        // Clear previous content and render member avatars/names
+        membersRow.innerHTML = '';
+
+        activeMembers.forEach(m => {
+            const container = document.createElement('div');
+            Object.assign(container.style, {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '8px',
+            });
+
+            const icon = document.createElement('div');
+            Object.assign(icon.style, {
+                width: '110px',
+                height: '110px',
+                borderRadius: '50%',
+                backgroundImage: `url(${m.avatar})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundColor: 'black',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+            });
+
+            const label = document.createElement('div');
+            Object.assign(label.style, {
+                fontSize: '50px',
+                fontWeight: '600',
+                color: 'white',
+                textShadow: '0 2px 4px rgba(0,0,0,0.6)',
+                textAlign: 'center',
+                maxWidth: '140px',
+                wordBreak: 'break-word',
+            });
+            label.textContent = m.name || m.member_code || 'Unknown';
+
+            container.appendChild(icon);
+            container.appendChild(label);
+            membersRow.appendChild(container);
+        });
+    }
+}
    
    window.Screensaver = {
        show: showScreensaver,
