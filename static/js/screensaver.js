@@ -647,6 +647,14 @@ window.addEventListener('beforeunload', () => {
            saver.classList.remove('blinking');
            row.style.display = 'flex';
            warning.style.display = 'none';
+
+           warning.classList.remove('warning-pulse');
+
+           const timeEl = document.getElementById('clock-time');
+           const dateEl = document.getElementById('clock-date');
+           if (timeEl) timeEl.style.display = 'block';
+           if (dateEl) dateEl.style.display = 'block';
+           
            if (weatherEl) weatherEl.style.opacity = '0.9'; // show weather
            // Fetch fresh weather when members are active
            fetchWeather();
