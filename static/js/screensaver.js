@@ -594,12 +594,7 @@ window.addEventListener('beforeunload', () => {
        lineHeight: '1.3',
        padding: '0 20px',
        maxWidth: '90%',
-       borderRadius: '16px',
-        display: 'none',
-        background: 'rgba(0,0,0,0.4)',           // semi-transparent dark overlay → better readability
-    backdropFilter: 'blur(8px)',             // nice frosted effect
-    display: 'none',
-    zIndex: '10',
+       display: 'none'
    });
    warningMsg.innerHTML = `
        No active members! Please declare your individual profile.<br><br>
@@ -609,57 +604,57 @@ window.addEventListener('beforeunload', () => {
    
    const styleSheet = document.createElement('style');
    styleSheet.textContent = `
-    @keyframes blink {
-        0% { background-color: var(--blink-start); }
-        50% { background-color: var(--blink-mid); }
-        100% { background-color: var(--blink-start); }
-    }
-    .blinking {
-        animation: blink 1.2s infinite;
-    }
-`;
+       @keyframes blink {
+           0% { background-color: red; }
+           50% { background-color: darkred; }
+           100% { background-color: red; }
+       }
+       .blinking { animation: blink 1s infinite; }
+   `;
    document.head.appendChild(styleSheet);
    
    function updateScreensaverMembers(members = []) {
-    const row = document.getElementById('screensaver-members');
-    const warning = document.getElementById('screensaver-warning');
-    const weatherEl = document.getElementById('weather-status');
-    if (!row || !warning) return;
+       const row = document.getElementById('screensaver-members');
+       const warning = document.getElementById('screensaver-warning');
+       const weatherEl = document.getElementById('weather-status');
+       if (!row || !warning) return;
+   
+       row.innerHTML = '';  
+   
+       const activeMembers = members.filter(m => m.active === true);
+       resetReminderTimer(activeMembers);
 
-    row.innerHTML = '';
-
-    const activeMembers = members.filter(m => m.active === true);
-    resetReminderTimer(activeMembers);
-
-    if (activeMembers.length === 0) {
-        // Daily color cycle for no-members warning
-        const colors = [
-            'rgba(244, 67, 54, 0.92)',   // vivid red
-            'rgba(76, 175, 80, 0.92)',   // green
-            'rgba(33, 150, 243, 0.92)',  // blue
-            'rgba(255, 193, 7, 0.92)',   // amber/yellow
-            'rgba(156, 39, 176, 0.92)',  // purple
-            'rgba(255, 87, 34, 0.92)',   // deep orange
-            'rgba(0, 188, 212, 0.92)',   // cyan/teal
-        ];
-        
-        const colorIndex = dayOfYear % colors.length;
-        warning.style.backgroundColor = colors[colorIndex];
-        warning.style.opacity = '0.95';  // slightly more visible
-
-        saver.style.background = 'rgba(0,0,0,0.7)';  // darken whole saver a bit
+       const hasActive = activeMembers.length > 0;
+   
+       if (!hasActive) {
+        // ── NO active members ────────────────────────────────
+        saver.style.background = getDailyDarkColor();
         saver.classList.add('blinking');
-        row.style.display = 'none';
-        warning.style.display = 'block';
+        row.style.display      = 'none';
+        warning.style.display  = 'block';
+
+        // Hide everything visual except warning
+        if (timeEl)    timeEl.style.display   = 'none';
+        if (dateEl)    dateEl.style.display   = 'none';
+        if (weatherEl) weatherEl.style.display = 'none';   // ← changed from opacity
+
         hideInactivityWarning();
-        if (weatherEl) weatherEl.style.opacity = '0';
     } else {
+        // ── HAS active members ───────────────────────────────
         saver.style.background = 'black';
         saver.classList.remove('blinking');
-        row.style.display = 'flex';
-        warning.style.display = 'none';
-        if (weatherEl) weatherEl.style.opacity = '0.9';
-        fetchWeather();
+        row.style.display      = 'flex';
+        warning.style.display  = 'none';
+
+        // Show clock + date + weather
+        if (timeEl)    timeEl.style.display   = 'block';
+        if (dateEl)    dateEl.style.display   = 'block';
+        if (weatherEl) {
+            weatherEl.style.display = 'flex';     // or '' / 'block' — match original
+            // weatherEl.style.opacity = '0.9';   // optional — you can keep if you like fade
+        }
+
+        fetchWeather();   // only fetch when we actually want to show it
 
         activeMembers.forEach(m => {
             const container = document.createElement('div');
@@ -699,7 +694,7 @@ window.addEventListener('beforeunload', () => {
             row.appendChild(container);
         });
     }
-}
+   }
    
    window.Screensaver = {
        show: showScreensaver,
