@@ -631,6 +631,8 @@ window.addEventListener('beforeunload', () => {
            saver.classList.add('blinking');
            row.style.display = 'none';
            warning.style.display = 'block';
+           warning.classList.add('warning-pulse');
+
            hideInactivityWarning();
 
            const timeEl = document.getElementById('clock-time');
