@@ -417,6 +417,9 @@ if (!document.getElementById('wifi-spinner-style')) {
         // Click on banner (except close button) → open Wi-Fi popup
         banner.addEventListener('click', (e) => {
             if (e.target.id !== 'wifi-banner-close' && e.target.closest('#wifi-banner-close') === null) {
+                
+                banner.remove();
+                
                 showWiFiPopup();
             }
         });
