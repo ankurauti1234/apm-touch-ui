@@ -381,6 +381,7 @@ window.addEventListener('beforeunload', () => {
    // Repeating reminder every 20 minutes
    let lastActiveMemberKeys = '';
    let reminderInterval = null;
+   let firstReminderTimeout = null;
    
    function resetReminderTimer(activeMembers = []) {
        const currentKeys = activeMembers
@@ -397,9 +398,14 @@ window.addEventListener('beforeunload', () => {
                clearInterval(reminderInterval);
                reminderInterval = null;
            }
+
+           if (firstReminderTimeout) {
+                clearTimeout(firstReminderTimeout);
+                firstReminderTimeout = null;
+            }
    
            if (activeMembers.length > 0) {
-               setTimeout(showInactivityWarning, 20 * 60 * 1000);
+                firstReminderTimeout = setTimeout(showInactivityWarning, 20 * 60 * 1000);
                reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
                // Fetch weather when members become active
                fetchWeather();
@@ -491,7 +497,9 @@ window.addEventListener('beforeunload', () => {
    }
    
    window.addEventListener('beforeunload', () => {
-       if (reminderInterval) clearInterval(reminderInterval);
+    if (reminderInterval) clearInterval(reminderInterval);
+    if (firstReminderTimeout) clearTimeout(firstReminderTimeout);
+    if (weatherRefreshInterval) clearInterval(weatherRefreshInterval);
    });
    
    // ────────────────────────────────────────────────
