@@ -363,16 +363,18 @@ window.addEventListener('beforeunload', () => {
 
     } catch (err) {
         console.error('Weather fetch failed:', err);
-        weatherEl.innerHTML = `<div style="font-size:24px; opacity:0.7;">Weather unavailable</div>`;
-        weatherEl.style.opacity = '0.7';
-    }
 
-    if (!membersData?.members?.some(m => m.active === true)) {
+    const hasActiveNow = membersData?.members?.some(m => m.active === true) ?? false;
+
+    if (!hasActiveNow) {
         weatherEl.style.opacity = '0';
         return;
     }
 
-    weatherEl.style.opacity = '0.9';
+    // Only show error if members are still active
+    weatherEl.innerHTML = `<div style="font-size:24px; opacity:0.7;">Weather unavailable</div>`;
+    weatherEl.style.opacity = '0.7';
+    }
 }
    
    // ────────────────────────────────────────────────
