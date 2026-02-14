@@ -509,6 +509,7 @@ window.addEventListener('beforeunload', () => {
     if (reminderInterval) clearInterval(reminderInterval);
     if (firstReminderTimeout) clearTimeout(firstReminderTimeout);
     if (weatherRefreshInterval) clearInterval(weatherRefreshInterval);
+    if (colorChangeInterval) clearInterval(colorChangeInterval);   // ← add
    });
    
    // ────────────────────────────────────────────────
@@ -535,7 +536,7 @@ window.addEventListener('beforeunload', () => {
    
    function hideScreensaver() {
        saver.style.opacity = '0';
-       setTimeout(() => { saver.style.visibility = 'hidden'; }, 1000);
+       setTimeout(() => { saver.style.visibility = 'hidden'; stopColorCycle();}, 1000);
    
        // Hide weather when screensaver hides
        const weatherEl = document.getElementById('weather-status');
@@ -678,6 +679,8 @@ window.addEventListener('beforeunload', () => {
 
 
            if (weatherEl) weatherEl.style.opacity = '0'; // hide weather
+
+           startColorCycle();
        } else {
            saver.style.background = 'black';
            saver.classList.remove('blinking');
@@ -732,6 +735,8 @@ window.addEventListener('beforeunload', () => {
                container.appendChild(label);
                row.appendChild(container);
            });
+
+           stopColorCycle();
        }
    }
    
@@ -785,6 +790,49 @@ function getTodayDarkColor() {
     return dailyDarkColors[dayIndex % dailyDarkColors.length];
 }
 
+
+const darkColors = [
+    '#8B0000',    // Dark Red
+    '#0D47A1',    // Dark Blue
+    '#1B5E20',    // Dark Green
+    '#4A148C',    // Dark Purple
+    '#BF360C',    // Dark Orange
+    '#263238',    // Dark Blue Grey
+    '#3E2723',    // Dark Brown
+    '#1A237E',    // Indigo
+    '#880E4F',    // Dark Pink
+    '#01579B'     // Dark Cyan (optional additions)
+];
+
+let colorCycleIndex = 0;
+let colorChangeInterval = null;
+
+function changeNoMembersBackground() {
+    if (activeMembers.length > 0 || saver.style.visibility !== 'visible') {
+        // Only run when no members and screensaver is shown
+        stopColorCycle();
+        return;
+    }
+
+    const color = darkColors[colorCycleIndex % darkColors.length];
+    saver.style.background = color;
+    colorCycleIndex++;
+}
+
+function startColorCycle() {
+    if (colorChangeInterval) return; // already running
+
+    // Immediate change + then every 30 min
+    changeNoMembersBackground();
+    colorChangeInterval = setInterval(changeNoMembersBackground, 30 * 60 * 1000);
+}
+
+function stopColorCycle() {
+    if (colorChangeInterval) {
+        clearInterval(colorChangeInterval);
+        colorChangeInterval = null;
+    }
+}
 
 // Start periodic weather updates right away
 startWeatherRefresh();
