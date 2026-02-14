@@ -248,6 +248,12 @@ window.addEventListener('beforeunload', () => {
     const weatherEl = document.getElementById('weather-status');
     if (!weatherEl) return;
 
+    const hasActive = membersData?.members?.some(m => m.active === true) ?? false;
+    if (!hasActive) {
+        weatherEl.style.opacity = '0';
+        return;   // ← stop here — don't fetch or show anything
+    }
+
     let lat = 40.18;
     let lon = 44.51;
     let displayName = "Yerevan";
@@ -360,6 +366,13 @@ window.addEventListener('beforeunload', () => {
         weatherEl.innerHTML = `<div style="font-size:24px; opacity:0.7;">Weather unavailable</div>`;
         weatherEl.style.opacity = '0.7';
     }
+
+    if (!membersData?.members?.some(m => m.active === true)) {
+        weatherEl.style.opacity = '0';
+        return;
+    }
+
+    weatherEl.style.opacity = '0.9';
 }
    
    // ────────────────────────────────────────────────
@@ -634,7 +647,7 @@ window.addEventListener('beforeunload', () => {
            saver.style.background = getTodayDarkColor();
            saver.classList.add('blinking');
            row.style.display = 'none';
-           warning.style.display = 'block';
+           warning.style.display = 'none';
            warning.classList.add('warning-pulse');
 
            hideInactivityWarning();
