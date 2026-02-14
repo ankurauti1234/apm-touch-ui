@@ -318,8 +318,13 @@ window.addEventListener('beforeunload', () => {
             }
         } 
         else if (weatherCode === 3) {
-            icon = '/static/assets/cloudy.png';
-            condition = 'Overcast';
+            if (isDay) {
+                icon = '/static/assets/cloudy.png';
+                condition = 'Overcast';
+            } else {
+                icon = '/static/assets/cloudy-night.png';
+                condition = 'Overcast';
+            }
         }
         
         // Fog
