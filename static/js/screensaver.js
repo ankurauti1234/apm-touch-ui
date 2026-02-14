@@ -649,7 +649,7 @@ window.addEventListener('beforeunload', () => {
            saver.style.background = getTodayDarkColor();
            saver.classList.add('blinking');
            row.style.display = 'none';
-           warning.style.display = 'none';
+           warning.style.display = 'block';
            warning.classList.add('warning-pulse');
 
            hideInactivityWarning();
