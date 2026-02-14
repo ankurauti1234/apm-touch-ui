@@ -284,24 +284,28 @@ window.addEventListener('beforeunload', () => {
         const current = data.current;
         const temp = Math.round(current.temperature_2m);
         const weatherCode = current.weather_code;
-        const isDay = current.is_day === 1;   // 1 = day, 0 = night
+        
+        const apiTimeStr = current.time;                     // e.g. "2026-02-14T13:15"
+        const dt = new Date(apiTimeStr);                     // parses as local time (timezone=auto helps)
+        const hour = dt.getHours();                          // 0–23
+        const isNight = hour >= 18;
 
         let icon = '/static/assets/sunny.png';
         let condition = 'Clear';
 
         // ── Clear / low-cloud situations ── most important for day/night difference
         if (weatherCode === 0) {
-            if (isDay) {
+            if (!isNight) {
                 icon = '/static/assets/sunny.png';
                 condition = 'Sunny';
             } else {
-                icon = '/static/assets/clear-night.png';   // ← prepare this icon (moon/stars)
+                icon = '/static/assets/clear-night.png';
                 condition = 'Clear';
             }
         } 
         else if (weatherCode === 1) {
-            if (isDay) {
-                icon = '/static/assets/sunny.png';         // or mainly-sunny.png if you have it
+            if (!isNight) {
+                icon = '/static/assets/sunny.png';
                 condition = 'Mainly Sunny';
             } else {
                 icon = '/static/assets/clear-night.png';
@@ -309,8 +313,8 @@ window.addEventListener('beforeunload', () => {
             }
         } 
         else if (weatherCode === 2) {
-            if (isDay) {
-                icon = '/static/assets/partly-cloudy.png'; // ← recommended to have separate day/night
+            if (!isNight) {
+                icon = '/static/assets/partly-cloudy.png';
                 condition = 'Partly Cloudy';
             } else {
                 icon = '/static/assets/partly-cloudy-night.png';
@@ -318,7 +322,7 @@ window.addEventListener('beforeunload', () => {
             }
         } 
         else if (weatherCode === 3) {
-            if (isDay) {
+            if (!isNight) {
                 icon = '/static/assets/cloudy.png';
                 condition = 'Overcast';
             } else {
