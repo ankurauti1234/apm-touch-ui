@@ -37,11 +37,11 @@ function createWifiWarning() {
     wifiWarningElement.innerHTML = `
         <span class="material-icons" style="font-size:52px; color:#ff9800;">wifi_off</span>
         <div>
-            <div style="font-size:32px; color:#ff9800; margin-bottom:4px;">
-                Wi-Fi Disconnected
+            <div style="font-size:48px; color:#ff9800; margin-bottom:4px;">
+                Wi-Fi-ը անջատված է
             </div>
-            <div style="font-size:28px; color:rgba(255,255,255,0.9);">
-                Please connect to continue → Tap here to open Wi-Fi settings
+            <div style="font-size:35px; color:rgba(255,255,255,0.9);">
+                Խնդրում ենք շարունակել կապը → Սեղմեք այստեղ՝ Wi-Fi կարգավորումները բացելու համար
             </div>
         </div>
     `;
@@ -465,13 +465,13 @@ window.addEventListener('beforeunload', () => {
                    </div>
                    <div style="flex:1; min-width:0;">
                        <div style="font-size:29px; font-weight:500; color:#8ab4f8;">
-                           APM Meter
+                           Notification
                        </div>
                        <div style="font-size:15px; color:rgba(255,255,255,0.7);">just now</div>
                    </div>
                </div>
                <div style="padding:16px 20px;">
-                   <div style="font-size:40px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                   <div style="font-size:70px; color:rgba(255,255,255,0.85); line-height:1.4;">
                        Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժեշտության դեպքում փոխեք նրանց
                    </div>
                </div>
@@ -617,7 +617,7 @@ window.addEventListener('beforeunload', () => {
    const warningMsg = document.createElement('div');
    warningMsg.id = 'screensaver-warning';
    Object.assign(warningMsg.style, {
-       fontSize: '45px',
+       fontSize: '75px',
        fontWeight: 'bold',
        textAlign: 'center',
        color: 'white',
