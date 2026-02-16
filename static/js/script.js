@@ -2360,76 +2360,105 @@ function togglePasswordVisibility(e) {
    // ==============================================================
    
    // -------------------- Raspberry-proof screensaver (fixed) --------------------
-   let saver = document.getElementById('screensaver');
+// ==============================================================
+// SCREENSAVER – WARNING CARD vs FULL AVATARS+CLOCK
+// ==============================================================
+
+let saver = document.getElementById('screensaver');
 if (!saver) {
     saver = document.createElement('div');
     saver.id = 'screensaver';
     Object.assign(saver.style, {
         position: 'fixed',
         inset: '0',
+        background: 'rgba(0,0,0,0.0)',           // ← start transparent
+        zIndex: '2147483647',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'black',
-        zIndex: '2147483647',
+        opacity: '0',
+        transition: 'opacity 1.2s ease, background 0.8s ease',
+        visibility: 'hidden',
         pointerEvents: 'all',
         touchAction: 'none',
         userSelect: 'none',
-        opacity: '0',
-        transition: 'opacity 1.2s ease',
-        visibility: 'hidden',
     });
     saver.tabIndex = -1;
     document.body.appendChild(saver);
 }
 
+// Helper: decide content based on active members
 function getScreensaverContent() {
     const activeMembers = (membersData?.members || []).filter(m => m.active !== false);
     const hasActive = activeMembers.length > 0;
 
     if (!hasActive) {
-        // ── WARNING MODE ──
+        // ── POPUP CARD STYLE WARNING ──
         return `
-            <div style="
-                color: #ff4d4f;
-                font-size: 68px;
-                font-weight: 700;
+            <div class="screensaver-card" style="
+                background: white;
+                border-radius: 24px;
+                padding: 48px 36px;
+                max-width: 580px;
+                width: 90%;
                 text-align: center;
-                padding: 40px;
-                max-width: 85%;
-                line-height: 1.25;
-                text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+                box-shadow: 0 20px 70px rgba(0,0,0,0.55);
+                color: #1a1a1a;
+                position: relative;
+                animation: popIn 0.4s ease-out;
             ">
-                <div style="font-size:120px; margin-bottom:0.3em;">
-                    <span class="material-icons" style="font-size:1.1em; vertical-align:-0.12em;">warning_amber</span>
+                <div style="font-size: 90px; color: #ff4d4f; margin-bottom: 0.4em;">
+                    <span class="material-icons">warning_amber</span>
                 </div>
-                NO ACTIVE MEMBERS
-                <div style="font-size:42px; margin-top:0.6em; opacity:0.85; font-weight:400;">
-                    System is idle — please check meter status
-                </div>
+                
+                <h2 style="
+                    font-size: 52px;
+                    font-weight: 700;
+                    margin: 0 0 0.4em;
+                    color: #d32f2f;
+                ">
+                    NO ACTIVE MEMBERS
+                </h2>
+                
+                <p style="
+                    font-size: 32px;
+                    margin: 0 0 2.2em;
+                    color: #555;
+                    line-height: 1.4;
+                ">
+                    System appears idle.<br>Please declare household members.
+                </p>
+
                 <button id="declare-members-btn" style="
-                    padding: 28px 60px;
-                    font-size: 42px;
+                    padding: 24px 64px;
+                    font-size: 38px;
                     font-weight: 600;
-                    background: #ff4d4f;
+                    background: #d32f2f;
                     color: white;
                     border: none;
                     border-radius: 16px;
-                    box-shadow: 0 8px 30px rgba(255,77,79,0.5);
+                    box-shadow: 0 8px 32px rgba(211,47,47,0.4);
                     cursor: pointer;
-                    transition: all 0.2s;
-                    min-width: 420px;
-                    touch-action: manipulation;
-                "
-                onmouseover="this.style.background='#e63939'; this.style.transform='scale(1.05)';"
-                onmouseout="this.style.background='#ff4d4f'; this.style.transform='scale(1)';"
-                >
+                    transition: all 0.18s;
+                ">
                     Declare Members
                 </button>
+
+                <style>
+                    @keyframes popIn {
+                        from { transform: scale(0.85); opacity: 0; }
+                        to   { transform: scale(1);   opacity: 1; }
+                    }
+                    .screensaver-card button:hover {
+                        background: #c62828;
+                        transform: translateY(-3px);
+                        box-shadow: 0 12px 40px rgba(211,47,47,0.5);
+                    }
+                </style>
             </div>
         `;
     } else {
-        // ── NORMAL CLOCK + AVATARS MODE ──
+        // ── FULL SCREEN CLOCK + AVATARS (unchanged) ──
         const avatarsHtml = activeMembers.slice(0, 8).map(m => `
             <div style="
                 width: 110px;
@@ -2438,17 +2467,19 @@ function getScreensaverContent() {
                 background: center/cover url('${avatar(m.gender, m.dob)}') no-repeat;
                 border: 4px solid #444;
                 box-shadow: 0 8px 24px rgba(0,0,0,0.7);
-                flex-shrink: 0;
             "></div>
         `).join('');
 
         return `
-            <div id="clock-wrapper" style="
+            <div style="
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 color: white;
                 text-shadow: 0 4px 16px black;
+                width: 100%;
+                height: 100%;
+                justify-content: center;
             ">
                 <div style="
                     display: flex;
@@ -2462,14 +2493,13 @@ function getScreensaverContent() {
                 </div>
 
                 <div id="clock-time" style="
-                    font-size: 100px;
+                    font-size: 180px;
                     font-weight: 700;
                     line-height: 1;
-                    letter-spacing: -2px;
                 "></div>
 
                 <div id="clock-date" style="
-                    font-size: 36px;
+                    font-size: 56px;
                     font-weight: 400;
                     margin-top: 12px;
                     opacity: 0.9;
@@ -2477,6 +2507,64 @@ function getScreensaverContent() {
             </div>
         `;
     }
+}
+
+// Show screensaver – different behavior per mode
+function showScreensaver() {
+    const content = getScreensaverContent();
+    saver.innerHTML = content;
+
+    // Fade in + set dark overlay only for warning mode
+    const hasActive = (membersData?.members || []).some(m => m.active !== false);
+
+    if (!hasActive) {
+        // Warning → semi-transparent dark background + card
+        saver.style.background = 'rgba(0,0,0,0.65)';
+    } else {
+        // Active members → full black
+        saver.style.background = 'black';
+    }
+
+    saver.style.visibility = 'visible';
+    saver.style.opacity = '1';
+
+    try { saver.focus({ preventScroll: true }); } catch (_) {}
+
+    // Clock only in active members mode
+    if (document.getElementById('clock-time')) {
+        updateClock();
+        clockInterval = setInterval(updateClock, 1000);
+    }
+
+    // Button click handler (only exists in warning mode)
+    const declareBtn = document.getElementById('declare-members-btn');
+    if (declareBtn) {
+        declareBtn.addEventListener('click', () => {
+            hideScreensaver();
+            resetScreensaverTimer();
+            // Most natural next step: open member edit popup
+            showEditMemberPopup();
+        });
+    }
+
+    // Click anywhere outside card → close (warning mode only)
+    saver.addEventListener('click', function closeOnBackdrop(e) {
+        if (!hasActive && !e.target.closest('.screensaver-card')) {
+            hideScreensaver();
+            resetScreensaverTimer();
+            saver.removeEventListener('click', closeOnBackdrop);
+        }
+    });
+}
+
+function hideScreensaver() {
+    saver.style.opacity = '0';
+    setTimeout(() => {
+        saver.style.visibility = 'hidden';
+        saver.style.background = 'rgba(0,0,0,0)';
+        saver.innerHTML = '';
+        clearInterval(clockInterval);
+    }, 1300);
 }
 
 let clockInterval = null;
@@ -2511,33 +2599,7 @@ let clockInterval = null;
    let originalBrightness = 153; // Track original brightness
    let isDimmed = false;
    
-   function showScreensaver() {
-    // Decide content based on current members state
-    saver.innerHTML = getScreensaverContent();
 
-    saver.style.visibility = 'visible';
-    saver.style.opacity = '1';
-    try { saver.focus({ preventScroll: true }); } catch (_) {}
-
-    // Start clock only in normal (avatar) mode
-    if (document.getElementById('clock-time')) {
-        updateClock();
-        clockInterval = setInterval(updateClock, 1000);
-    }
-}
-
-
-   
-function hideScreensaver() {
-    saver.style.opacity = '0';
-    setTimeout(() => {
-        saver.style.visibility = 'hidden';
-        saver.innerHTML = ''; // clean up
-        clearInterval(clockInterval);
-    }, 1300); // slightly longer than transition
-
-    try { saver.blur(); } catch (_) {}
-}
    
    // --- Pre-dim brightness logic (go straight to mapped minimum) ---
    async function preDimBrightness() {
