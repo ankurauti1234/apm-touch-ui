@@ -465,16 +465,13 @@ window.addEventListener('beforeunload', () => {
                    </div>
                    <div style="flex:1; min-width:0;">
                        <div style="font-size:25px; font-weight:500; color:#8ab4f8;">
-                           APM Meter
+                           Alert
                        </div>
                        <div style="font-size:12px; color:rgba(255,255,255,0.7);">just now</div>
                    </div>
                </div>
                <div style="padding:16px 20px;">
-                   <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
-                       The same members have been active for a long time change them if needed.
-                   </div>
-                   <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                   <div style="font-size:38px; color:rgba(255,255,255,0.85); line-height:1.4;">
                        Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժեշտության դեպքում փոխեք նրանց
                    </div>
                </div>
@@ -556,27 +553,27 @@ window.addEventListener('beforeunload', () => {
         });
         
         warningBox.innerHTML = `
-    <h2 style="font-size:45px; margin:0 0 32px; color:#ffca28;">
-        Ակտիվ անդամներ չկան
-    </h2>
-    <p style="font-size:32px; line-height:1.45; margin:0 0 18px; color:#f0f0f0;">
-        Ակտիվ դիտորդներ չկան!<br>
-        Հաշվի ակտիվացումը պարտադիր է համակարգից օգտվելու համար:
-    </p>
-    <button id="close-warning-btn" style="
-        font-size:32px; 
-        padding:20px 60px;
-        background:#ffca28; 
-        color:#1a1a1a;
-        border:none; 
-        border-radius:16px;
-        font-weight:600; 
-        cursor:pointer;
-        box-shadow:0 6px 20px rgba(0,0,0,0.4);
-    ">
-        <span class="material-icons" style="vertical-align:middle; font-size:40px;">close</span>
-         Հասկացա
-    </button>
+        <h2 style="font-size:45px; margin:0 0 32px; color:#ffca28;">
+            Ակտիվ անդամներ չկան
+        </h2>
+        <p style="font-size:32px; line-height:1.45; margin:0 0 18px; color:#f0f0f0;">
+            Ակտիվ դիտորդներ չկան!<br>
+            Հաշվի ակտիվացումը պարտադիր է համակարգից օգտվելու համար:
+        </p>
+        <button id="close-warning-btn" style="
+            font-size:32px; 
+            padding:20px 60px;
+            background:#ffca28; 
+            color:#1a1a1a;
+            border:none; 
+            border-radius:16px;
+            font-weight:600; 
+            cursor:pointer;
+            box-shadow:0 6px 20px rgba(0,0,0,0.4);
+        ">
+            <span class="material-icons" style="vertical-align:middle; font-size:40px;">close</span>
+             Հասկացա
+        </button>
 `;
 
         wrapper.appendChild(warningBox);
@@ -721,7 +718,7 @@ window.addEventListener('beforeunload', () => {
        restoreBrightness();
    
        preDimTimeout = setTimeout(preDimBrightness, 20000);
-       screensaverTimeout = setTimeout(showScreensaver, 20000);
+       screensaverTimeout = setTimeout(showScreensaver, 120000);
    }
    
    function blockEventIfActive(e) {
