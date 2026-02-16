@@ -1931,6 +1931,7 @@ function togglePasswordVisibility(e) {
       NAVIGATION (with API calls)
       ============================================================== */
    async function navigate(state, param = null) {
+    cancelNoMembersTimer();
        currentState = state;
    
        /* ---------- CONNECT SELECT ---------- */
@@ -2003,6 +2004,7 @@ function togglePasswordVisibility(e) {
 
            updateGuestCountFromFile();     // ← Updates bottom bar instantly
            // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
+           scheduleNoMembersMessage();
            setTimeout(() => {
                if (currentState === 'main') resetScreensaverTimer();
            }, 100);
@@ -2011,8 +2013,13 @@ function togglePasswordVisibility(e) {
        render();
    }
 
+   //warning warning warning 
+
+   let noMembersTimeout = null;
+
    function showNoActiveMembersMessage() {
     // Prevent multiple popups
+    
     if (document.getElementById('no-members-message')) return;
 
     const overlay = document.createElement('div');
@@ -2075,6 +2082,25 @@ function togglePasswordVisibility(e) {
             setTimeout(() => overlay.remove(), 400);
         }
     };
+}
+
+function scheduleNoMembersMessage() {
+    // Clear any existing timer first
+    if (noMembersTimeout) {
+        clearTimeout(noMembersTimeout);
+        noMembersTimeout = null;
+    }
+
+    noMembersTimeout = setTimeout(() => {
+        // Only show if we're STILL in 'main' state
+        if (currentState !== 'main') return;
+
+        const activeMembers = membersData?.members?.filter(m => m.active !== false) || [];
+
+        if (activeMembers.length === 0) {
+            showNoActiveMembersMessage();
+        }
+    }, 120000); // 120 000 ms = 2 minutes
 }
    
    /* ==============================================================
