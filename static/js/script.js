@@ -2397,7 +2397,7 @@ function getScreensaverContent() {
         return `
             <div class="screensaver-card" style="
                 background: white;
-                border-radius: 24px;
+                border-radius: 50px;
                 padding: 48px 36px;
                 max-width: 580px;
                 width: 90%;
