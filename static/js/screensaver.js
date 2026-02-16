@@ -555,10 +555,10 @@ window.addEventListener('beforeunload', () => {
         });
         
         warningBox.innerHTML = `
-            <span class="material-icons" style="font-size:140px; color:#ffca28; margin-bottom:24px; display:block;">
+            <span class="material-icons" style="font-size:120px; color:#ffca28; margin-bottom:24px; display:block;">
                 warning_amber
             </span>
-            <h2 style="font-size:52px; margin:0 0 24px; color:#ffca28;">
+            <h2 style="font-size:42px; margin:0 0 24px; color:#ffca28;">
                 Ակտիվ անդամներ չկան
             </h2>
             <p style="font-size:32px; line-height:1.45; margin:0 0 40px; color:#f0f0f0;">
