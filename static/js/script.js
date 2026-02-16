@@ -481,6 +481,10 @@
     });
 }
 
+
+let disconnectPopupHideTimer = null;
+
+// ────────────────────────────────────────────────
 async function updateMainDashboardWiFiStatus() {
     const statusEl = document.getElementById('main-wifi-status');
     if (!statusEl) return;
@@ -490,38 +494,37 @@ async function updateMainDashboardWiFiStatus() {
         const data = await res.json();
 
         let icon = 'wifi_off';
-        let color = '#999'; // gray
+        let color = '#999';
         let text = 'Disconnected';
 
         if (data.success && data.ssid) {
-            // ── Connected ────────────────────────────────────────
+            // Connected
             icon = 'wifi';
-            color = '#4caf50'; // green
+            color = '#4caf50';
             text = data.ssid;
 
             currentWiFiStatus = { connected: true, ssid: data.ssid, strength: 'good' };
 
-            // Optional: hide any existing disconnected popup when connected
+            // Hide disconnected popup immediately when we detect connection
             closeWifiDisconnectedPopup();
         } else {
-            // ── Disconnected ─────────────────────────────────────
+            // Disconnected
             currentWiFiStatus = { connected: false, ssid: null, strength: null };
 
-            // Show disconnected popup ONLY if:
-            // - not already shown
+            // Only attempt to show popup if:
+            // - not already visible
             // - Wi-Fi selection popup is NOT open
             if (!wifiDisconnectedPopupShown && !wifiPopupIsOpen) {
                 showWifiDisconnectedPopup();
             }
         }
 
-        // Update the status UI
         statusEl.innerHTML = `
             <span style="max-width:350px;overflow:hidden;text-overflow:ellipsis;">${text}</span>
             <span class="material-icons" style="color:${color};">${icon}</span>
         `;
     } catch (e) {
-        // Treat fetch error as disconnected
+        // Treat error as disconnected
         currentWiFiStatus = { connected: false, ssid: null, strength: null };
 
         if (!wifiDisconnectedPopupShown && !wifiPopupIsOpen) {
@@ -1660,10 +1663,8 @@ function showToast(message) {
 let wifiPopupLifted = false;
 
 function showWifiDisconnectedPopup() {
-    // Don't show if already shown, or Wi-Fi popup is open, or Wi-Fi is connected
-    if (wifiDisconnectedPopupShown || wifiPopupIsOpen || currentWiFiStatus.connected) {
-        return;
-    }
+    // Final safety check
+    if (wifiDisconnectedPopupShown || wifiPopupIsOpen) return;
 
     wifiDisconnectedPopupShown = true;
 
@@ -1677,6 +1678,8 @@ function showWifiDisconnectedPopup() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        opacity: '0',
+        transition: 'opacity 0.5s ease'
     });
 
     const card = document.createElement('div');
@@ -1710,9 +1713,8 @@ function showWifiDisconnectedPopup() {
                 border-radius: 12px;
                 cursor: pointer;
                 box-shadow: 0 6px 20px rgba(25,118,210,0.4);
-                transition: all 0.2s;
             ">
-                Click here to connect to Wi-Fi
+                Connect to Wi-Fi
             </button>
         </div>
     `;
@@ -1720,7 +1722,10 @@ function showWifiDisconnectedPopup() {
     overlay.appendChild(card);
     document.body.appendChild(overlay);
 
-    // Button click → open Wi-Fi popup & close this one
+    // Fade in
+    setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+
+    // Button action
     const btn = document.getElementById('connect-wifi-btn');
     if (btn) {
         btn.addEventListener('click', () => {
@@ -1729,21 +1734,25 @@ function showWifiDisconnectedPopup() {
         });
     }
 
-    // Auto-hide after 20 seconds
-    setTimeout(() => {
+    // Auto-hide after exactly 20 seconds
+    disconnectPopupHideTimer = setTimeout(() => {
         closeWifiDisconnectedPopup();
     }, 20000);
 }
 
 function closeWifiDisconnectedPopup() {
+    if (disconnectPopupHideTimer) {
+        clearTimeout(disconnectPopupHideTimer);
+        disconnectPopupHideTimer = null;
+    }
+
     const overlay = document.getElementById('wifi-disconnected-overlay');
     if (overlay) {
         overlay.style.opacity = '0';
         setTimeout(() => {
             overlay.remove();
             wifiDisconnectedPopupShown = false;
-        }, 600); // fade out time
-        overlay.style.transition = 'opacity 0.6s ease';
+        }, 600);
     }
 }
 
