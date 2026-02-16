@@ -1696,15 +1696,14 @@ function showWifiDisconnectedPopup() {
             box-shadow: 0 20px 70px rgba(0,0,0,0.5);
             color: #333;
         ">
-            <div style="font-size: 80px; color: #ff9800; margin-bottom: 20px;">
+            <div style="font-size: 120px; color: #ff9800; margin-bottom: 10px;">
                 <span class="material-icons">wifi_off</span>
             </div>
             <h2 style="font-size: 38px; margin: 0 0 16px; color: #d32f2f;">
-                Wi-Fi Disconnected
+                Wi-Fi-ը անջատված է
             </h2>
-            <p style="font-size: 24px; margin: 0 0 32px; color: #555;">
-                The system is not connected to the internet.<br>
-                Please connect to a Wi-Fi network.
+            <p style="font-size: 24px; margin: 0 0 22px; color: #555;">
+                Խնդրում ենք միանալ Wi-Fi ցանցին։
             </p>
             <button id="connect-wifi-btn" style="
                 padding: 18px 48px;
@@ -1717,7 +1716,7 @@ function showWifiDisconnectedPopup() {
                 cursor: pointer;
                 box-shadow: 0 6px 20px rgba(25,118,210,0.4);
             ">
-                Connect to Wi-Fi
+                Միացեք Wi-Fi-ին
             </button>
         </div>
     `;
