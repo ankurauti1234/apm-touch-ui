@@ -664,7 +664,7 @@ window.addEventListener('beforeunload', () => {
        
    
        if (activeMembers.length === 0) {
-            saver.style.background = 'rgba(139, 0, 0, 0.75)';
+            saver.style.background = 'rgba(0, 0, 0, 0.35)';
            saver.classList.add('blinking');
            row.style.display = 'none';
            warning.style.display = 'block';
