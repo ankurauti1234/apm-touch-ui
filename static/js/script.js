@@ -2503,6 +2503,7 @@ function getScreensaverContent() {
                 font-weight: 400;
                 margin-top: 8px;
                 opacity: 0.92;
+                margin-bottom: 5px;
             "></div>
         </div>
 
