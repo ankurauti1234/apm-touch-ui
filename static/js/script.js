@@ -2431,7 +2431,7 @@ function getScreensaverContent() {
                     cursor: pointer;
                     transition: all 0.18s;
                 ">
-                    Declare Members
+                    Հայտարարել անդամներ
                 </button>
 
                 <style>
@@ -2532,8 +2532,6 @@ function showScreensaver() {
         declareBtn.addEventListener('click', () => {
             hideScreensaver();
             resetScreensaverTimer();
-            // Most natural next step: open member edit popup
-            showEditMemberPopup();
         });
     }
 
