@@ -414,8 +414,8 @@ window.addEventListener('beforeunload', () => {
             }
    
            if (activeMembers.length > 0) {
-                firstReminderTimeout = setTimeout(showInactivityWarning, 30  * 1000);
-               reminderInterval = setInterval(showInactivityWarning, 30 * 1000);
+                firstReminderTimeout = setTimeout(showInactivityWarning, 20 * 60  * 1000);
+               reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
                // Fetch weather when members become active
                fetchWeather();
            } else {
@@ -471,7 +471,7 @@ window.addEventListener('beforeunload', () => {
                    </div>
                </div>
                <div style="padding:16px 20px;">
-                   <div style="font-size:70px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                   <div style="font-size:60px; color:rgba(255,255,255,0.85); line-height:1.4;">
                        Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժեշտության դեպքում փոխեք նրանց
                    </div>
                </div>
@@ -576,7 +576,7 @@ window.addEventListener('beforeunload', () => {
        restoreBrightness();
    
        preDimTimeout = setTimeout(preDimBrightness, 20000);
-       screensaverTimeout = setTimeout(showScreensaver, 20000);
+       screensaverTimeout = setTimeout(showScreensaver, 120000);
    }
    
    function blockEventIfActive(e) {
