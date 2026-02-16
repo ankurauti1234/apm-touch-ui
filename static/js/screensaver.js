@@ -414,8 +414,8 @@ window.addEventListener('beforeunload', () => {
             }
    
            if (activeMembers.length > 0) {
-                firstReminderTimeout = setTimeout(showInactivityWarning, 20 * 60 * 1000);
-               reminderInterval = setInterval(showInactivityWarning, 20 * 60 * 1000);
+                firstReminderTimeout = setTimeout(showInactivityWarning, 20  * 1000);
+               reminderInterval = setInterval(showInactivityWarning, 20 * 1000);
                // Fetch weather when members become active
                fetchWeather();
            } else {
@@ -464,17 +464,14 @@ window.addEventListener('beforeunload', () => {
                        !
                    </div>
                    <div style="flex:1; min-width:0;">
-                       <div style="font-size:25px; font-weight:500; color:#8ab4f8;">
+                       <div style="font-size:29px; font-weight:500; color:#8ab4f8;">
                            APM Meter
                        </div>
-                       <div style="font-size:12px; color:rgba(255,255,255,0.7);">just now</div>
+                       <div style="font-size:15px; color:rgba(255,255,255,0.7);">just now</div>
                    </div>
                </div>
                <div style="padding:16px 20px;">
-                   <div style="font-size:28px; font-weight:500; line-height:1.4; margin-bottom:4px;">
-                       The same members have been active for a long time change them if needed.
-                   </div>
-                   <div style="font-size:28px; color:rgba(255,255,255,0.85); line-height:1.4;">
+                   <div style="font-size:40px; color:rgba(255,255,255,0.85); line-height:1.4;">
                        Նույն անդամները երկար ժամանակ ակտիվ են եղել, անհրաժեշտության դեպքում փոխեք նրանց
                    </div>
                </div>
@@ -631,7 +628,6 @@ window.addEventListener('beforeunload', () => {
        display: 'none'
    });
    warningMsg.innerHTML = `
-       No active members! Please declare your individual profile.<br><br>
        Ակտիվ դիտորդներ չկան! Հաշվի ակտիվացումը պարտադիր է համակարգից օգտվելու համար.
    `;
    wrapper.appendChild(warningMsg);
