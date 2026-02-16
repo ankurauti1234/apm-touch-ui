@@ -2412,26 +2412,19 @@ function getScreensaverContent() {
                 </div>
                 
                 <h2 style="
-                    font-size: 52px;
+                    font-size: 42px;
                     font-weight: 700;
                     margin: 0 0 0.4em;
                     color: #d32f2f;
                 ">
-                    NO ACTIVE MEMBERS
+                Ակտիվ դիտորդներ չկան!<br>
+                Ընտրեք դիտորդի պրոֆիլ
                 </h2>
                 
-                <p style="
-                    font-size: 32px;
-                    margin: 0 0 2.2em;
-                    color: #555;
-                    line-height: 1.4;
-                ">
-                    System appears idle.<br>Please declare household members.
-                </p>
 
                 <button id="declare-members-btn" style="
                     padding: 24px 64px;
-                    font-size: 38px;
+                    font-size: 28px;
                     font-weight: 600;
                     background: #d32f2f;
                     color: white;
