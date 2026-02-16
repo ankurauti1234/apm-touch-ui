@@ -2195,3 +2195,15 @@ button:focus {
     color: rgb(0, 0, 0) !important;              /* ← Pure white */
     margin-top: 6px;                      /* Fine-tune vertical position if needed */
 }
+
+@keyframes heartbeat {
+    0%   { transform: scale(1); }
+    14%  { transform: scale(1.08); }
+    28%  { transform: scale(1); }
+    42%  { transform: scale(1.08); }
+    70%  { transform: scale(1); }
+  }
+  .warning-text {
+    animation: heartbeat 2.2s infinite ease-in-out;
+    display: inline-block;   /* important for transform to work nicely */
+  }

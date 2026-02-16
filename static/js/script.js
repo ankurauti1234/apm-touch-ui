@@ -2408,7 +2408,7 @@ function getScreensaverContent() {
                 animation: popIn 0.4s ease-out;
             ">
                 
-                <h2 style="
+                <h2 class="warning-text" style="
                     font-size: 42px;
                     font-weight: 700;
                     margin: 0 0 0.4em;
