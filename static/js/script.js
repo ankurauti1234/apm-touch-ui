@@ -2731,20 +2731,25 @@ async function showScreensaver() {
     }
 
     // ────────────────────────────────────────────────
-    //       BIG CENTERED Wi-Fi DISCONNECTED WARNING
+    //    Wi-Fi Status: Connected (top-right) or Disconnected (big center)
     // ────────────────────────────────────────────────
-    const wifiContainer = document.getElementById('saver-wifi-warning');
+    const wifiContainer = document.getElementById('saver-wifi-status');
     if (wifiContainer) {
         try {
             const res = await fetch('/api/current_wifi');
             const data = await res.json();
 
             if (data.success && data.ssid) {
-                // Connected → hide warning or show subtle status
-                wifiContainer.innerHTML = '';
-                wifiContainer.style.display = 'none';
+                // Connected → small top-right indicator
+                wifiContainer.innerHTML = `
+                    <div class="wifi-connected-small">
+                        <span class="material-icons">wifi</span>
+                        ${data.ssid.length > 15 ? data.ssid.substring(0,15) + '…' : data.ssid}
+                    </div>
+                `;
+                wifiContainer.style.display = 'block';
             } else {
-                // Disconnected → show big centered warning
+                // Disconnected → big centered warning
                 wifiContainer.innerHTML = `
                     <div class="wifi-disconnected-big">
                         <span class="material-icons wifi-icon">wifi_off</span>
@@ -2755,7 +2760,7 @@ async function showScreensaver() {
                 `;
                 wifiContainer.style.display = 'flex';
 
-                // Make button clickable → open Wi-Fi popup
+                // Button action
                 const btn = wifiContainer.querySelector('.connect-btn');
                 if (btn) {
                     btn.addEventListener('click', () => {
@@ -2766,7 +2771,7 @@ async function showScreensaver() {
                 }
             }
         } catch (err) {
-            // Network error → treat as disconnected
+            // Treat fetch error as disconnected
             wifiContainer.innerHTML = `
                 <div class="wifi-disconnected-big">
                     <span class="material-icons wifi-icon">wifi_off</span>
