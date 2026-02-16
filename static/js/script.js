@@ -2489,7 +2489,7 @@ function getScreensaverContent() {
         <div style="
             text-align: center;
             width: 100%;
-            margin-top: 10px;                   /* Slight top offset */
+            margin-top: 5px;                   /* Slight top offset */
         ">
             <div id="clock-time" style="
                 font-size: 90px;               /* ← Feel free to adjust size */
@@ -2499,9 +2499,9 @@ function getScreensaverContent() {
             "></div>
 
             <div id="clock-date" style="
-                font-size: 38px;
+                font-size: 35px;
                 font-weight: 400;
-                margin-top: 16px;
+                margin-top: 8px;
                 opacity: 0.92;
             "></div>
         </div>
