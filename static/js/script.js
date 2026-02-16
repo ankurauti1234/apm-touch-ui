@@ -1930,225 +1930,79 @@ function togglePasswordVisibility(e) {
    /* ==============================================================
       NAVIGATION (with API calls)
       ============================================================== */
-// ────────────────────────────────────────────────
-// Global variable for the periodic check
-// ────────────────────────────────────────────────
-let noMembersInterval = null;
-
-function checkAndShowNoMembersWarning() {
-    if (currentState !== 'main') return;
-
-    const activeMembers = (membersData?.members || []).filter(m => m.active !== false);
-
-    if (activeMembers.length === 0) {
-        showNoActiveMembersMessage();
-        // Important: do NOT start screensaver while no members
-        return false; // → tells caller: "do not activate screensaver"
-    }
-
-    return true; // → safe to start/reset screensaver
-}
-
-// ────────────────────────────────────────────────
-// Show the no-active-members popup (only once at a time)
-// ────────────────────────────────────────────────
-function showNoActiveMembersMessage() {
-    // Prevent multiple overlays
-    if (document.getElementById('no-members-overlay')) return;
-
-    const overlay = document.createElement('div');
-    overlay.id = 'no-members-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.65);
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(4px);
-        opacity: 0;
-        transition: opacity 0.4s ease-out;
-    `;
-
-    const messageBox = document.createElement('div');
-    messageBox.style.cssText = `
-        background: white;
-        border-radius: 16px;
-        padding: 2.5rem 2rem;
-        max-width: 420px;
-        text-align: center;
-        box-shadow: 0 20px 70px rgba(0,0,0,0.4);
-        transform: scale(0.92);
-        opacity: 0;
-        transition: all 0.4s ease-out;
-    `;
-
-    messageBox.innerHTML = `
-        <div style="font-size: 3.8rem; margin-bottom: 1rem; color: #e74c3c;">
-            <span class="material-icons">group_off</span>
-        </div>
-        <h2 style="margin: 0 0 1rem; font-size: 1.9rem; color: #222;">
-            Ակտիվ անդամներ չկան!
-        </h2>
-        <p style="margin: 0 0 1.8rem; color: #555; font-size: 1.15rem; line-height: 1.45;">
-            Ակտիվ դիտորդներ չկան!<br>
-            Ընտրեք դիտորդի պրոֆիլ
-        </p>
-        <button id="close-no-members-btn" class="button primary" style="
-            padding: 0.9rem 2.2rem;
-            font-size: 1.1rem;
-            min-width: 180px;
-        ">
-            Հասկացա
-        </button>
-    `;
-
-    overlay.appendChild(messageBox);
-    document.body.appendChild(overlay);
-
-    // Trigger animation
-    requestAnimationFrame(() => {
-        overlay.style.opacity = '1';
-        messageBox.style.transform = 'scale(1)';
-        messageBox.style.opacity = '1';
-    });
-
-    // Close function
-    const close = () => {
-        overlay.style.opacity = '0';
-        messageBox.style.transform = 'scale(0.92)';
-        messageBox.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 450);
-    };
-
-    document.getElementById('close-no-members-btn').onclick = close;
-    overlay.onclick = (e) => {
-        if (e.target === overlay) close();
-    };
-}
-
-// ────────────────────────────────────────────────
-// Start checking every 2 minutes while on main screen
-// ────────────────────────────────────────────────
-function startNoMembersCheck() {
-    // Clear any existing interval
-    if (noMembersInterval) {
-        clearInterval(noMembersInterval);
-        noMembersInterval = null;
-    }
-
-    noMembersInterval = setInterval(() => {
-        if (currentState !== 'main') {
-            clearInterval(noMembersInterval);
-            noMembersInterval = null;
-            return;
-        }
-
-        const activeMembers = (membersData?.members || []).filter(m => m.active !== false);
-
-        if (activeMembers.length === 0) {
-            showNoActiveMembersMessage();
-        }
-    }, 120000); // 120 000 ms = 2 minutes
-}
-
-// ────────────────────────────────────────────────
-// Stop the periodic check (call when leaving main)
-// ────────────────────────────────────────────────
-function stopNoMembersCheck() {
-    if (noMembersInterval) {
-        clearInterval(noMembersInterval);
-        noMembersInterval = null;
-    }
-}
-
-// ────────────────────────────────────────────────
-// Updated navigate function – main part only
-// ────────────────────────────────────────────────
-async function navigate(state, param = null) {
-    // Stop checking when changing ANY screen
-    stopNoMembersCheck();
-
-    currentState = state;
-
-    /* ---------- CONNECT SELECT ---------- */
-    if (state === 'connect_select') {
-        const cur = await fetch('/api/current_wifi');
-        const cd = await cur.json();
-        render(cd.success ? cd.ssid : null);
-        updateBottomBarWiFiStatus();
-        return;
-    }
-
-    /* ---------- NETWORK TEST ---------- */
-    if (state === 'network_test') {
-        connectivityMode = param;
-        render();
-        setTimeout(async () => {
-            const api = connectivityMode === 'wifi' ? '/api/check_wifi' :
-                        connectivityMode === 'gsm' ? '/api/check_gsm' : null;
-            if (!api) { render('error'); showError('Invalid mode'); return; }
-            try {
-                const r = await fetch(api);
-                const d = await r.json();
-                console.log("Network test result:", d.success);
-                render(d.success ? 'success' : 'error');
-                if (!d.success) showError(`${connectivityMode.toUpperCase()} not ready`);
-            } catch { render('error'); showError('Network test failed'); }
-        }, 1500);
-        return;
-    }
-
-    /* ---------- INPUT SOURCES ---------- */
-    if (state === 'input_source_detection') {
-        render();
-        setTimeout(startInputSourceRetry, 800);
-        return;
-    }
-
-    /* ---------- VIDEO DETECTION ---------- */
-    if (state === 'video_object_detection') {
-        render();
-        setTimeout(startVideoDetectionRetry, 1200);
-        return;
-    }
-
-    /* ---------- FINALIZE ---------- */
-    if (state === 'finalize') {
-        const details = {
-            meter_id: meterId,
-            hhid,
-            connectivity: connectivityMode.toUpperCase(),
-            input_sources: inputSources,
-            video_detection: !!document.getElementById('video-status')?.dataset.detected
-        };
-        render(details);
-        return;
-    }
-
-    /* ---------- MAIN DASHBOARD ---------- */
-    if (state === 'main') {
-        await fetchMembers();
-        await loadGuestsFromServer();
-        render();
-
-        updateGuestCountFromFile();
-
-        // Start 2-minute interval check
-        startNoMembersCheck();
-
-        // Screensaver delay
-        setTimeout(() => {
-            if (currentState === 'main') resetScreensaverTimer();
-        }, 100);
-
-        return;
-    }
-
-    // Default fallback
-    render();
-}
+   async function navigate(state, param = null) {
+       currentState = state;
+   
+       /* ---------- CONNECT SELECT ---------- */
+       if (state === 'connect_select') {
+           const cur = await fetch('/api/current_wifi');
+           const cd = await cur.json();
+           render(cd.success ? cd.ssid : null);
+           updateBottomBarWiFiStatus();
+           return;
+       }
+   
+       /* ---------- NETWORK TEST (file-based) ---------- */
+       if (state === 'network_test') {
+           connectivityMode = param;               // 'wifi' | 'gsm'
+           render();                               // show spinner
+           setTimeout(async () => {
+               const api = connectivityMode === 'wifi' ? '/api/check_wifi' :
+                   connectivityMode === 'gsm' ? '/api/check_gsm' : null;
+               if (!api) { render('error'); showError('Invalid mode'); return; }
+               try {
+                   const r = await fetch(api);
+                   const d = await r.json();
+                   console.log("Network test result:", d.success);
+                   render(d.success ? 'success' : 'error');
+                   if (!d.success) showError(`${connectivityMode.toUpperCase()} not ready`);
+               } catch { render('error'); showError('Network test failed'); }
+           }, 1500);
+           return;
+       }
+   
+       /* ---------- INPUT SOURCES ---------- */
+       if (state === 'input_source_detection') {
+           render(); // show loading spinner
+           setTimeout(startInputSourceRetry, 800);
+           return;
+       }
+   
+       /* ---------- VIDEO DETECTION ---------- */
+       if (state === 'video_object_detection') {
+           render(); // show loading
+           setTimeout(startVideoDetectionRetry, 1200);  // ← Now uses auto-retry!
+           return;
+       }
+   
+       /* ---------- FINALIZE ---------- */
+       if (state === 'finalize') {
+           const details = {
+               meter_id: meterId,
+               hhid,
+               connectivity: connectivityMode.toUpperCase(),
+               input_sources: inputSources,
+               video_detection: !!document.getElementById('video-status')?.dataset.detected
+           };
+           render(details);
+           return;
+       }
+   
+       /* ---------- MAIN DASHBOARD ---------- */
+       /* ---------- MAIN DASHBOARD ---------- */
+       if (state === 'main') {
+           await fetchMembers();
+           await loadGuestsFromServer();
+           render();
+           updateGuestCountFromFile();     // ← Updates bottom bar instantly
+           // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
+           setTimeout(() => {
+               if (currentState === 'main') resetScreensaverTimer();
+           }, 100);
+           return;   // <-- important: stop further execution
+       }
+       render();
+   }
    
    /* ==============================================================
       INPUT SOURCES API
@@ -2507,95 +2361,126 @@ async function navigate(state, param = null) {
    
    // -------------------- Raspberry-proof screensaver (fixed) --------------------
    let saver = document.getElementById('screensaver');
-   if (!saver) {
-       saver = document.createElement('div');
-       saver.id = 'screensaver';
-       Object.assign(saver.style, {
-           position: 'fixed',
-           left: '0',
-           top: '0',
-           width: '100%',
-           height: '100%',
-           display: 'flex',
-           flexDirection: 'column',
-           alignItems: 'center',
-           justifyContent: 'center',
-           background: 'black',
-           zIndex: '2147483647',
-           pointerEvents: 'all',
-           touchAction: 'none',
-           WebkitUserSelect: 'none',
-           userSelect: 'none',
-           margin: '0',
-           padding: '0',
-           color: 'white',
-           gap: '10px',
-           opacity: '0',
-           transition: 'opacity 1s ease', // <— smooth fade animation
-           visibility: 'hidden',
-           outline: 'none',
-       });
-   
-       saver.tabIndex = -1;
-       document.body.appendChild(saver);
-   
-       const wrapper = document.createElement('div');
-       wrapper.id = 'clock-wrapper';
-       Object.assign(wrapper.style, {
-           width: '100%',
-           height: '100%',
-           display: 'flex',
-           flexDirection: 'column',
-           justifyContent: 'center',
-           alignItems: 'center',
-       });
-   
-       // time
-       const timeEl = document.createElement('div');
-       timeEl.id = 'clock-time';
-       Object.assign(timeEl.style, {
-           fontSize: '200px',
-           fontWeight: '600',
-           marginBottom: '10px',
-           lineHeight: '1',
-           textAlign: 'center',
-       });
-   
-       // date
-       const dateEl = document.createElement('div');
-       dateEl.id = 'clock-date';
-       Object.assign(dateEl.style, {
-           fontSize: "70px",
-           fontWeight: '400',
-           textAlign: 'center',
-       });
-   
-       wrapper.appendChild(timeEl);
-       wrapper.appendChild(dateEl);
-       saver.appendChild(wrapper);
-   }
+if (!saver) {
+    saver = document.createElement('div');
+    saver.id = 'screensaver';
+    Object.assign(saver.style, {
+        position: 'fixed',
+        inset: '0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'black',
+        zIndex: '2147483647',
+        pointerEvents: 'all',
+        touchAction: 'none',
+        userSelect: 'none',
+        opacity: '0',
+        transition: 'opacity 1.2s ease',
+        visibility: 'hidden',
+    });
+    saver.tabIndex = -1;
+    document.body.appendChild(saver);
+}
+
+function getScreensaverContent() {
+    const activeMembers = (membersData?.members || []).filter(m => m.active !== false);
+    const hasActive = activeMembers.length > 0;
+
+    if (!hasActive) {
+        // ── WARNING MODE ──
+        return `
+            <div style="
+                color: #ff4d4f;
+                font-size: 68px;
+                font-weight: 700;
+                text-align: center;
+                padding: 40px;
+                max-width: 85%;
+                line-height: 1.25;
+                text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            ">
+                <div style="font-size:120px; margin-bottom:0.3em;">
+                    <span class="material-icons" style="font-size:1.1em; vertical-align:-0.12em;">warning_amber</span>
+                </div>
+                NO ACTIVE MEMBERS
+                <div style="font-size:42px; margin-top:0.6em; opacity:0.85; font-weight:400;">
+                    System is idle — please check meter status
+                </div>
+            </div>
+        `;
+    } else {
+        // ── NORMAL CLOCK + AVATARS MODE ──
+        const avatarsHtml = activeMembers.slice(0, 8).map(m => `
+            <div style="
+                width: 110px;
+                height: 110px;
+                border-radius: 50%;
+                background: center/cover url('${avatar(m.gender, m.dob)}') no-repeat;
+                border: 4px solid #444;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+                flex-shrink: 0;
+            "></div>
+        `).join('');
+
+        return `
+            <div id="clock-wrapper" style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                color: white;
+                text-shadow: 0 4px 16px black;
+            ">
+                <div style="
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 24px;
+                    justify-content: center;
+                    margin-bottom: 40px;
+                    max-width: 80%;
+                ">
+                    ${avatarsHtml}
+                </div>
+
+                <div id="clock-time" style="
+                    font-size: 180px;
+                    font-weight: 700;
+                    line-height: 1;
+                    letter-spacing: -2px;
+                "></div>
+
+                <div id="clock-date" style="
+                    font-size: 56px;
+                    font-weight: 400;
+                    margin-top: 12px;
+                    opacity: 0.9;
+                "></div>
+            </div>
+        `;
+    }
+}
+
+let clockInterval = null;
    
    // --- Clock update ---
    function updateClock() {
-       const now = new Date();
-   
-       // Time: 09:41 (24-hour format)
-       const time = now.toLocaleTimeString([], { 
-           hour: '2-digit', 
-           minute: '2-digit' 
-       });
-   
-       // Custom formatting to get: Monday, 24 November 2025
-       const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });     // Monday
-       const day     = now.getDate();                                             // 24
-       const month   = now.toLocaleDateString('en-IN', { month: 'short' });        // November
-       const year    = now.getFullYear();                                         // 2025
-   
-       const date = `${weekday}, ${day} ${month} ${year}`;
-   
-       document.getElementById('clock-time').textContent = time;
-       document.getElementById('clock-date').textContent = date;
-   }
+    if (saver.style.visibility !== 'visible') return;
+
+    const now = new Date();
+    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });
+    const day = now.getDate();
+    const month = now.toLocaleDateString('en-IN', { month: 'short' });
+    const year = now.getFullYear();
+
+    const dateStr = `${weekday}, ${day} ${month} ${year}`;
+
+    const timeEl = document.getElementById('clock-time');
+    const dateEl = document.getElementById('clock-date');
+
+    if (timeEl) timeEl.textContent = time;
+    if (dateEl) dateEl.textContent = dateStr;
+}
    
    setInterval(updateClock, 1000);
    updateClock(); // initial update
@@ -2608,22 +2493,32 @@ async function navigate(state, param = null) {
    let isDimmed = false;
    
    function showScreensaver() {
-       saver.style.visibility = "visible";
-       saver.style.opacity = "1"; // fade in
-       try {
-           saver.focus({ preventScroll: true });
-       } catch (e) { }
-   }
+    // Decide content based on current members state
+    saver.innerHTML = getScreensaverContent();
+
+    saver.style.visibility = 'visible';
+    saver.style.opacity = '1';
+    try { saver.focus({ preventScroll: true }); } catch (_) {}
+
+    // Start clock only in normal (avatar) mode
+    if (document.getElementById('clock-time')) {
+        updateClock();
+        clockInterval = setInterval(updateClock, 1000);
+    }
+}
+
+
    
-   function hideScreensaver() {
-       saver.style.opacity = "0"; // fade out
-       setTimeout(() => {
-           saver.style.visibility = "hidden";
-       }, 1000); // matches transition duration
-       try {
-           saver.blur();
-       } catch (e) { }
-   }
+function hideScreensaver() {
+    saver.style.opacity = '0';
+    setTimeout(() => {
+        saver.style.visibility = 'hidden';
+        saver.innerHTML = ''; // clean up
+        clearInterval(clockInterval);
+    }, 1300); // slightly longer than transition
+
+    try { saver.blur(); } catch (_) {}
+}
    
    // --- Pre-dim brightness logic (go straight to mapped minimum) ---
    async function preDimBrightness() {
@@ -2684,17 +2579,14 @@ async function navigate(state, param = null) {
    // --- Screensaver with pre-dim at 20s (30s - 10s) ---
    
    function resetScreensaverTimer() {
-       clearTimeout(screensaverTimeout);
-       clearTimeout(preDimTimeout);
-       hideScreensaver();
-       restoreBrightness();
-   
-       // Pre-dim at 20 seconds (10 seconds before screensaver)
-       preDimTimeout = setTimeout(preDimBrightness, 20000);
-   
-       // Show screensaver at 30 seconds
-       screensaverTimeout = setTimeout(showScreensaver, 30000);
-   }
+    clearTimeout(screensaverTimeout);
+    clearTimeout(preDimTimeout);
+    hideScreensaver();
+    restoreBrightness();
+
+    preDimTimeout  = setTimeout(preDimBrightness,  20000);
+    screensaverTimeout = setTimeout(showScreensaver, 30000);
+}
    
    // Start screensaver timer ONLY when on the main dashboard
    // if (currentState === 'main') resetScreensaverTimer();
@@ -2712,22 +2604,33 @@ async function navigate(state, param = null) {
        }
        return false;
    }
-   ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
-       document.addEventListener(evt, (e) => blockEventIfActive(e), { capture: true, passive: false });
-   });
-   ['click', 'pointerdown', 'touchstart', 'pointermove', 'mousemove'].forEach(evt => {
-       saver.addEventListener(evt, (ev) => {
-           ev.stopImmediatePropagation();
-           ev.preventDefault();
-           hideScreensaver();
-           resetScreensaverTimer();
-       }, { capture: true, passive: false });
-   });
-   ['mousemove', 'keypress', 'click', 'touchstart'].forEach(evt => {
-       document.addEventListener(evt, () => {
-           if (currentState === 'main') resetScreensaverTimer();
-       }, { passive: true });
-   });
+// ─── Interaction still resets timer ──────────────────────
+['mousemove', 'keydown', 'click', 'touchstart'].forEach(evt => {
+    document.addEventListener(evt, () => {
+        if (currentState === 'main') resetScreensaverTimer();
+    }, { passive: true });
+});
+
+// Block events when saver is visible (your existing code)
+['pointerdown', 'mousedown', 'click', 'touchstart', 'keydown'].forEach(evt => {
+    document.addEventListener(evt, e => {
+        if (saver.style.opacity === '1' && !saver.contains(e.target)) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, { capture: true, passive: false });
+});
+
+// Click/touch on saver → hide
+saver.addEventListener('click', () => {
+    hideScreensaver();
+    resetScreensaverTimer();
+}, { passive: false });
+
+saver.addEventListener('touchstart', () => {
+    hideScreensaver();
+    resetScreensaverTimer();
+}, { passive: false });
    
    async function initBrightnessControl() {
        const slider = document.getElementById('brightness-slider');
