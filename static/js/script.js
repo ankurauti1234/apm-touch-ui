@@ -1677,7 +1677,7 @@ function showWifiDisconnectedPopup() {
         position: 'fixed',
         inset: '0',
         background: 'rgba(0,0,0,0.65)',
-        zIndex: '2147483640',
+        zIndex: '999999999',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -1722,7 +1722,7 @@ function showWifiDisconnectedPopup() {
     `;
 
     overlay.appendChild(card);
-    document.body.appendChild(overlay);
+    document.getElementById('screensaver').appendChild(overlay);
 
     // Fade in
     setTimeout(() => { overlay.style.opacity = '1'; }, 10);
@@ -2656,7 +2656,7 @@ function getScreensaverContent() {
             ${avatarsHtml}
         </div>
     </div>
-`;
+        `;
     }
 }
 
