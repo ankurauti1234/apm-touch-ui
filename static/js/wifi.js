@@ -402,7 +402,6 @@ if (!document.getElementById('wifi-spinner-style')) {
                     Wi-Fi-ը անջատված է
                 </div>
                 <div style="font-size:30px; color:rgba(255,255,255,0.9);">
-                    Խնդրում ենք շարունակել կապը → 
                     <span style="color:#ff9800; text-decoration:underline; cursor:pointer; font-weight:500;">
                         Սեղմեք այստեղ՝ Wi-Fi կարգավորումները բացելու համար
                     </span>
