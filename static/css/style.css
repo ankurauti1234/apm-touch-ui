@@ -2221,7 +2221,7 @@ input[type="number"] {
         box-shadow: 
             0 16px 60px rgba(0,0,0,0.8),
             0 0 0 0 rgba(255, 202, 40, 0.4);
-        border-color: #ffca28;
+        border-color: #b20000;
     }
     50% {
         transform: scale(1.06);
