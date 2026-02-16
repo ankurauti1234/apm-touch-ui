@@ -1696,8 +1696,8 @@ function showWifiDisconnectedPopup() {
             box-shadow: 0 20px 70px rgba(0,0,0,0.5);
             color: #333;
         ">
-            <div style="font-size: 110px; color: #ff9800; margin-bottom: 24px;">
-                <span class="material-icons">wifi_off</span>
+            <div style="color: #ff9800; margin-bottom: 24px;">
+                <span class="material-icons" style="font-size: 110px;">wifi_off</span>
             </div>
             <h2 style="font-size: 38px; margin: 0 0 16px; color: #d32f2f;">
                 Wi-Fi-ը անջատված է
