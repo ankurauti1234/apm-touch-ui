@@ -2452,8 +2452,8 @@ function getScreensaverContent() {
         const avatarsHtml = activeMembers.slice(0, 8).map((m, index) => `
             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
                 <div style="
-                    width: 110px;
-                    height: 110px;
+                    width: 100px;
+                    height: 100px;
                     border-radius: 50%;
                     background: center/cover url('${avatar(m.gender, m.dob)}') no-repeat;                "></div>
                 <div style="
