@@ -1996,15 +1996,16 @@ function togglePasswordVisibility(e) {
            await loadGuestsFromServer();
            render();
 
-           const activeMembers = membersData?.members?.filter(m => m.active !== false) || [];
+        //    const activeMembers = membersData?.members?.filter(m => m.active !== false) || [];
 
-            if (activeMembers.length === 0) {
-                showNoActiveMembersMessage();
-            }
+        //     if (activeMembers.length === 0) {
+        //         showNoActiveMembersMessage();
+        //     }
 
            updateGuestCountFromFile();     // ← Updates bottom bar instantly
            // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
            scheduleNoMembersMessage();
+
            setTimeout(() => {
                if (currentState === 'main') resetScreensaverTimer();
            }, 100);
