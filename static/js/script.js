@@ -2443,14 +2443,14 @@ function getScreensaverContent() {
                 </div>
 
                 <div id="clock-time" style="
-                    font-size: 180px;
+                    font-size: 130px;
                     font-weight: 700;
                     line-height: 1;
                     letter-spacing: -2px;
                 "></div>
 
                 <div id="clock-date" style="
-                    font-size: 56px;
+                    font-size: 46px;
                     font-weight: 400;
                     margin-top: 12px;
                     opacity: 0.9;
