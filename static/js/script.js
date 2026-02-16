@@ -2461,7 +2461,7 @@ function getScreensaverContent() {
                 "></div>
                 <div style="
                     color: white;
-                    font-size: 24px;
+                    font-size: 44px;
                     font-weight: 600;
                     text-shadow: 0 2px 8px black;
                     max-width: 110px;
