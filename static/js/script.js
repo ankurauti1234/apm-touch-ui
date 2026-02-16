@@ -2490,7 +2490,7 @@ function getScreensaverContent() {
                 <!-- Clock Time & Date – on top -->
                 <div style="text-align: center;">
                     <div id="clock-time" style="
-                        font-size: 100px;
+                        font-size: 80px;
                         font-weight: 700;
                         line-height: 1;
                         letter-spacing: -2px;
