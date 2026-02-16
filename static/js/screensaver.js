@@ -37,11 +37,11 @@ function createWifiWarning() {
     wifiWarningElement.innerHTML = `
         <span class="material-icons" style="font-size:52px; color:#ff9800;">wifi_off</span>
         <div>
-            <div style="font-size:32px; color:#ff9800; margin-bottom:4px;">
-                Wi-Fi Disconnected
+            <div style="font-size:42px; color:#ff9800; margin-bottom:4px;">
+                Wi-Fi-ը անջատված է
             </div>
             <div style="font-size:28px; color:rgba(255,255,255,0.9);">
-                Please connect to continue → Tap here to open Wi-Fi settings
+                Միանալու համար → Սեղմեք այստեղ՝ Wi-Fi կարգավորումները բացելու համար
             </div>
         </div>
     `;
@@ -553,10 +553,10 @@ window.addEventListener('beforeunload', () => {
         });
         
         warningBox.innerHTML = `
-        <h2 style="font-size:45px; margin:0 0 32px; color:#ffca28;">
+        <h2 style="font-size:50px; margin:0 0 32px; color:#ffca28;">
             Ակտիվ անդամներ չկան
         </h2>
-        <p style="font-size:32px; line-height:1.45; margin:0 0 18px; color:#f0f0f0;">
+        <p style="font-size:38px; line-height:1.45; margin:0 0 18px; color:#f0f0f0;">
             Ակտիվ դիտորդներ չկան!<br>
             Ընտրեք դիտորդի պրոֆիլ
         </p>
