@@ -1930,95 +1930,17 @@ function togglePasswordVisibility(e) {
    /* ==============================================================
       NAVIGATION (with API calls)
       ============================================================== */
-   async function navigate(state, param = null) {
-       currentState = state;
-   
-       /* ---------- CONNECT SELECT ---------- */
-       if (state === 'connect_select') {
-           const cur = await fetch('/api/current_wifi');
-           const cd = await cur.json();
-           render(cd.success ? cd.ssid : null);
-           updateBottomBarWiFiStatus();
-           return;
-       }
-   
-       /* ---------- NETWORK TEST (file-based) ---------- */
-       if (state === 'network_test') {
-           connectivityMode = param;               // 'wifi' | 'gsm'
-           render();                               // show spinner
-           setTimeout(async () => {
-               const api = connectivityMode === 'wifi' ? '/api/check_wifi' :
-                   connectivityMode === 'gsm' ? '/api/check_gsm' : null;
-               if (!api) { render('error'); showError('Invalid mode'); return; }
-               try {
-                   const r = await fetch(api);
-                   const d = await r.json();
-                   console.log("Network test result:", d.success);
-                   render(d.success ? 'success' : 'error');
-                   if (!d.success) showError(`${connectivityMode.toUpperCase()} not ready`);
-               } catch { render('error'); showError('Network test failed'); }
-           }, 1500);
-           return;
-       }
-   
-       /* ---------- INPUT SOURCES ---------- */
-       if (state === 'input_source_detection') {
-           render(); // show loading spinner
-           setTimeout(startInputSourceRetry, 800);
-           return;
-       }
-   
-       /* ---------- VIDEO DETECTION ---------- */
-       if (state === 'video_object_detection') {
-           render(); // show loading
-           setTimeout(startVideoDetectionRetry, 1200);  // ← Now uses auto-retry!
-           return;
-       }
-   
-       /* ---------- FINALIZE ---------- */
-       if (state === 'finalize') {
-           const details = {
-               meter_id: meterId,
-               hhid,
-               connectivity: connectivityMode.toUpperCase(),
-               input_sources: inputSources,
-               video_detection: !!document.getElementById('video-status')?.dataset.detected
-           };
-           render(details);
-           return;
-       }
-   
-       /* ---------- MAIN DASHBOARD ---------- */
-       /* ---------- MAIN DASHBOARD ---------- */
-       if (state === 'main') {
-           await fetchMembers();
-           await loadGuestsFromServer();
-           render();
+// ────────────────────────────────────────────────
+// Global variable for the periodic check
+// ────────────────────────────────────────────────
+let noMembersInterval = null;
 
-           const activeMembers = membersData?.members?.filter(m => m.active !== false) || [];
-
-            if (activeMembers.length === 0) {
-                showNoActiveMembersMessage();
-            }
-
-           updateGuestCountFromFile();     // ← Updates bottom bar instantly
-           // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
-           setTimeout(() => {
-               if (currentState === 'main') resetScreensaverTimer();
-           }, 100);
-           return;   // <-- important: stop further execution
-       }
-       render();
-   }
-
-   //warning warning warning 
-
-   let noMembersTimeout = null;
-
-   function showNoActiveMembersMessage() {
-    // Prevent multiple popups
-    
-    if (document.getElementById('no-members-message')) return;
+// ────────────────────────────────────────────────
+// Show the no-active-members popup (only once at a time)
+// ────────────────────────────────────────────────
+function showNoActiveMembersMessage() {
+    // Prevent multiple overlays
+    if (document.getElementById('no-members-overlay')) return;
 
     const overlay = document.createElement('div');
     overlay.id = 'no-members-overlay';
@@ -2031,6 +1953,8 @@ function togglePasswordVisibility(e) {
         align-items: center;
         justify-content: center;
         backdrop-filter: blur(4px);
+        opacity: 0;
+        transition: opacity 0.4s ease-out;
     `;
 
     const messageBox = document.createElement('div');
@@ -2041,7 +1965,9 @@ function togglePasswordVisibility(e) {
         max-width: 420px;
         text-align: center;
         box-shadow: 0 20px 70px rgba(0,0,0,0.4);
-        animation: popupFadeIn 0.4s ease-out;
+        transform: scale(0.92);
+        opacity: 0;
+        transition: all 0.4s ease-out;
     `;
 
     messageBox.innerHTML = `
@@ -2067,38 +1993,147 @@ function togglePasswordVisibility(e) {
     overlay.appendChild(messageBox);
     document.body.appendChild(overlay);
 
-    // Close on button click
-    document.getElementById('close-no-members-btn').onclick = () => {
+    // Trigger animation
+    requestAnimationFrame(() => {
+        overlay.style.opacity = '1';
+        messageBox.style.transform = 'scale(1)';
+        messageBox.style.opacity = '1';
+    });
+
+    // Close function
+    const close = () => {
         overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 400);
+        messageBox.style.transform = 'scale(0.92)';
+        messageBox.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 450);
     };
 
-    // Optional: also close on background click
+    document.getElementById('close-no-members-btn').onclick = close;
     overlay.onclick = (e) => {
-        if (e.target === overlay) {
-            overlay.style.opacity = '0';
-            setTimeout(() => overlay.remove(), 400);
-        }
+        if (e.target === overlay) close();
     };
 }
 
-function scheduleNoMembersMessage() {
-    // Clear any existing timer first
-    if (noMembersTimeout) {
-        clearTimeout(noMembersTimeout);
-        noMembersTimeout = null;
+// ────────────────────────────────────────────────
+// Start checking every 2 minutes while on main screen
+// ────────────────────────────────────────────────
+function startNoMembersCheck() {
+    // Clear any existing interval
+    if (noMembersInterval) {
+        clearInterval(noMembersInterval);
+        noMembersInterval = null;
     }
 
-    noMembersTimeout = setTimeout(() => {
-        // Only show if we're STILL in 'main' state
-        if (currentState !== 'main') return;
+    noMembersInterval = setInterval(() => {
+        if (currentState !== 'main') {
+            clearInterval(noMembersInterval);
+            noMembersInterval = null;
+            return;
+        }
 
-        const activeMembers = membersData?.members?.filter(m => m.active !== false) || [];
+        const activeMembers = (membersData?.members || []).filter(m => m.active !== false);
 
         if (activeMembers.length === 0) {
             showNoActiveMembersMessage();
         }
     }, 120000); // 120 000 ms = 2 minutes
+}
+
+// ────────────────────────────────────────────────
+// Stop the periodic check (call when leaving main)
+// ────────────────────────────────────────────────
+function stopNoMembersCheck() {
+    if (noMembersInterval) {
+        clearInterval(noMembersInterval);
+        noMembersInterval = null;
+    }
+}
+
+// ────────────────────────────────────────────────
+// Updated navigate function – main part only
+// ────────────────────────────────────────────────
+async function navigate(state, param = null) {
+    // Stop checking when changing ANY screen
+    stopNoMembersCheck();
+
+    currentState = state;
+
+    /* ---------- CONNECT SELECT ---------- */
+    if (state === 'connect_select') {
+        const cur = await fetch('/api/current_wifi');
+        const cd = await cur.json();
+        render(cd.success ? cd.ssid : null);
+        updateBottomBarWiFiStatus();
+        return;
+    }
+
+    /* ---------- NETWORK TEST ---------- */
+    if (state === 'network_test') {
+        connectivityMode = param;
+        render();
+        setTimeout(async () => {
+            const api = connectivityMode === 'wifi' ? '/api/check_wifi' :
+                        connectivityMode === 'gsm' ? '/api/check_gsm' : null;
+            if (!api) { render('error'); showError('Invalid mode'); return; }
+            try {
+                const r = await fetch(api);
+                const d = await r.json();
+                console.log("Network test result:", d.success);
+                render(d.success ? 'success' : 'error');
+                if (!d.success) showError(`${connectivityMode.toUpperCase()} not ready`);
+            } catch { render('error'); showError('Network test failed'); }
+        }, 1500);
+        return;
+    }
+
+    /* ---------- INPUT SOURCES ---------- */
+    if (state === 'input_source_detection') {
+        render();
+        setTimeout(startInputSourceRetry, 800);
+        return;
+    }
+
+    /* ---------- VIDEO DETECTION ---------- */
+    if (state === 'video_object_detection') {
+        render();
+        setTimeout(startVideoDetectionRetry, 1200);
+        return;
+    }
+
+    /* ---------- FINALIZE ---------- */
+    if (state === 'finalize') {
+        const details = {
+            meter_id: meterId,
+            hhid,
+            connectivity: connectivityMode.toUpperCase(),
+            input_sources: inputSources,
+            video_detection: !!document.getElementById('video-status')?.dataset.detected
+        };
+        render(details);
+        return;
+    }
+
+    /* ---------- MAIN DASHBOARD ---------- */
+    if (state === 'main') {
+        await fetchMembers();
+        await loadGuestsFromServer();
+        render();
+
+        updateGuestCountFromFile();
+
+        // Start 2-minute interval check
+        startNoMembersCheck();
+
+        // Screensaver delay
+        setTimeout(() => {
+            if (currentState === 'main') resetScreensaverTimer();
+        }, 100);
+
+        return;
+    }
+
+    // Default fallback
+    render();
 }
    
    /* ==============================================================
