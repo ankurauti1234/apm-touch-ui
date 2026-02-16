@@ -2407,6 +2407,25 @@ function getScreensaverContent() {
                 <div style="font-size:42px; margin-top:0.6em; opacity:0.85; font-weight:400;">
                     System is idle — please check meter status
                 </div>
+                <button id="declare-members-btn" style="
+                    padding: 28px 60px;
+                    font-size: 42px;
+                    font-weight: 600;
+                    background: #ff4d4f;
+                    color: white;
+                    border: none;
+                    border-radius: 16px;
+                    box-shadow: 0 8px 30px rgba(255,77,79,0.5);
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    min-width: 420px;
+                    touch-action: manipulation;
+                "
+                onmouseover="this.style.background='#e63939'; this.style.transform='scale(1.05)';"
+                onmouseout="this.style.background='#ff4d4f'; this.style.transform='scale(1)';"
+                >
+                    Declare Members
+                </button>
             </div>
         `;
     } else {
