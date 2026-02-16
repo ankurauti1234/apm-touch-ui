@@ -398,13 +398,13 @@ if (!document.getElementById('wifi-spinner-style')) {
         banner.innerHTML = `
             <span class="material-icons" style="font-size:42px; color:#ff9800;">wifi_off</span>
             <div style="flex:1;">
-                <div style="font-size:35px; color:#ff9800; margin-bottom:4px;">
-                    Wi-Fi Disconnected
+                <div style="font-size:45px; color:#ff9800; margin-bottom:4px;">
+                    Wi-Fi-ը անջատված է
                 </div>
                 <div style="font-size:30px; color:rgba(255,255,255,0.9);">
-                    Please connect to continue →
+                    Խնդրում ենք շարունակել կապը → 
                     <span style="color:#ff9800; text-decoration:underline; cursor:pointer; font-weight:500;">
-                        Tap here
+                        Սեղմեք այստեղ՝ Wi-Fi կարգավորումները բացելու համար
                     </span>
                 </div>
             </div>
