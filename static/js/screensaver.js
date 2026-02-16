@@ -486,8 +486,13 @@ function hideInactivityWarning() {
 // ────────────────────────────────────────────────
 // Show / Hide screensaver
 function showScreensaver() {
+    saver.style.background = 'black';           // force here too
     saver.style.visibility = 'visible';
     saver.style.opacity = '1';
+    saver.style.display = 'flex';               // ← sometimes helps if display:none was used elsewhere
+
+    // Force reflow/repaint
+    void saver.offsetWidth;
 
     if (window.Screensaver && membersData?.members) {
         Screensaver.setMembers(membersData.members);
