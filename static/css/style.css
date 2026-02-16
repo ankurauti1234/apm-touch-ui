@@ -2203,46 +2203,53 @@ input[type="number"] {
     transition: margin-top 0.3s ease-out;
 }
 
-
-@keyframes strong-blink {
-    0%, 100% {
-        background: rgba(40, 44, 52, 0.92);
-        border-color: #ffca28;
-    }
-    50% {
-        background: rgba(255, 202, 40, 0.35);
-        border-color: #fff176;
-    }
-}
-
 @keyframes pulse-glow {
     0%, 100% {
         transform: scale(1);
         box-shadow: 
             0 16px 60px rgba(0,0,0,0.8),
-            0 0 0 0 rgb(193, 0, 0);
+            0 0 0 0 rgba(178, 0, 0, 0.4);
         border-color: #b20000;
     }
     50% {
-        transform: scale(1.06);
+        transform: scale(1.05);
         box-shadow: 
-            0 24px 90px rgba(0,0,0,0.9),
-            0 0 35px 20px rgb(181, 0, 0);
-        border-color: #ac0000;
+            0 24px 100px rgba(0,0,0,0.9),
+            0 0 40px 25px rgba(178, 0, 0, 0.55);
+        border-color: #ff3333;
     }
 }
 
+@keyframes strong-blink {
+    0%, 100% {
+        background: rgba(40, 44, 52, 0.92);
+        border-color: #b20000;
+    }
+    50% {
+        background: rgba(178, 0, 0, 0.18);
+        border-color: #ff4d4d;
+    }
+}
+
+/* Main blinking style – choose ONE animation below */
 .warning-blink {
-    animation: blink-warning 2.2s infinite ease-in-out;
-    border: 4px solid #f59e0b;
-    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    /* Option A: Pulsing glow + scale (recommended – looks modern) */
+    animation: pulse-glow 1.9s infinite ease-in-out;
+
+    /* Option B: Strong background blink (more aggressive) */
+    /* animation: strong-blink 1.3s infinite; */
+
+    border: 4px solid #b20000;
+    background: linear-gradient(135deg, #fff5f5, #ffebeb);
     border-radius: 16px;
     max-width: 420px;
     margin: 20px auto;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    box-shadow: 0 8px 30px rgba(178, 0, 0, 0.35);
+    color: #b20000;
+    font-weight: 600;
 }
 
 #no-members-overlay {
-    background: rgba(0,0,0,0.68);
-    backdrop-filter: blur(3px);
+    background: rgba(0,0,0,0.72);
+    backdrop-filter: blur(4px);
 }
