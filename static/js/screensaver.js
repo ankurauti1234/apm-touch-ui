@@ -514,24 +514,162 @@ window.addEventListener('beforeunload', () => {
    
    // ────────────────────────────────────────────────
    function showScreensaver() {
-    // 🚫 DO NOT SHOW if no active members
-    const hasActiveMembers = membersData?.members?.some(m => m.active === true);
+    const hasActiveMembers = membersData?.members?.some(m => m.active === true) ?? false;
 
-    if (!hasActiveMembers) {
-        console.log("Screensaver blocked: No active members");
-        return;
-    }
-
+    // Always make screensaver visible
     saver.style.visibility = 'visible';
     saver.style.opacity = '1';
 
+    try { saver.focus({ preventScroll: true }); } catch (e) {}
+
+    // ── Warning mode: no active members ────────────────────────────────
+    if (!hasActiveMembers) {
+        console.log("Screensaver shown in warning mode: No active members");
+
+        // Clear everything
+        saver.innerHTML = '';
+
+        // Create fresh wrapper
+        wrapper = document.createElement('div');
+        wrapper.id = 'clock-wrapper';
+        Object.assign(wrapper.style, {
+            width: '100%', height: '100%',
+            display: 'flex', flexDirection: 'column',
+            justifyContent: 'center', alignItems: 'center',
+            position: 'relative'
+        });
+        saver.appendChild(wrapper);
+
+        // Create prominent warning box
+        const warningBox = document.createElement('div');
+        Object.assign(warningBox.style, {
+            background: 'rgba(40, 44, 52, 0.92)',
+            color: '#ffca28',
+            padding: '48px 56px',
+            borderRadius: '24px',
+            boxShadow: '0 16px 60px rgba(0,0,0,0.8)',
+            maxWidth: '680px',
+            textAlign: 'center',
+            border: '3px solid #ffca28',
+            animation: 'pulseWarning 2s infinite ease-in-out',
+        });
+
+        warningBox.innerHTML = `
+            <span class="material-icons" style="font-size:140px; color:#ffca28; margin-bottom:24px; display:block;">
+                warning_amber
+            </span>
+            <h2 style="font-size:52px; margin:0 0 24px; color:#ffca28;">
+                No Active Members
+            </h2>
+            <p style="font-size:32px; line-height:1.45; margin:0 0 40px; color:#f0f0f0;">
+                No household member is currently selected as active.<br>
+                Please declare at least one active profile to use the system.
+            </p>
+            <button id="close-warning-btn" style="
+                font-size:32px; padding:20px 60px;
+                background:#ffca28; color:#1a1a1a;
+                border:none; border-radius:16px;
+                font-weight:600; cursor:pointer;
+                box-shadow:0 6px 20px rgba(0,0,0,0.4);
+            ">
+                <span class="material-icons" style="vertical-align:middle; font-size:40px;">close</span>
+                  Got it
+            </button>
+        `;
+
+        wrapper.appendChild(warningBox);
+
+        // Close actions
+        warningBox.querySelector('#close-warning-btn').onclick = hideScreensaver;
+        warningBox.onclick = (e) => {
+            if (e.target === warningBox || e.target.tagName === 'BUTTON') {
+                hideScreensaver();
+            }
+        };
+
+        return;
+    }
+
+    // ── Normal mode: active members exist ──────────────────────────────
+    console.log("Screensaver shown normally");
+
+    // Rebuild the full normal structure (clock + date + weather + members)
+    saver.innerHTML = '';  // clear previous content
+
+    wrapper = document.createElement('div');
+    wrapper.id = 'clock-wrapper';
+    Object.assign(wrapper.style, {
+        width: '100%', height: '100%',
+        display: 'flex', flexDirection: 'column',
+        justifyContent: 'center', alignItems: 'center',
+        position: 'relative'
+    });
+    saver.appendChild(wrapper);
+
+    const timeEl = document.createElement('div');
+    timeEl.id = 'clock-time';
+    Object.assign(timeEl.style, {
+        fontSize: '100px',
+        fontWeight: '600',
+        lineHeight: '1',
+        textAlign: 'center',
+        marginRight: '400px'
+    });
+    wrapper.appendChild(timeEl);
+
+    const dateEl = document.createElement('div');
+    dateEl.id = 'clock-date';
+    Object.assign(dateEl.style, {
+        fontSize: '50px',
+        fontWeight: '400',
+        textAlign: 'center',
+        marginRight: '400px',
+        marginBottom: '60px'
+    });
+    wrapper.appendChild(dateEl);
+
+    const weatherEl = document.createElement('div');
+    weatherEl.id = 'weather-status';
+    Object.assign(weatherEl.style, {
+        position: 'absolute',
+        right: '-28px',
+        top: '150px',
+        transform: 'translateY(-50%)',
+        fontSize: '28px',
+        color: '#a0d8ef',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        minWidth: '280px',
+        opacity: '0',
+        transition: 'opacity 0.6s ease',
+        pointerEvents: 'none',
+        zIndex: '10',
+        marginRight: '120px'
+    });
+    wrapper.appendChild(weatherEl);
+
+    // Members row
+    const membersRow = document.createElement('div');
+    membersRow.id = 'screensaver-members';
+    Object.assign(membersRow.style, {
+        display: 'flex',
+        gap: '16px',
+        marginTop: '30px',
+        flexWrap: 'wrap',
+        justifyContent: 'center'
+    });
+    wrapper.appendChild(membersRow);
+
+    // Update clock immediately
+    updateClock();
+
+    // Load members and weather
     if (window.Screensaver && membersData?.members) {
         Screensaver.setMembers(membersData.members);
     }
 
-    try { saver.focus({ preventScroll: true }); } catch (e) {}
-
-    const weatherEl = document.getElementById('weather-status');
+    // Show weather
     if (weatherEl) weatherEl.style.opacity = '0.9';
 }
 
@@ -818,121 +956,3 @@ function stopColorCycle() {
 // Start periodic weather updates right away
 startWeatherRefresh();
 
-
-// ... your existing code up to here ...
-
-window.Screensaver = {
-    show: showScreensaver,
-    hide: hideScreensaver,
-    setMembers: updateScreensaverMembers
-};
-
-// ────────────────────────────────────────────────
-// No Active Members Delayed Warning Popup
-// ────────────────────────────────────────────────
-
-let noMembersPopup = null;
-let noMembersWarningTimeout = null;
-
-function createNoMembersPopup() {
-    if (noMembersPopup) return;
-
-    noMembersPopup = document.createElement('div');
-    noMembersPopup.id = 'no-members-screensaver-warning';
-    
-    Object.assign(noMembersPopup.style, {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        background: 'rgba(40, 44, 52, 0.94)',
-        color: '#ffca28',
-        padding: '32px 40px',
-        borderRadius: '20px',
-        boxShadow: '0 12px 40px rgba(0,0,0,0.7)',
-        maxWidth: '520px',
-        textAlign: 'center',
-        zIndex: '150',
-        opacity: '0',
-        transition: 'opacity 0.6s ease, transform 0.5s ease',
-        border: '2px solid #ffca28',
-    });
-
-    noMembersPopup.innerHTML = `
-        <span class="material-icons" style="font-size:80px; color:#ffca28; margin-bottom:16px;">warning_amber</span>
-        <h2 style="font-size:36px; margin:0 0 16px; color:#ffca28;">No Active Members</h2>
-        <p style="font-size:24px; line-height:1.4; margin:0 0 28px; color:#e0e0e0;">
-            No one is currently declared as active.<br>
-            Please select or add active household members.
-        </p>
-        <button id="close-no-members-btn" style="font-size:24px; padding:14px 36px; min-width:220px; background:#ffca28; color:#1e1e1e; border:none; border-radius:12px; cursor:pointer; font-weight:600;">
-            <span class="material-icons" style="vertical-align:middle; font-size:28px;">close</span> Got it
-        </button>
-    `;
-
-    noMembersPopup.querySelector('#close-no-members-btn').onclick = hideNoMembersPopup;
-    noMembersPopup.onclick = (e) => { if (e.target === noMembersPopup) hideNoMembersPopup(); };
-
-    saver.appendChild(noMembersPopup);
-}
-
-function showNoMembersPopup() {
-    createNoMembersPopup();
-    noMembersPopup.style.opacity = '1';
-    noMembersPopup.style.transform = 'translate(-50%, -50%) scale(1)';
-}
-
-function hideNoMembersPopup() {
-    if (!noMembersPopup) return;
-    noMembersPopup.style.opacity = '0';
-    noMembersPopup.style.transform = 'translate(-50%, -50%) scale(0.92)';
-    setTimeout(() => {
-        noMembersPopup?.remove();
-        noMembersPopup = null;
-    }, 700);
-}
-
-function scheduleNoMembersWarning() {
-    cancelNoMembersWarning(); // clear old timer
-    const hasActive = membersData?.members?.some(m => m.active === true) ?? false;
-    if (saver.style.visibility === 'visible' && !hasActive) {
-        noMembersWarningTimeout = setTimeout(showNoMembersPopup, 20000);
-    }
-}
-
-function cancelNoMembersWarning() {
-    if (noMembersWarningTimeout) {
-        clearTimeout(noMembersWarningTimeout);
-        noMembersWarningTimeout = null;
-    }
-    hideNoMembersPopup();
-}
-
-// ── Safe overrides ──────────────────────────────────────
-
-if (typeof originalShowScreensaver === 'undefined') {
-    const originalShowScreensaver = showScreensaver;
-    showScreensaver = function (...args) {
-        originalShowScreensaver.apply(this, args);
-        scheduleNoMembersWarning();
-    };
-}
-
-if (typeof originalHideScreensaver === 'undefined') {
-    const originalHideScreensaver = hideScreensaver;
-    hideScreensaver = function (...args) {
-        originalHideScreensaver.apply(this, args);
-        cancelNoMembersWarning();
-    };
-}
-
-if (typeof originalSetMembers === 'undefined') {
-    const originalSetMembers = window.Screensaver.setMembers;
-    window.Screensaver.setMembers = function (members) {
-        originalSetMembers.call(window.Screensaver, members);
-        cancelNoMembersWarning();
-        scheduleNoMembersWarning();
-    };
-}
-
-window.addEventListener('beforeunload', cancelNoMembersWarning);
