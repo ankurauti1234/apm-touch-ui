@@ -498,23 +498,24 @@ async function updateMainDashboardWiFiStatus() {
         let text = 'Disconnected';
 
         if (data.success && data.ssid) {
-            // Connected
+            // ── Connected ───────────────────────────────────────────────
             icon = 'wifi';
             color = '#4caf50';
             text = data.ssid;
 
             currentWiFiStatus = { connected: true, ssid: data.ssid, strength: 'good' };
 
-            // Hide disconnected popup immediately when we detect connection
+            // When connected → immediately close popup and clear any timers
             closeWifiDisconnectedPopup();
         } else {
-            // Disconnected
+            // ── Disconnected ────────────────────────────────────────────
             currentWiFiStatus = { connected: false, ssid: null, strength: null };
 
-            // Only attempt to show popup if:
-            // - not already visible
-            // - Wi-Fi selection popup is NOT open
-            if (!wifiDisconnectedPopupShown && !wifiPopupIsOpen) {
+            // Only show popup if:
+            //   - not currently visible
+            //   - Wi-Fi selection popup is NOT open
+            //   - not in cooldown period
+            if (!wifiDisconnectedPopupShown && !wifiPopupIsOpen && !disconnectCooldownTimer) {
                 showWifiDisconnectedPopup();
             }
         }
@@ -524,10 +525,10 @@ async function updateMainDashboardWiFiStatus() {
             <span class="material-icons" style="color:${color};">${icon}</span>
         `;
     } catch (e) {
-        // Treat error as disconnected
+        // Treat fetch error as disconnected
         currentWiFiStatus = { connected: false, ssid: null, strength: null };
 
-        if (!wifiDisconnectedPopupShown && !wifiPopupIsOpen) {
+        if (!wifiDisconnectedPopupShown && !wifiPopupIsOpen && !disconnectCooldownTimer) {
             showWifiDisconnectedPopup();
         }
 
@@ -537,7 +538,6 @@ async function updateMainDashboardWiFiStatus() {
         `;
     }
 }
-
    //ADD Guest option
 /* ==============================================================
    GUEST MANAGEMENT (Max 8 guests)
@@ -1661,10 +1661,13 @@ function showToast(message) {
 
     // === ADD THIS ANYWHERE AFTER showWiFiPopup() can see it ===
 let wifiPopupLifted = false;
+let disconnectCooldownTimer = null;   // ← NEW: for 25-second cooldown
 
 function showWifiDisconnectedPopup() {
-    // Final safety check
-    if (wifiDisconnectedPopupShown || wifiPopupIsOpen) return;
+    // Safety checks: don't show if already visible, Wi-Fi popup open, or on cooldown
+    if (wifiDisconnectedPopupShown || wifiPopupIsOpen || disconnectCooldownTimer) {
+        return;
+    }
 
     wifiDisconnectedPopupShown = true;
 
@@ -1734,13 +1737,14 @@ function showWifiDisconnectedPopup() {
         });
     }
 
-    // Auto-hide after exactly 20 seconds
+    // Auto-hide after **10 seconds**
     disconnectPopupHideTimer = setTimeout(() => {
         closeWifiDisconnectedPopup();
-    }, 20000);
+    }, 10000);
 }
 
 function closeWifiDisconnectedPopup() {
+    // Clear the hide timer if it exists
     if (disconnectPopupHideTimer) {
         clearTimeout(disconnectPopupHideTimer);
         disconnectPopupHideTimer = null;
@@ -1752,6 +1756,11 @@ function closeWifiDisconnectedPopup() {
         setTimeout(() => {
             overlay.remove();
             wifiDisconnectedPopupShown = false;
+
+            // Start 25-second cooldown before next possible popup
+            disconnectCooldownTimer = setTimeout(() => {
+                disconnectCooldownTimer = null;
+            }, 25000);
         }, 600);
     }
 }
