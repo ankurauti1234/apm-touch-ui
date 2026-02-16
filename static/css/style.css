@@ -2207,3 +2207,41 @@ button:focus {
     animation: heartbeat 2.2s infinite ease-in-out;
     display: inline-block;   /* important for transform to work nicely */
   }
+
+
+  /* Wi-Fi status pill in screensaver */
+#saver-wifi-pill {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 10;
+}
+
+.wifi-status-pill {
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 20px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    pointer-events: none;
+    user-select: none;
+}
+
+.wifi-status-pill.connected {
+    background: rgba(76, 175, 80, 0.88);
+    color: white;
+}
+
+.wifi-status-pill.disconnected {
+    background: rgba(244, 67, 54, 0.92);
+    color: white;
+}
+
+.wifi-status-pill .material-icons {
+    font-size: 26px;
+}
