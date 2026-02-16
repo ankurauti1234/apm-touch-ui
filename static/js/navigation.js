@@ -40,6 +40,12 @@ async function navigate(state, param = null) {
         return;
     }
 
+    if (state === 'otp_verification') {
+        render();
+        setTimeout(startInputSourceRetry, 800);
+        return;
+    }
+
     /* ---------- INPUT SOURCE DETECTION ---------- */
     if (state === 'input_source_detection') {
         render();
