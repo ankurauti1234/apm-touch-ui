@@ -817,3 +817,122 @@ function stopColorCycle() {
 
 // Start periodic weather updates right away
 startWeatherRefresh();
+
+
+// ... your existing code up to here ...
+
+window.Screensaver = {
+    show: showScreensaver,
+    hide: hideScreensaver,
+    setMembers: updateScreensaverMembers
+};
+
+// ────────────────────────────────────────────────
+// No Active Members Delayed Warning Popup
+// ────────────────────────────────────────────────
+
+let noMembersPopup = null;
+let noMembersWarningTimeout = null;
+
+function createNoMembersPopup() {
+    if (noMembersPopup) return;
+
+    noMembersPopup = document.createElement('div');
+    noMembersPopup.id = 'no-members-screensaver-warning';
+    
+    Object.assign(noMembersPopup.style, {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        background: 'rgba(40, 44, 52, 0.94)',
+        color: '#ffca28',
+        padding: '32px 40px',
+        borderRadius: '20px',
+        boxShadow: '0 12px 40px rgba(0,0,0,0.7)',
+        maxWidth: '520px',
+        textAlign: 'center',
+        zIndex: '150',
+        opacity: '0',
+        transition: 'opacity 0.6s ease, transform 0.5s ease',
+        border: '2px solid #ffca28',
+    });
+
+    noMembersPopup.innerHTML = `
+        <span class="material-icons" style="font-size:80px; color:#ffca28; margin-bottom:16px;">warning_amber</span>
+        <h2 style="font-size:36px; margin:0 0 16px; color:#ffca28;">No Active Members</h2>
+        <p style="font-size:24px; line-height:1.4; margin:0 0 28px; color:#e0e0e0;">
+            No one is currently declared as active.<br>
+            Please select or add active household members.
+        </p>
+        <button id="close-no-members-btn" style="font-size:24px; padding:14px 36px; min-width:220px; background:#ffca28; color:#1e1e1e; border:none; border-radius:12px; cursor:pointer; font-weight:600;">
+            <span class="material-icons" style="vertical-align:middle; font-size:28px;">close</span> Got it
+        </button>
+    `;
+
+    noMembersPopup.querySelector('#close-no-members-btn').onclick = hideNoMembersPopup;
+    noMembersPopup.onclick = (e) => { if (e.target === noMembersPopup) hideNoMembersPopup(); };
+
+    saver.appendChild(noMembersPopup);
+}
+
+function showNoMembersPopup() {
+    createNoMembersPopup();
+    noMembersPopup.style.opacity = '1';
+    noMembersPopup.style.transform = 'translate(-50%, -50%) scale(1)';
+}
+
+function hideNoMembersPopup() {
+    if (!noMembersPopup) return;
+    noMembersPopup.style.opacity = '0';
+    noMembersPopup.style.transform = 'translate(-50%, -50%) scale(0.92)';
+    setTimeout(() => {
+        noMembersPopup?.remove();
+        noMembersPopup = null;
+    }, 700);
+}
+
+function scheduleNoMembersWarning() {
+    cancelNoMembersWarning(); // clear old timer
+    const hasActive = membersData?.members?.some(m => m.active === true) ?? false;
+    if (saver.style.visibility === 'visible' && !hasActive) {
+        noMembersWarningTimeout = setTimeout(showNoMembersPopup, 20000);
+    }
+}
+
+function cancelNoMembersWarning() {
+    if (noMembersWarningTimeout) {
+        clearTimeout(noMembersWarningTimeout);
+        noMembersWarningTimeout = null;
+    }
+    hideNoMembersPopup();
+}
+
+// ── Safe overrides ──────────────────────────────────────
+
+if (typeof originalShowScreensaver === 'undefined') {
+    const originalShowScreensaver = showScreensaver;
+    showScreensaver = function (...args) {
+        originalShowScreensaver.apply(this, args);
+        scheduleNoMembersWarning();
+    };
+}
+
+if (typeof originalHideScreensaver === 'undefined') {
+    const originalHideScreensaver = hideScreensaver;
+    hideScreensaver = function (...args) {
+        originalHideScreensaver.apply(this, args);
+        cancelNoMembersWarning();
+    };
+}
+
+if (typeof originalSetMembers === 'undefined') {
+    const originalSetMembers = window.Screensaver.setMembers;
+    window.Screensaver.setMembers = function (members) {
+        originalSetMembers.call(window.Screensaver, members);
+        cancelNoMembersWarning();
+        scheduleNoMembersWarning();
+    };
+}
+
+window.addEventListener('beforeunload', cancelNoMembersWarning);

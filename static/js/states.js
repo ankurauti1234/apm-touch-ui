@@ -288,63 +288,52 @@ const states = {
         const members = membersData?.members || [];
         const shown = members.slice(0, max);
         const empty = max - shown.length;
-    
-        // We return the HTML first
-        const html = `
-        <div class="layout-reset">
-            <div class="main-dashboard fixed-layout">
-                <div class="members-grid">
-                    ${shown.map((m, i) => `
-                        <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
-                             onclick="toggleMember(${i})"
-                             style="--bg-image:url('${avatar(m.gender, m.dob)}')">
-                            <div class="name-tag">${m.name || m.member_code || '??'}</div>
-                        </div>`).join('')}
-                    ${Array(empty).fill().map(() => `
-                        <div class="member-card-grid empty"><div class="name-tag">—</div></div>
-                    `).join('')}
+
+        return `
+    <div class="layout-reset">
+        <div class="main-dashboard fixed-layout">
+            <div class="members-grid">
+                ${shown.map((m, i) => `
+                    <div class="member-card-grid ${m.active === false ? 'inactive' : 'active'}"
+                         onclick="toggleMember(${i})"
+                         style="--bg-image:url('${avatar(m.gender, m.dob)}')">
+                        <div class="name-tag">${m.name || m.member_code || '??'}</div>
+                    </div>`).join('')}
+                ${Array(empty).fill().map(() => `
+                    <div class="member-card-grid empty"><div class="name-tag">—</div></div>
+                `).join('')}
+            </div>
+            <div class="bottom-bar">
+                <div class="bar-left">
+                    <button class="bar-btn" id="bar-btn-settings" onclick="showSettingsPopup()">
+                        <span class="material-icons" style="font-size:1.7rem;">settings</span>
+                    </button>
+                    <button class="bar-btn" id="bar-btn-edit_member" onclick="showEditMemberPopup()">
+                        <span class="material-icons" style="font-size:1.7rem;">edit</span>
+                    </button>
+                    <button class="bar-btn" id="bar-btn-details" onclick="showMeterIdPopup()">
+                        <span class="material-icons" style="font-size:1.7rem;">info</span>
+                    </button>
                 </div>
-                <div class="bottom-bar">
-                    <div class="bar-left">
-                        <button class="bar-btn" id="bar-btn-settings" onclick="showSettingsPopup()">
-                            <span class="material-icons" style="font-size:1.7rem;">settings</span>
-                        </button>
-                        <button class="bar-btn" id="bar-btn-edit_member" onclick="showEditMemberPopup()">
-                            <span class="material-icons" style="font-size:1.7rem;">edit</span>
-                        </button>
-                        <button class="bar-btn" id="bar-btn-details" onclick="showMeterIdPopup()">
-                            <span class="material-icons" style="font-size:1.7rem;">info</span>
-                        </button>
+                <div class="bar-right">
+                    <button class="bar-btn" id="bar-btn-add_guest" onclick="openDialog()">
+                        <span class="material-icons">add</span>
+                        <span class="btn-text">Add Guest &nbsp;</span>
+                        <span class="guest-count">${guests.length} / 8</span>
+                    </button>
+                    <button class="bar-btn" id="bar-btn-weather-city" onclick="showCityInputPopup()" title="Change weather city">
+                        <span class="material-icons" style="font-size:1.7rem;">location_city</span>
+                    </button>
+                    <div id="bar-wifi-status">
+                    
                     </div>
-                    <div class="bar-right">
-                        <button class="bar-btn" id="bar-btn-add_guest" onclick="openDialog()">
-                            <span class="material-icons">add</span>
-                            <span class="btn-text">Add Guest   </span>
-                            <span class="guest-count">${guests.length} / 8</span>
-                        </button>
-                        <button class="bar-btn" id="bar-btn-weather-city" onclick="showCityInputPopup()" title="Change weather city">
-                            <span class="material-icons" style="font-size:1.7rem;">location_city</span>
-                        </button>
-                        <div id="bar-wifi-status"></div>
-                    </div>
-                </div>
-                <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
                 </div>
             </div>
+            <div style="position:fixed; bottom:4px; left:4px; display:flex; justify-content:center; align-items:center; z-index:999; scale: 1.2;">
+            </div>
         </div>
-        <div id="screensaver"></div>`;
-    
-        // ────────────────────────────────────────────────
-        //    Important: We schedule the check AFTER render
-        // ────────────────────────────────────────────────
-        setTimeout(() => {
-            // Only show warning if there are really NO members
-            if (members.length === 0) {
-                showNoMembersWarning();
-            }
-        }, 300);   // small delay so user sees the empty grid first
-    
-        return html;
+    </div>
+    <div id="screensaver"></div>`;
     },
 };
 
@@ -474,44 +463,4 @@ async function saveCityAndUpdate() {
         if (errorEl) errorEl.textContent = "Error looking up city – check connection";
         console.error(err);
     }
-}
-
-// Show the blinking warning popup when no members exist
-function showNoMembersWarning() {
-    // Avoid stacking multiple popups
-    if (document.getElementById('no-members-warning')) return;
-
-    const overlay = document.createElement('div');
-    overlay.id = 'no-members-overlay';
-    overlay.className = 'overlay';
-
-    const popup = document.createElement('div');
-    popup.id = 'no-members-warning';
-    popup.className = 'popup warning-blink';
-
-    popup.innerHTML = `
-        <div style="text-align:center; padding: 2rem 1.5rem;">
-            <span class="material-icons" style="font-size: 5rem; color: #f59e0b;">warning_amber</span>
-            <h2 style="margin: 1rem 0; color: #92400e;">No Household Members</h2>
-            <p style="margin: 0 0 1.8rem; color: #92400e; font-size: 1.1rem; line-height: 1.5;">
-                No members have been added yet.<br>
-                Please add at least one household member to use the system.
-            </p>
-            <button class="button primary" onclick="closeNoMembersWarning()" style="min-width: 160px; padding: 12px 24px;">
-                <span class="material-icons" style="vertical-align:middle;">close</span>
-                 Understood
-            </button>
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-    document.body.appendChild(popup);
-}
-
-// Close the warning popup
-function closeNoMembersWarning() {
-    const popup   = document.getElementById('no-members-warning');
-    const overlay = document.getElementById('no-members-overlay');
-    if (popup)   popup.remove();
-    if (overlay) overlay.remove();
 }
