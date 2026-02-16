@@ -1994,6 +1994,13 @@ function togglePasswordVisibility(e) {
            await fetchMembers();
            await loadGuestsFromServer();
            render();
+
+           const activeMembers = membersData?.members?.filter(m => m.active !== false) || [];
+
+            if (activeMembers.length === 0) {
+                showNoActiveMembersMessage();
+            }
+
            updateGuestCountFromFile();     // ← Updates bottom bar instantly
            // ---- START SCREENSAVER TIMER ONLY ON MAIN ----
            setTimeout(() => {
@@ -2003,6 +2010,72 @@ function togglePasswordVisibility(e) {
        }
        render();
    }
+
+   function showNoActiveMembersMessage() {
+    // Prevent multiple popups
+    if (document.getElementById('no-members-message')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'no-members-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+    `;
+
+    const messageBox = document.createElement('div');
+    messageBox.style.cssText = `
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        max-width: 420px;
+        text-align: center;
+        box-shadow: 0 20px 70px rgba(0,0,0,0.4);
+        animation: popupFadeIn 0.4s ease-out;
+    `;
+
+    messageBox.innerHTML = `
+        <div style="font-size: 3.8rem; margin-bottom: 1rem; color: #e74c3c;">
+            <span class="material-icons">group_off</span>
+        </div>
+        <h2 style="margin: 0 0 1rem; font-size: 1.9rem; color: #222;">
+            Ակտիվ անդամներ չկան!
+        </h2>
+        <p style="margin: 0 0 1.8rem; color: #555; font-size: 1.15rem; line-height: 1.45;">
+            Ակտիվ դիտորդներ չկան!<br>
+            Ընտրեք դիտորդի պրոֆիլ
+        </p>
+        <button id="close-no-members-btn" class="button primary" style="
+            padding: 0.9rem 2.2rem;
+            font-size: 1.1rem;
+            min-width: 180px;
+        ">
+            Հասկացա
+        </button>
+    `;
+
+    overlay.appendChild(messageBox);
+    document.body.appendChild(overlay);
+
+    // Close on button click
+    document.getElementById('close-no-members-btn').onclick = () => {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 400);
+    };
+
+    // Optional: also close on background click
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 400);
+        }
+    };
+}
    
    /* ==============================================================
       INPUT SOURCES API
