@@ -555,7 +555,7 @@ window.addEventListener('beforeunload', () => {
         });
         
         warningBox.innerHTML = `
-            <span class="material-icons" style="font-size:120px; color:#ffca28; margin-bottom:24px; display:block;">
+            <span class="material-icons" style="font-size:120px; color:#b20000; margin-bottom:24px; display:block;">
                 warning_amber
             </span>
             <h2 style="font-size:42px; margin:0 0 24px; color:#ffca28;">
