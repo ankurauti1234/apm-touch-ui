@@ -1935,9 +1935,40 @@ function togglePasswordVisibility(e) {
 // ────────────────────────────────────────────────
 let noMembersInterval = null;
 
+function checkAndShowNoMembersWarning() {
+    if (currentState !== 'main') return;
+
+    const activeMembers = (membersData?.members || []).filter(m => m.active !== false);
+
+    if (activeMembers.length === 0) {
+        showNoActiveMembersMessage();
+        // Important: do NOT start screensaver while no members
+        return false; // → tells caller: "do not activate screensaver"
+    }
+
+    return true; // → safe to start/reset screensaver
+}
+
 // ────────────────────────────────────────────────
 // Show the no-active-members popup (only once at a time)
 // ────────────────────────────────────────────────
+
+
+function checkAndShowNoMembersWarning() {
+    if (currentState !== 'main') return;
+
+    const activeMembers = (membersData?.members || []).filter(m => m.active !== false);
+
+    if (activeMembers.length === 0) {
+        showNoActiveMembersMessage();
+        // Important: do NOT start screensaver while no members
+        return false; // → tells caller: "do not activate screensaver"
+    }
+
+    return true; // → safe to start/reset screensaver
+}
+
+
 function showNoActiveMembersMessage() {
     // Prevent multiple overlays
     if (document.getElementById('no-members-overlay')) return;
@@ -2018,10 +2049,8 @@ function showNoActiveMembersMessage() {
 // Start checking every 2 minutes while on main screen
 // ────────────────────────────────────────────────
 function startNoMembersCheck() {
-    // Clear any existing interval
     if (noMembersInterval) {
         clearInterval(noMembersInterval);
-        noMembersInterval = null;
     }
 
     noMembersInterval = setInterval(() => {
@@ -2031,12 +2060,10 @@ function startNoMembersCheck() {
             return;
         }
 
-        const activeMembers = (membersData?.members || []).filter(m => m.active !== false);
+        // This will show popup if still no members
+        checkAndShowNoMembersWarning();
 
-        if (activeMembers.length === 0) {
-            showNoActiveMembersMessage();
-        }
-    }, 120000); // 120 000 ms = 2 minutes
+    }, 120000);
 }
 
 // ────────────────────────────────────────────────
@@ -2118,17 +2145,25 @@ async function navigate(state, param = null) {
         await fetchMembers();
         await loadGuestsFromServer();
         render();
-
+    
         updateGuestCountFromFile();
-
-        // Start 2-minute interval check
+    
+        // Always start the warning check (may show popup after 2 min)
         startNoMembersCheck();
-
-        // Screensaver delay
-        setTimeout(() => {
-            if (currentState === 'main') resetScreensaverTimer();
-        }, 100);
-
+    
+        // Only start screensaver if we already have active members NOW
+        const canActivateScreensaver = checkAndShowNoMembersWarning();
+    
+        if (canActivateScreensaver) {
+            setTimeout(() => {
+                if (currentState === 'main') {
+                    resetScreensaverTimer();
+                }
+            }, 100);
+        }
+        // If no members → screensaver is NOT started here
+        // It will be checked again in the next interval (after members possibly added)
+    
         return;
     }
 
