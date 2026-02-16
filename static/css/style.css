@@ -2206,26 +2206,32 @@ input[type="number"] {
 
 @keyframes blink-warning {
     0%, 100% {
-        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7),
-                    inset 0 0 20px rgba(245, 158, 11, 0.2);
+        opacity: 1;
         transform: scale(1);
+        box-shadow: 0 8px 30px rgba(239, 108, 0, 0.4),
+                    0 0 0 0 rgba(239, 108, 0, 0.3);
+        border-color: #ef6c00;
     }
     50% {
-        box-shadow: 0 0 0 20px rgba(245, 158, 11, 0),
-                    0 0 40px 15px rgba(245, 158, 11, 0.45),
-                    inset 0 0 35px rgba(245, 158, 11, 0.35);
-        transform: scale(1.04);
+        opacity: 0.92;
+        transform: scale(1.03);
+        box-shadow: 0 12px 45px rgba(239, 108, 0, 0.7),
+                    0 0 0 12px rgba(239, 108, 0, 0);
+        border-color: #ff9800;
     }
 }
+
 .warning-blink {
-    animation: blink-warning 1.2s infinite steps(1);
+    animation: blink-warning 1.8s infinite ease-in-out;
     border: 5px solid #ef6c00;
     border-radius: 16px;
     max-width: 420px;
     margin: 20px auto;
     box-shadow: 0 8px 30px rgba(239, 108, 0, 0.5);
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
     color: #92400e;
     font-weight: 600;
+    transition: transform 0.3s ease;
 }
 
 #no-members-overlay {
