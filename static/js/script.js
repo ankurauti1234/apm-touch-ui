@@ -2473,50 +2473,46 @@ function getScreensaverContent() {
         `).join('');
     
         return `
-    <div style="
-        display: flex;
-        flex-direction: row;              /* ← Changed to row (horizontal) */
-        align-items: center;
-        justify-content: space-between;   /* ← Pushes clock to left, avatars to right */
-        color: white;
-        text-shadow: 0 4px 16px black;
-        width: 100%;
-        height: 100%;
-        padding: 0 60px;                  /* ← Add side padding for breathing room */
-        box-sizing: border-box;
-    ">
-        <!-- Clock Time & Date – now on the LEFT side -->
-        <div style="
-            text-align: left;                 /* ← Align text to left */
-            min-width: 40%;                   /* ← Give clock enough space */
-        ">
-            <div id="clock-time" style="
-                font-size: 140px;
-                font-weight: 700;
-                line-height: 1;
-                letter-spacing: -3px;
-            "></div>
-
-            <div id="clock-date" style="
-                font-size: 52px;
-                font-weight: 400;
-                margin-top: 16px;
-                opacity: 0.92;
-            "></div>
-        </div>
-
-        <!-- Avatars + member codes – now on the RIGHT side -->
-        <div style="
-            display: flex;
-            flex-wrap: wrap;
-            gap: 40px;
-            justify-content: flex-end;        /* ← Align avatars to the right */
-            max-width: 55%;                   /* ← Limit width so it doesn't overlap clock */
-        ">
-            ${avatarsHtml}
-        </div>
-    </div>
-`;
+            <div style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                text-shadow: 0 4px 16px black;
+                width: 100%;
+                height: 100%;
+                gap: 40px;
+            ">
+                <!-- Clock Time & Date – on top -->
+                <div style="text-align: center;">
+                    <div id="clock-time" style="
+                        font-size: 80px;
+                        font-weight: 700;
+                        line-height: 1;
+                        letter-spacing: -2px;
+                    "></div>
+    
+                    <div id="clock-date" style="
+                        font-size: 40px;
+                        font-weight: 400;
+                        margin-top: 12px;
+                        opacity: 0.9;
+                    "></div>
+                </div>
+    
+                <!-- Avatars + member codes – below clock -->
+                <div style="
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 32px;
+                    justify-content: center;
+                    max-width: 85%;
+                ">
+                    ${avatarsHtml}
+                </div>
+            </div>
+        `;
     }
 }
 
