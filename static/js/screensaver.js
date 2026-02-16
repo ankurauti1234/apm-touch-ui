@@ -544,6 +544,7 @@ window.addEventListener('beforeunload', () => {
         const warningBox = document.createElement('div');
         Object.assign(warningBox.style, {
             background: 'rgba(40, 44, 52, 0.92)',
+            height: '200px',
             color: '#ffca28',
             padding: '48px 56px',
             borderRadius: '24px',
@@ -555,9 +556,6 @@ window.addEventListener('beforeunload', () => {
         });
         
         warningBox.innerHTML = `
-            <span class="material-icons" style="font-size:120px; color:#b20000; margin-bottom:24px; display:block;">
-                warning_amber
-            </span>
             <h2 style="font-size:42px; margin:0 0 24px; color:#ffca28;">
                 Ակտիվ անդամներ չկան
             </h2>
@@ -573,7 +571,7 @@ window.addEventListener('beforeunload', () => {
                 box-shadow:0 6px 20px rgba(0,0,0,0.4);
             ">
                 <span class="material-icons" style="vertical-align:middle; font-size:40px;">close</span>
-                 Հասկացա
+                 Հասկացա
             </button>
         `;
 
