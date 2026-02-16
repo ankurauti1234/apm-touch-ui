@@ -2473,46 +2473,52 @@ function getScreensaverContent() {
         `).join('');
     
         return `
-            <div style="
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                text-shadow: 0 4px 16px black;
-                width: 100%;
-                height: 100%;
-                gap: 40px;
-            ">
-                <!-- Clock Time & Date – on top -->
-                <div style="text-align: center;">
-                    <div id="clock-time" style="
-                        font-size: 80px;
-                        font-weight: 700;
-                        line-height: 1;
-                        letter-spacing: -2px;
-                    "></div>
-    
-                    <div id="clock-date" style="
-                        font-size: 40px;
-                        font-weight: 400;
-                        margin-top: 12px;
-                        opacity: 0.9;
-                    "></div>
-                </div>
-    
-                <!-- Avatars + member codes – below clock -->
-                <div style="
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 32px;
-                    justify-content: center;
-                    max-width: 85%;
-                ">
-                    ${avatarsHtml}
-                </div>
-            </div>
-        `;
+    <div style="
+        display: flex;
+        flex-direction: row;                    /* Changed to horizontal layout */
+        align-items: center;                    /* Vertically centers both sides */
+        justify-content: flex-start;            /* Pushes content to the left */
+        color: white;
+        text-shadow: 0 4px 16px black;
+        width: 100%;
+        height: 100%;
+        padding-left: 60px;                     /* Breathing room from left edge */
+        padding-right: 60px;
+        box-sizing: border-box;
+    ">
+        <!-- Clock Time & Date – aligned to the LEFT -->
+        <div style="
+            text-align: left;                   /* Left-aligned text */
+            min-width: 300px;                   /* Prevents squishing */
+            margin-right: 60px;                 /* Space between clock and avatars */
+        ">
+            <div id="clock-time" style="
+                font-size: 80px;
+                font-weight: 700;
+                line-height: 1;
+                letter-spacing: -2px;
+            "></div>
+
+            <div id="clock-date" style="
+                font-size: 40px;
+                font-weight: 400;
+                margin-top: 12px;
+                opacity: 0.9;
+            "></div>
+        </div>
+
+        <!-- Avatars + member codes – to the right of clock -->
+        <div style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            justify-content: flex-start;        /* Aligns avatars starting from left of this section */
+            flex: 1;                            /* Takes remaining space */
+        ">
+            ${avatarsHtml}
+        </div>
+    </div>
+`;
     }
 }
 
