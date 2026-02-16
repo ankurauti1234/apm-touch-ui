@@ -662,6 +662,26 @@ window.addEventListener('beforeunload', () => {
        const activeMembers = members.filter(m => m.active === true);
        resetReminderTimer(activeMembers);
        
+   
+       if (activeMembers.length === 0) {
+            saver.style.background = 'rgba(139, 0, 0, 0.75)';
+           saver.classList.add('blinking');
+           row.style.display = 'none';
+           warning.style.display = 'block';
+           warning.classList.add('warning-pulse');
+
+           hideInactivityWarning();
+
+           const timeEl = document.getElementById('clock-time');
+           const dateEl = document.getElementById('clock-date');
+           if (timeEl) timeEl.style.display = 'none';
+           if (dateEl) dateEl.style.display = 'none';
+
+
+           if (weatherEl) weatherEl.style.opacity = '0'; // hide weather
+
+           startColorCycle();
+       } else {
            saver.style.background = 'black';
            saver.classList.remove('blinking');
            row.style.display = 'flex';
@@ -718,6 +738,7 @@ window.addEventListener('beforeunload', () => {
 
            stopColorCycle();
        }
+   }
    
    window.Screensaver = {
        show: showScreensaver,
