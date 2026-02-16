@@ -2743,7 +2743,6 @@ async function showScreensaver() {
                 pillHTML = `
                     <div class="wifi-status-pill connected">
                         <span class="material-icons">wifi</span>
-                        ${data.ssid.length > 15 ? data.ssid.substring(0,15) + '…' : data.ssid}
                     </div>
                 `;
             } else {
