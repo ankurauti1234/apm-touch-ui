@@ -559,11 +559,11 @@ window.addEventListener('beforeunload', () => {
                 warning_amber
             </span>
             <h2 style="font-size:52px; margin:0 0 24px; color:#ffca28;">
-                No Active Members
+                Ակտիվ անդամներ չկան
             </h2>
             <p style="font-size:32px; line-height:1.45; margin:0 0 40px; color:#f0f0f0;">
-                No household member is currently selected as active.<br>
-                Please declare at least one active profile to use the system.
+                Ակտիվ դիտորդներ չկան! Հաշվի ակտիվացումը <br>
+                պարտադիր է համակարգից օգտվելու համար.
             </p>
             <button id="close-warning-btn" style="
                 font-size:32px; padding:20px 60px;
@@ -573,7 +573,7 @@ window.addEventListener('beforeunload', () => {
                 box-shadow:0 6px 20px rgba(0,0,0,0.4);
             ">
                 <span class="material-icons" style="vertical-align:middle; font-size:40px;">close</span>
-                  Got it
+                Հասկացա
             </button>
         `;
 
