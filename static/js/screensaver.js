@@ -559,7 +559,7 @@ window.addEventListener('beforeunload', () => {
     <h2 style="font-size:52px; margin:0 0 32px; color:#ffca28;">
         Ակտիվ անդամներ չկան
     </h2>
-    <p style="font-size:32px; line-height:1.45; margin:0 0 48px; color:#f0f0f0;">
+    <p style="font-size:32px; line-height:1.45; margin:0 0 18px; color:#f0f0f0;">
         Ակտիվ դիտորդներ չկան!<br>
         Հաշվի ակտիվացումը պարտադիր է համակարգից օգտվելու համար:
     </p>
