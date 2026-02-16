@@ -2475,45 +2475,45 @@ function getScreensaverContent() {
         return `
     <div style="
         display: flex;
-        flex-direction: row;                    /* Changed to horizontal layout */
-        align-items: center;                    /* Vertically centers both sides */
-        justify-content: flex-start;            /* Pushes content to the left */
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;     /* Pushes clock to top, avatars to bottom */
         color: white;
         text-shadow: 0 4px 16px black;
         width: 100%;
         height: 100%;
-        padding-left: 60px;                     /* Breathing room from left edge */
-        padding-right: 60px;
+        padding: 40px 0;                    /* Top/bottom breathing room */
         box-sizing: border-box;
     ">
-        <!-- Clock Time & Date – aligned to the LEFT -->
+        <!-- Clock Time & Date – FIXED AT THE TOP -->
         <div style="
-            text-align: left;                   /* Left-aligned text */
-            min-width: 300px;                   /* Prevents squishing */
-            margin-right: 60px;                 /* Space between clock and avatars */
+            text-align: center;
+            width: 100%;
+            margin-top: 20px;                   /* Slight top offset */
         ">
             <div id="clock-time" style="
-                font-size: 80px;
+                font-size: 120px;               /* ← Feel free to adjust size */
                 font-weight: 700;
                 line-height: 1;
-                letter-spacing: -2px;
+                letter-spacing: -3px;
             "></div>
 
             <div id="clock-date" style="
-                font-size: 40px;
+                font-size: 48px;
                 font-weight: 400;
-                margin-top: 12px;
-                opacity: 0.9;
+                margin-top: 16px;
+                opacity: 0.92;
             "></div>
         </div>
 
-        <!-- Avatars + member codes – to the right of clock -->
+        <!-- Avatars + member codes – FIXED AT THE BOTTOM -->
         <div style="
             display: flex;
             flex-wrap: wrap;
-            gap: 32px;
-            justify-content: flex-start;        /* Aligns avatars starting from left of this section */
-            flex: 1;                            /* Takes remaining space */
+            gap: 40px;
+            justify-content: center;
+            max-width: 90%;
+            margin-bottom: 40px;                /* Space from bottom edge */
         ">
             ${avatarsHtml}
         </div>
