@@ -1582,12 +1582,77 @@ def save_current_boot_id():
             print(f"[BOOT_ID] Saved current boot_id: {current}")
         except Exception as e:
             print(f"[BOOT_ID] Failed to save boot_id: {e}")
+
+# ----------------------------------------------------------------------
+# Periodic Type 3 (members state) heartbeat - every 60 minutes
+# ----------------------------------------------------------------------
+
+HEARTBEAT_INTERVAL_SECONDS = 3600  # 60 minutes
+
+def send_periodic_members_heartbeat():
+    """Builds and publishes current members state every hour"""
+    while True:
+        try:
+            time.sleep(HEARTBEAT_INTERVAL_SECONDS)
+
+            # Only send if we have a valid HHID (installation probably done)
+            hhid = load_hhid()
+            if not hhid:
+                _mqtt_log("[HEARTBEAT] No HHID yet → skipping periodic Type 3")
+                continue
+
+            # Build current payload (same logic as publish_member_event)
+            data = load_members_data()
+            members = [
+                {
+                    "member_id": m.get("member_code", ""),
+                    "age": calculate_age(m["dob"]),
+                    "gender": m["gender"],
+                    "active": m.get("active", False)
+                }
+                for m in data.get("members", [])
+                if all(k in m for k in ["dob", "gender"]) and calculate_age(m["dob"]) is not None
+            ]
+
+            if not members:
+                _mqtt_log("[HEARTBEAT] No valid members → skipping")
+                continue
+
+            payload = {
+                "DEVICE_ID": METER_ID,
+                "TS": str(int(time.time())),
+                "Type": 3,
+                "Details": {"members": members}
+            }
+
+            payload_json = json.dumps(payload)
+
+            _mqtt_log(f"[HEARTBEAT] Sending periodic Type 3 (members snapshot) - {len(members)} members")
+
+            publish_ok = False
+            if client and client.is_connected():
+                publish_ok = wait_for_publish_success(client, payload_json, timeout=8.0)
+
+            if publish_ok:
+                _mqtt_log("[HEARTBEAT] Periodic Type 3 published successfully")
+            else:
+                _enqueue(payload)
+                _mqtt_log("[HEARTBEAT] Periodic Type 3 QUEUED (MQTT not connected)")
+
+        except Exception as e:
+            _mqtt_log(f"[HEARTBEAT] Error in periodic members heartbeat: {e}")
+            time.sleep(60)  # wait 1 min before retrying if crashed
 # ----------------------------------------------------------------------
 # 10. Main
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
     init_db()
 
+    # Start periodic heartbeat thread
+    heartbeat_thread = threading.Thread(target=send_periodic_members_heartbeat, daemon=True)
+    heartbeat_thread.start()
+    print("[STARTUP] Periodic members heartbeat thread started (every 60 min)")
+    
     # === 1. Start MQTT thread FIRST and give it time to initialize ===
     mqtt_thread = threading.Thread(target=init_mqtt, daemon=True)
     mqtt_thread.start()

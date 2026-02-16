@@ -2623,9 +2623,16 @@ function getScreensaverContent() {
         box-sizing: border-box;
     ">
 
-    <div id="saver-wifi-pill" style="position:absolute; top:0; right:0; margin:28px;">
-        <!-- Filled by JS right after render -->
-    </div>
+    <div id="saver-wifi-warning" style="
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+        pointer-events: none;
+    "></div>
+    
         <!-- Clock Time & Date – FIXED AT THE TOP -->
         <div style="
             text-align: center;
@@ -2701,14 +2708,12 @@ async function showScreensaver() {
     const content = getScreensaverContent();
     saver.innerHTML = content;
 
-    // Decide background based on whether there are active members
     const hasActive = (membersData?.members || []).some(m => m.active !== false);
 
+    // Background
     if (!hasActive) {
-        // Warning mode (no active members) → semi-transparent dark + card
         saver.style.background = 'rgba(0,0,0,0.65)';
     } else {
-        // Active members mode → full black background + avatars + clock
         saver.style.background = 'black';
     }
 
@@ -2719,80 +2724,71 @@ async function showScreensaver() {
         saver.focus({ preventScroll: true });
     } catch (_) {}
 
-    // Clock only when there are active members (and clock elements exist)
+    // Clock (only when active members exist)
     if (hasActive && document.getElementById('clock-time')) {
         updateClock();
         clockInterval = setInterval(updateClock, 1000);
     }
 
     // ────────────────────────────────────────────────
-    //           Wi-Fi Status Pill (always shown)
+    //       BIG CENTERED Wi-Fi DISCONNECTED WARNING
     // ────────────────────────────────────────────────
-    const pillContainer = document.getElementById('saver-wifi-pill');
-    if (pillContainer) {
+    const wifiContainer = document.getElementById('saver-wifi-warning');
+    if (wifiContainer) {
         try {
             const res = await fetch('/api/current_wifi');
             const data = await res.json();
 
-            let pillHTML = '';
-            let isDisconnected = true;
-
             if (data.success && data.ssid) {
-                // Connected
-                isDisconnected = false;
-                pillHTML = `
-                    <div class="wifi-status-pill connected">
-                        <span class="material-icons">wifi</span>
+                // Connected → hide warning or show subtle status
+                wifiContainer.innerHTML = '';
+                wifiContainer.style.display = 'none';
+            } else {
+                // Disconnected → show big centered warning
+                wifiContainer.innerHTML = `
+                    <div class="wifi-disconnected-big">
+                        <span class="material-icons wifi-icon">wifi_off</span>
+                        <h2>Wi-Fi Disconnected</h2>
+                        <p>Please connect to a network</p>
+                        <button class="connect-btn">Connect Now</button>
                     </div>
                 `;
-            } else {
-                // Disconnected or error
-                pillHTML = `
-                    <div class="wifi-status-pill disconnected">
-                        <span class="material-icons">wifi_off</span>
-                        No Wi-Fi Connection
-                    </div>
-                `;
-            }
+                wifiContainer.style.display = 'flex';
 
-            pillContainer.innerHTML = pillHTML;
-
-            // Make pill clickable → open Wi-Fi settings
-            if (!isDisconnected) {
-                pillContainer.style.cursor = 'default';
-            } else {
-                pillContainer.style.cursor = 'pointer';
-                pillContainer.style.pointerEvents = 'auto';
-
-                pillContainer.addEventListener('click', function openWifiFromSaver() {
-                    hideScreensaver();
-                    resetScreensaverTimer();
-                    showWiFiPopup();
-                    // Clean up this listener (one-time use)
-                    pillContainer.removeEventListener('click', openWifiFromSaver);
-                });
+                // Make button clickable → open Wi-Fi popup
+                const btn = wifiContainer.querySelector('.connect-btn');
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        hideScreensaver();
+                        resetScreensaverTimer();
+                        showWiFiPopup();
+                    });
+                }
             }
         } catch (err) {
             // Network error → treat as disconnected
-            pillContainer.innerHTML = `
-                <div class="wifi-status-pill disconnected">
-                    <span class="material-icons">wifi_off</span>
-                    No Wi-Fi Connection
+            wifiContainer.innerHTML = `
+                <div class="wifi-disconnected-big">
+                    <span class="material-icons wifi-icon">wifi_off</span>
+                    <h2>Wi-Fi Disconnected</h2>
+                    <p>Please connect to a network</p>
+                    <button class="connect-btn">Connect Now</button>
                 </div>
             `;
-            pillContainer.style.cursor = 'pointer';
-            pillContainer.addEventListener('click', function openWifiFromSaver() {
-                hideScreensaver();
-                resetScreensaverTimer();
-                showWiFiPopup();
-                pillContainer.removeEventListener('click', openWifiFromSaver);
-            });
+            wifiContainer.style.display = 'flex';
+
+            const btn = wifiContainer.querySelector('.connect-btn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    hideScreensaver();
+                    resetScreensaverTimer();
+                    showWiFiPopup();
+                });
+            }
         }
     }
 
-    // ────────────────────────────────────────────────
-    //           Existing handlers (warning mode only)
-    // ────────────────────────────────────────────────
+    // Existing handlers for no-active-members mode
     const declareBtn = document.getElementById('declare-members-btn');
     if (declareBtn) {
         declareBtn.addEventListener('click', () => {
@@ -2801,7 +2797,6 @@ async function showScreensaver() {
         });
     }
 
-    // Click outside card to close (only in no-active-members mode)
     saver.addEventListener('click', function closeOnBackdrop(e) {
         if (!hasActive && !e.target.closest('.screensaver-card')) {
             hideScreensaver();
