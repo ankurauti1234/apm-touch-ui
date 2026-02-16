@@ -2450,71 +2450,69 @@ function getScreensaverContent() {
     } else {
         // ── FULL SCREEN: CLOCK ON TOP → AVATARS BELOW → MEMBER CODE BELOW EACH AVATAR ──
         const avatarsHtml = activeMembers.slice(0, 8).map((m, index) => `
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
-        <div style="
-            width: 100px;                 // ← Changed from 110px → smaller avatar
-            height: 100px;
-            border-radius: 50%;
-            background: center/cover url('${avatar(m.gender, m.dob)}') no-repeat;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.9);  // ← stronger shadow, no border
-        "></div>
-        <div style="
-            color: white;
-            font-size: 28px;              // ← Changed from 44px → more balanced size
-            font-weight: 700;             // ← bolder for readability
-            text-shadow: 0 3px 10px black;
-            max-width: 110px;
-            text-align: center;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        ">
-            ${m.name || m.member_code || '??'}
-        </div>
-    </div>
-`).join('');
-
-return `
-    <div style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        text-shadow: 0 4px 16px black;
-        width: 100%;
-        height: 100%;
-        gap: 50px;                        // ← increased gap between clock and avatars
-    ">
-        <!-- Clock Time & Date – on top (made bigger) -->
-        <div style="text-align: center;">
-            <div id="clock-time" style="
-                font-size: 140px;             // ← Changed from 80px → much bigger & prominent
-                font-weight: 700;
-                line-height: 1;
-                letter-spacing: -3px;         // ← slightly more spacing for readability
-            "></div>
-
-            <div id="clock-date" style="
-                font-size: 52px;              // ← Changed from 40px → better proportion
-                font-weight: 400;
-                margin-top: 16px;
-                opacity: 0.92;
-            "></div>
-        </div>
-
-        <!-- Avatars + member codes – below clock -->
-        <div style="
-            display: flex;
-            flex-wrap: wrap;
-            gap: 40px;                    // ← increased gap between avatars
-            justify-content: center;
-            max-width: 90%;               // ← a bit wider to avoid crowding
-        ">
-            ${avatarsHtml}
-        </div>
-    </div>
-`;
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div style="
+                    width: 110px;
+                    height: 110px;
+                    border-radius: 50%;
+                    background: center/cover url('${avatar(m.gender, m.dob)}') no-repeat;                "></div>
+                <div style="
+                    color: white;
+                    font-size: 44px;
+                    font-weight: 600;
+                    text-shadow: 0 2px 8px black;
+                    max-width: 110px;
+                    text-align: center;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                ">
+                    ${m.name || m.member_code || '??'}
+                </div>
+            </div>
+        `).join('');
+    
+        return `
+            <div style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                text-shadow: 0 4px 16px black;
+                width: 100%;
+                height: 100%;
+                gap: 40px;
+            ">
+                <!-- Clock Time & Date – on top -->
+                <div style="text-align: center;">
+                    <div id="clock-time" style="
+                        font-size: 80px;
+                        font-weight: 700;
+                        line-height: 1;
+                        letter-spacing: -2px;
+                    "></div>
+    
+                    <div id="clock-date" style="
+                        font-size: 40px;
+                        font-weight: 400;
+                        margin-top: 12px;
+                        opacity: 0.9;
+                    "></div>
+                </div>
+    
+                <!-- Avatars + member codes – below clock -->
+                <div style="
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 32px;
+                    justify-content: center;
+                    max-width: 85%;
+                ">
+                    ${avatarsHtml}
+                </div>
+            </div>
+        `;
     }
 }
 
