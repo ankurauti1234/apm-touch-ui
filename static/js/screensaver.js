@@ -651,94 +651,223 @@ window.addEventListener('beforeunload', () => {
    `;
    document.head.appendChild(styleSheet);
    
-   function updateScreensaverMembers(members = []) {
-       const row = document.getElementById('screensaver-members');
-       const warning = document.getElementById('screensaver-warning');
-       const weatherEl = document.getElementById('weather-status');
-       if (!row || !warning) return;
-   
-       row.innerHTML = '';  
-   
-       const activeMembers = members.filter(m => m.active === true);
-       resetReminderTimer(activeMembers);
-       
-   
-       if (activeMembers.length === 0) {
-           saver.style.background = getTodayDarkColor();
-           saver.classList.add('blinking');
-           row.style.display = 'none';
-           warning.style.display = 'block';
-           warning.classList.add('warning-pulse');
+   // ┌──────────────────────────────────────────────────────────────┐
+// │                 NO ACTIVE MEMBERS DIALOG                     │
+// └──────────────────────────────────────────────────────────────┘
 
-           hideInactivityWarning();
+function createNoMembersDialog() {
+    if (document.getElementById('no-members-dialog')) return;
 
-           const timeEl = document.getElementById('clock-time');
-           const dateEl = document.getElementById('clock-date');
-           if (timeEl) timeEl.style.display = 'none';
-           if (dateEl) dateEl.style.display = 'none';
+    const dialog = document.createElement('div');
+    dialog.id = 'no-members-dialog';
+    
+    Object.assign(dialog.style, {
+        position: 'absolute',
+        inset: '0',
+        margin: 'auto',
+        width: 'min(90%, 760px)',
+        height: 'fit-content',
+        maxHeight: '85vh',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        background: 'rgba(35, 38, 45, 0.96)',
+        borderRadius: '28px',
+        padding: 'clamp(32px, 6vw, 64px) clamp(24px, 5vw, 56px)',
+        display: 'none',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 'clamp(24px, 4vw, 40px)',
+        color: '#f5f5f5',
+        boxShadow: '0 20px 80px rgba(0,0,0,0.75)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        backdropFilter: 'blur(12px)',
+        zIndex: '30',
+        pointerEvents: 'auto',
+        overflowY: 'auto',
+    });
 
+    dialog.innerHTML = `
+        <div style="font-size: clamp(80px, 18vw, 140px); color: #ff9800; line-height: 1;">
+            ⚠️
+        </div>
+        
+        <div style="
+            font-size: clamp(32px, 7vw, 48px);
+            font-weight: 600;
+            line-height: 1.38;
+            text-align: center;
+            max-width: 92%;
+        ">
+            Ակտիվ դիտորդներ չկան!<br>
+            Հաշվի ակտիվացումը պարտադիր է համակարգից օգտվելու համար
+        </div>
 
-           if (weatherEl) weatherEl.style.opacity = '0'; // hide weather
+        <button id="btn-dismiss-no-members" style="
+            margin-top: 16px;
+            background: linear-gradient(145deg, #ffab40, #ff6d00);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: clamp(16px, 3.5vw, 24px) clamp(48px, 10vw, 80px);
+            font-size: clamp(26px, 5.5vw, 38px);
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(255, 152, 0, 0.45);
+            transition: all 0.25s ease;
+        ">
+            Լավ, ակտիվացնում եմ
+        </button>
+    `;
 
-           startColorCycle();
-       } else {
-           saver.style.background = 'black';
-           saver.classList.remove('blinking');
-           row.style.display = 'flex';
-           warning.style.display = 'none';
+    // Button click → hide screensaver
+    dialog.querySelector('#btn-dismiss-no-members').addEventListener('click', () => {
+        hideScreensaver();
+        resetScreensaverTimer();
+    });
 
-           warning.classList.remove('warning-pulse');
+    // Also allow clicking/tapping anywhere on dialog background to close
+    dialog.addEventListener('click', function(e) {
+        if (e.target === dialog) {
+            hideScreensaver();
+            resetScreensaverTimer();
+        }
+    });
 
-           const timeEl = document.getElementById('clock-time');
-           const dateEl = document.getElementById('clock-date');
-           if (timeEl) timeEl.style.display = 'block';
-           if (dateEl) dateEl.style.display = 'block';
+    // Append to wrapper (centered with clock) or directly to saver
+    const target = document.getElementById('clock-wrapper') || document.getElementById('screensaver');
+    if (target) target.appendChild(dialog);
+}
 
-           if (weatherEl) weatherEl.style.opacity = '0.9'; // show weather
-           // Fetch fresh weather when members are active
-           fetchWeather();
-   
-           activeMembers.forEach(m => {
-               const container = document.createElement('div');
-               Object.assign(container.style, {
-                   display: 'flex',
-                   flexDirection: 'column',
-                   alignItems: 'center',
-                   gap: '8px',
-               });
-   
-               const icon = document.createElement('div');
-               Object.assign(icon.style, {
-                   width: '110px',
-                   height: '110px',
-                   borderRadius: '50%',
-                   backgroundImage: `url(${m.avatar})`,
-                   backgroundSize: 'cover',
-                   backgroundPosition: 'center',
-                   backgroundColor: 'black',
-                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-               });
-   
-               const label = document.createElement('div');
-               Object.assign(label.style, {
-                   fontSize: '50px',
-                   fontWeight: '600',
-                   color: 'white',
-                   textShadow: '0 2px 4px rgba(0,0,0,0.6)',
-                   textAlign: 'center',
-                   maxWidth: '140px',
-                   wordBreak: 'break-word',
-               });
-               label.textContent = m.name || m.member_code || 'Unknown';
-   
-               container.appendChild(icon);
-               container.appendChild(label);
-               row.appendChild(container);
-           });
+// ┌──────────────────────────────────────────────────────────────┐
+// │               COMPLETE updateScreensaverMembers              │
+// └──────────────────────────────────────────────────────────────┘
 
-           stopColorCycle();
-       }
-   }
+function updateScreensaverMembers(members = []) {
+    const membersRow   = document.getElementById('screensaver-members');
+    const warningEl    = document.getElementById('screensaver-warning');
+    const weatherEl    = document.getElementById('weather-status');
+    
+    if (!membersRow || !warningEl) return;
+
+    // Clear previous content
+    membersRow.innerHTML = '';
+
+    const activeMembers = members.filter(m => m.active === true);
+
+    // Update reminder logic (20 min inactivity warning)
+    resetReminderTimer(activeMembers);
+
+    // ────────────────────────────────────────────────
+    // Reset common styles
+    // ────────────────────────────────────────────────
+    saver.style.background = 'black';
+    saver.classList.remove('blinking');
+    membersRow.style.display = 'none';
+    warningEl.style.display = 'none';
+    
+    if (weatherEl) {
+        weatherEl.style.opacity = '0';
+    }
+
+    // Hide old-style warning text (we're using dialog now)
+    warningEl.style.display = 'none';
+
+    // ────────────────────────────────────────────────
+    // CASE: NO ACTIVE MEMBERS
+    // ────────────────────────────────────────────────
+    if (activeMembers.length === 0) {
+        // Create & show centered dialog instead of red screen
+        createNoMembersDialog();
+        const dialog = document.getElementById('no-members-dialog');
+        if (dialog) {
+            dialog.style.display = 'flex';
+        }
+
+        // Optional: hide clock & date for cleaner "emergency" look
+        // Uncomment the lines below if you want to hide time/date
+        /*
+        const timeEl = document.getElementById('clock-time');
+        const dateEl = document.getElementById('clock-date');
+        if (timeEl) timeEl.style.display = 'none';
+        if (dateEl) dateEl.style.display = 'none';
+        */
+
+        stopColorCycle();
+        hideInactivityWarning();
+    }
+
+    // ────────────────────────────────────────────────
+    // CASE: HAS ACTIVE MEMBERS
+    // ────────────────────────────────────────────────
+    else {
+        // Hide no-members dialog if it exists
+        const noMembersDlg = document.getElementById('no-members-dialog');
+        if (noMembersDlg) {
+            noMembersDlg.style.display = 'none';
+        }
+
+        // Show member avatars row
+        membersRow.style.display = 'flex';
+
+        // Show clock & date again (if they were hidden)
+        const timeEl = document.getElementById('clock-time');
+        const dateEl = document.getElementById('clock-date');
+        if (timeEl) timeEl.style.display = 'block';
+        if (dateEl) dateEl.style.display = 'block';
+
+        // Show & refresh weather
+        if (weatherEl) {
+            weatherEl.style.opacity = '0.9';
+            fetchWeather();
+        }
+
+        // Render active members
+        activeMembers.forEach(m => {
+            const container = document.createElement('div');
+            Object.assign(container.style, {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px',
+                minWidth: '140px',
+            });
+
+            const avatar = document.createElement('div');
+            Object.assign(avatar.style, {
+                width: '120px',
+                height: '120px',
+                borderRadius: '50%',
+                backgroundImage: `url(${m.avatar})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundColor: '#111',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.6)',
+                border: '2px solid rgba(255,255,255,0.12)',
+            });
+
+            const name = document.createElement('div');
+            Object.assign(name.style, {
+                fontSize: '46px',
+                fontWeight: '600',
+                color: '#ffffff',
+                textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+                textAlign: 'center',
+                maxWidth: '160px',
+                wordBreak: 'break-word',
+                lineHeight: '1.2',
+            });
+            name.textContent = m.name || m.member_code || 'Unknown';
+
+            container.appendChild(avatar);
+            container.appendChild(name);
+            membersRow.appendChild(container);
+        });
+
+        stopColorCycle();
+    }
+}
    
    window.Screensaver = {
        show: showScreensaver,
