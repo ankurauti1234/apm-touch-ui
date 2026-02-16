@@ -86,12 +86,12 @@ async function navigate(state, param = null) {
         updateGuestCountFromFile();
 
         // Start screensaver timer only on main screen
-        // setTimeout(() => {
-        //     if (currentState === 'main') {
-        //         resetScreensaverTimer();
-        //     }
-        // }, 100);
-        // return;
+        setTimeout(() => {
+            if (currentState === 'main') {
+                resetScreensaverTimer();
+            }
+        }, 100);
+        return;
     }
 
     // Default render for all other states
