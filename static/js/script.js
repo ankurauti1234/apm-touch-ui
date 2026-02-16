@@ -2407,9 +2407,6 @@ function getScreensaverContent() {
                 position: relative;
                 animation: popIn 0.4s ease-out;
             ">
-                <div style="font-size: 90px; color: #ff4d4f; margin-bottom: 0.4em;">
-                    <span class="material-icons">warning_amber</span>
-                </div>
                 
                 <h2 style="
                     font-size: 42px;
