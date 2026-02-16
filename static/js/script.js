@@ -2489,7 +2489,7 @@ function getScreensaverContent() {
         <div style="
             text-align: center;
             width: 100%;
-            margin-top: 20px;                   /* Slight top offset */
+            margin-top: 10px;                   /* Slight top offset */
         ">
             <div id="clock-time" style="
                 font-size: 90px;               /* ← Feel free to adjust size */
