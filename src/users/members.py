@@ -3,6 +3,7 @@
 import sqlite3
 import json
 import time
+import threading
 from flask import Blueprint, jsonify, request
 
 from src.config import METER_ID, DB_PATH, load_hhid
@@ -168,3 +169,72 @@ def edit_member_name():
         traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
+# ────────────────────────────────────────────────────────────────
+#          Hourly member status publisher (background task)
+# ────────────────────────────────────────────────────────────────
+
+def publish_members_periodically():
+    """Every ~1 hour: publish current member list via MQTT"""
+    while True:
+        try:
+            # For production: 3600 seconds = 1 hour
+            # For testing:     30   seconds = every 30 seconds
+            #                 120  seconds = every 2 minutes
+            time.sleep(30)               # ← change this value during testing
+
+            data = load_members_data()
+            members_payload = []
+
+            for m in data.get("members", []):
+                # Optional: only include active members
+                # if not m.get("active", False):
+                #     continue
+
+                age = calculate_age(m.get("dob"))
+                if age is None:
+                    continue
+
+                members_payload.append({
+                    "member_id": m.get("member_code", ""),
+                    "age": age,
+                    "gender": m["gender"],
+                    "active": bool(m.get("active", False))
+                })
+
+            if not members_payload:
+                _mqtt_log("[HOURLY] No valid members to publish → skipping")
+                continue
+
+            payload = {
+                "DEVICE_ID": METER_ID,
+                "TS": str(int(time.time())),
+                "Type": 3,
+                "Details": {"members": members_payload}
+            }
+
+            _mqtt_log(f"[HOURLY] Publishing {len(members_payload)} members")
+
+            # ─── Choose one publishing method ─────────────────────────────
+            # Option A: Use your existing helper (recommended if it works)
+            publish_member_event()
+
+            # Option B: Direct publish (more control, same format as toggle)
+            # payload_json = json.dumps(payload)
+            # if client and client.is_connected():
+            #     wait_for_publish_success(client, payload_json, timeout=8.0)
+            # else:
+            #     _enqueue(payload)
+
+        except Exception as e:
+            _mqtt_log(f"[HOURLY] Publish failed: {e}")
+            time.sleep(60)  # wait 1 min before retry
+
+
+# Start the background thread only once (important!)
+if threading.current_thread() is threading.main_thread():
+    _mqtt_log("[START] Starting hourly member publisher thread")
+    threading.Thread(
+        target=publish_members_periodically,
+        daemon=True,
+        name="HourlyMemberPublisher"
+    ).start()
