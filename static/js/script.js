@@ -2448,52 +2448,72 @@ function getScreensaverContent() {
             </div>
         `;
     } else {
-        // ── FULL SCREEN CLOCK + AVATARS (unchanged) ──
-        const avatarsHtml = activeMembers.slice(0, 8).map(m => `
-            <div style="
-                width: 110px;
-                height: 110px;
-                border-radius: 50%;
-                background: center/cover url('${avatar(m.gender, m.dob)}') no-repeat;
-                border: 4px solid #444;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.7);
-            "></div>
+        // ── FULL SCREEN: CLOCK ON TOP → AVATARS BELOW → MEMBER CODE BELOW EACH AVATAR ──
+        const avatarsHtml = activeMembers.slice(0, 8).map((m, index) => `
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div style="
+                    width: 110px;
+                    height: 110px;
+                    border-radius: 50%;
+                    background: center/cover url('${avatar(m.gender, m.dob)}') no-repeat;
+                    border: 4px solid #444;
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+                "></div>
+                <div style="
+                    color: white;
+                    font-size: 24px;
+                    font-weight: 600;
+                    text-shadow: 0 2px 8px black;
+                    max-width: 110px;
+                    text-align: center;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                ">
+                    ${m.name || m.member_code || '??'}
+                </div>
+            </div>
         `).join('');
-
+    
         return `
             <div style="
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                justify-content: center;
                 color: white;
                 text-shadow: 0 4px 16px black;
                 width: 100%;
                 height: 100%;
-                justify-content: center;
+                gap: 40px;
             ">
+                <!-- Clock Time & Date – on top -->
+                <div style="text-align: center;">
+                    <div id="clock-time" style="
+                        font-size: 100px;
+                        font-weight: 700;
+                        line-height: 1;
+                        letter-spacing: -2px;
+                    "></div>
+    
+                    <div id="clock-date" style="
+                        font-size: 40px;
+                        font-weight: 400;
+                        margin-top: 12px;
+                        opacity: 0.9;
+                    "></div>
+                </div>
+    
+                <!-- Avatars + member codes – below clock -->
                 <div style="
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 24px;
+                    gap: 32px;
                     justify-content: center;
-                    margin-bottom: 40px;
-                    max-width: 80%;
+                    max-width: 85%;
                 ">
                     ${avatarsHtml}
                 </div>
-
-                <div id="clock-time" style="
-                    font-size: 180px;
-                    font-weight: 700;
-                    line-height: 1;
-                "></div>
-
-                <div id="clock-date" style="
-                    font-size: 56px;
-                    font-weight: 400;
-                    margin-top: 12px;
-                    opacity: 0.9;
-                "></div>
             </div>
         `;
     }
