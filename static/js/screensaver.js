@@ -551,31 +551,31 @@ window.addEventListener('beforeunload', () => {
             maxWidth: '680px',
             textAlign: 'center',
             border: '3px solid #ffca28',
-            animation: 'pulseWarning 2s infinite ease-in-out',
+            animation: 'pulse-glow 1.8s infinite ease-in-out',   // ← active blinking
         });
-
+        
         warningBox.innerHTML = `
-    <span class="material-icons" style="font-size:140px; color:#ffca28; margin-bottom:24px; display:block;">
-        warning_amber
-    </span>
-    <h2 style="font-size:52px; margin:0 0 24px; color:#ffca28;">
-        Ակտիվ անդամներ չկան
-    </h2>
-    <p style="font-size:32px; line-height:1.45; margin:0 0 40px; color:#f0f0f0;">
-        Ակտիվ դիտորդներ չկան!<br>
-        Հաշվի ակտիվացումը պարտադիր է համակարգից օգտվելու համար:
-    </p>
-    <button id="close-warning-btn" style="
-        font-size:32px; padding:20px 60px;
-        background:#ffca28; color:#1a1a1a;
-        border:none; border-radius:16px;
-        font-weight:600; cursor:pointer;
-        box-shadow:0 6px 20px rgba(0,0,0,0.4);
-    ">
-        <span class="material-icons" style="vertical-align:middle; font-size:40px;">close</span>
-         Հասկացա
-    </button>
-`;
+            <span class="material-icons" style="font-size:140px; color:#ffca28; margin-bottom:24px; display:block;">
+                warning_amber
+            </span>
+            <h2 style="font-size:52px; margin:0 0 24px; color:#ffca28;">
+                Ակտիվ անդամներ չկան
+            </h2>
+            <p style="font-size:32px; line-height:1.45; margin:0 0 40px; color:#f0f0f0;">
+                Ակտիվ դիտորդներ չկան!<br>
+                Հաշվի ակտիվացումը պարտադիր է համակարգից օգտվելու համար:
+            </p>
+            <button id="close-warning-btn" style="
+                font-size:32px; padding:20px 60px;
+                background:#ffca28; color:#1a1a1a;
+                border:none; border-radius:16px;
+                font-weight:600; cursor:pointer;
+                box-shadow:0 6px 20px rgba(0,0,0,0.4);
+            ">
+                <span class="material-icons" style="vertical-align:middle; font-size:40px;">close</span>
+                 Հասկացա
+            </button>
+        `;
 
         wrapper.appendChild(warningBox);
 
