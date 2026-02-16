@@ -680,7 +680,7 @@ window.addEventListener('beforeunload', () => {
 
            if (weatherEl) weatherEl.style.opacity = '0'; // hide weather
 
-           startColorCycle();
+           stopColorCycle();
        } else {
            saver.style.background = 'black';
            saver.classList.remove('blinking');
