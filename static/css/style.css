@@ -2282,8 +2282,8 @@ button:focus {
     padding: 28px 72px;
     font-size: 42px;
     font-weight: 600;
-    background: white;
-    color: #d32f2f;
+    background: rgb(255, 255, 255);
+    color: #000000;
     border: none;
     border-radius: 16px;
     cursor: pointer;
