@@ -2687,6 +2687,8 @@ function showScreensaver() {
         clockInterval = setInterval(updateClock, 1000);
     }
 
+    checkAndShowWifiDisconnectedOnSaver();
+
     // Button click handler (only exists in warning mode)
     const declareBtn = document.getElementById('declare-members-btn');
     if (declareBtn) {
@@ -2704,6 +2706,27 @@ function showScreensaver() {
             saver.removeEventListener('click', closeOnBackdrop);
         }
     });
+}
+
+async function checkAndShowWifiDisconnectedOnSaver() {
+    // Don't show if already visible, Wi-Fi popup open, or on cooldown
+    if (wifiDisconnectedPopupShown || wifiPopupIsOpen || disconnectCooldownTimer) {
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/current_wifi');
+        const data = await res.json();
+
+        // If disconnected → show the popup
+        if (!data.success || !data.ssid) {
+            showWifiDisconnectedPopup();
+        }
+        // If connected → nothing to do
+    } catch (err) {
+        // Network error → treat as disconnected
+        showWifiDisconnectedPopup();
+    }
 }
 
 function hideScreensaver() {
