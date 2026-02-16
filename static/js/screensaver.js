@@ -414,8 +414,8 @@ window.addEventListener('beforeunload', () => {
             }
    
            if (activeMembers.length > 0) {
-                firstReminderTimeout = setTimeout(showInactivityWarning, 20  * 1000);
-               reminderInterval = setInterval(showInactivityWarning, 20 * 1000);
+                firstReminderTimeout = setTimeout(showInactivityWarning, 30  * 1000);
+               reminderInterval = setInterval(showInactivityWarning, 30 * 1000);
                // Fetch weather when members become active
                fetchWeather();
            } else {
