@@ -514,25 +514,27 @@ window.addEventListener('beforeunload', () => {
    
    // ────────────────────────────────────────────────
    function showScreensaver() {
-       saver.style.visibility = 'visible';
-       saver.style.opacity = '1';
-   
-       if (window.Screensaver && membersData?.members) {
-           Screensaver.setMembers(membersData.members);
-       } else if (typeof fetchMembers === 'function') {
-           fetchMembers().then(() => {
-               if (membersData?.members) Screensaver.setMembers(membersData.members);
-           });
-       }
-   
-       try { saver.focus({ preventScroll: true }); } catch (e) {}
-   
-       // Show weather when screensaver appears (if members active)
-       const weatherEl = document.getElementById('weather-status');
-       if (weatherEl && membersData?.members?.some(m => m.active)) {
-           weatherEl.style.opacity = '0.9';
-       }
-   }
+    // 🚫 DO NOT SHOW if no active members
+    const hasActiveMembers = membersData?.members?.some(m => m.active === true);
+
+    if (!hasActiveMembers) {
+        console.log("Screensaver blocked: No active members");
+        return;
+    }
+
+    saver.style.visibility = 'visible';
+    saver.style.opacity = '1';
+
+    if (window.Screensaver && membersData?.members) {
+        Screensaver.setMembers(membersData.members);
+    }
+
+    try { saver.focus({ preventScroll: true }); } catch (e) {}
+
+    const weatherEl = document.getElementById('weather-status');
+    if (weatherEl) weatherEl.style.opacity = '0.9';
+}
+
    
    function hideScreensaver() {
        saver.style.opacity = '0';
@@ -662,26 +664,6 @@ window.addEventListener('beforeunload', () => {
        const activeMembers = members.filter(m => m.active === true);
        resetReminderTimer(activeMembers);
        
-   
-       if (activeMembers.length === 0) {
-            saver.style.background = 'rgba(0, 0, 0, 0.35)';
-           saver.classList.add('blinking');
-           row.style.display = 'none';
-           warning.style.display = 'block';
-           warning.classList.add('warning-pulse');
-
-           hideInactivityWarning();
-
-           const timeEl = document.getElementById('clock-time');
-           const dateEl = document.getElementById('clock-date');
-           if (timeEl) timeEl.style.display = 'none';
-           if (dateEl) dateEl.style.display = 'none';
-
-
-           if (weatherEl) weatherEl.style.opacity = '0'; // hide weather
-
-           stopColorCycle();
-       } else {
            saver.style.background = 'black';
            saver.classList.remove('blinking');
            row.style.display = 'flex';
@@ -738,7 +720,6 @@ window.addEventListener('beforeunload', () => {
 
            stopColorCycle();
        }
-   }
    
    window.Screensaver = {
        show: showScreensaver,
