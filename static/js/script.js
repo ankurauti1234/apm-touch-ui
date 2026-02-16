@@ -2748,9 +2748,9 @@ async function showScreensaver() {
                 wifiContainer.innerHTML = `
                     <div class="wifi-disconnected-big">
                         <span class="material-icons wifi-icon">wifi_off</span>
-                        <h2>Wi-Fi Disconnected</h2>
-                        <p>Please connect to a network</p>
-                        <button class="connect-btn">Connect Now</button>
+                        <h2>Wi-Fi-ը անջատված է</h2>
+                        <p>Խնդրում ենք միանալ ցանցին</p>
+                        <button class="connect-btn">Միացեք հիմա</button>
                     </div>
                 `;
                 wifiContainer.style.display = 'flex';
