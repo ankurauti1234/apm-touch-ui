@@ -2,6 +2,7 @@
 // Wi-Fi Disconnected Warning (only visible in screensaver)
 let wifiWarningElement = null;
 let wifiCheckInterval = null;
+let noMembersNavigationHandler = null;
 
 function createWifiWarning() {
     if (wifiWarningElement) return;
@@ -515,6 +516,11 @@ function hideScreensaver() {
     const weatherEl = document.getElementById('weather-status');
     if (weatherEl) weatherEl.style.opacity = '0';
 
+    if (noMembersNavigationHandler) {
+        saver.removeEventListener('click', noMembersNavigationHandler, { capture: true });
+        noMembersNavigationHandler = null;
+    }
+
     stopWifiCheckInSaver();
 }
 
@@ -560,6 +566,16 @@ function updateScreensaverMembers(members = []) {
         setTimeout(() => {
             noMembersDialog.style.transform = 'translate(-50%, -50%) scale(1)';
         }, 20);
+
+        // ── NEW: Make whole screensaver clickable to go to members page ──
+        if (!noMembersNavigationHandler) {
+            noMembersNavigationHandler = () => {
+                window.location.href = '/members';   // ← same path as the button
+                // or '/finalize' / whatever your real path is
+            };
+            saver.addEventListener('click', noMembersNavigationHandler, { capture: true });
+            // capture: true → works even if clicking on dialog/button children
+        }
 
     } else {
         saver.style.background = 'black';
