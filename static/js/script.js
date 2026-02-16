@@ -481,7 +481,7 @@
     });
 }
 
-   async function updateMainDashboardWiFiStatus() {
+async function updateMainDashboardWiFiStatus() {
     const statusEl = document.getElementById('main-wifi-status');
     if (!statusEl) return;
 
@@ -494,16 +494,40 @@
         let text = 'Disconnected';
 
         if (data.success && data.ssid) {
+            // ── Connected ────────────────────────────────────────
             icon = 'wifi';
             color = '#4caf50'; // green
             text = data.ssid;
+
+            currentWiFiStatus = { connected: true, ssid: data.ssid, strength: 'good' };
+
+            // Optional: hide any existing disconnected popup when connected
+            closeWifiDisconnectedPopup();
+        } else {
+            // ── Disconnected ─────────────────────────────────────
+            currentWiFiStatus = { connected: false, ssid: null, strength: null };
+
+            // Show disconnected popup ONLY if:
+            // - not already shown
+            // - Wi-Fi selection popup is NOT open
+            if (!wifiDisconnectedPopupShown && !wifiPopupIsOpen) {
+                showWifiDisconnectedPopup();
+            }
         }
 
+        // Update the status UI
         statusEl.innerHTML = `
             <span style="max-width:350px;overflow:hidden;text-overflow:ellipsis;">${text}</span>
             <span class="material-icons" style="color:${color};">${icon}</span>
         `;
     } catch (e) {
+        // Treat fetch error as disconnected
+        currentWiFiStatus = { connected: false, ssid: null, strength: null };
+
+        if (!wifiDisconnectedPopupShown && !wifiPopupIsOpen) {
+            showWifiDisconnectedPopup();
+        }
+
         statusEl.innerHTML = `
             <span>Disconnected</span>
             <span class="material-icons" style="color:#999;">wifi_off</span>
@@ -1520,7 +1544,14 @@ function showToast(message) {
    /* --------------------------------------------------------------
       Call initWiFiLift() right after the popup is created
       -------------------------------------------------------------- */
+
+      let wifiDisconnectedPopupShown = false;     // prevent multiple popups at once
+      let wifiPopupIsOpen = false;                // flag to know if Wi-Fi selection is visible
+
+
       async function showWiFiPopup() {
+        wifiPopupIsOpen = true;
+
         closeSettingsPopup();
         closeWiFiPopup();
     
@@ -1627,6 +1658,94 @@ function showToast(message) {
 
     // === ADD THIS ANYWHERE AFTER showWiFiPopup() can see it ===
 let wifiPopupLifted = false;
+
+function showWifiDisconnectedPopup() {
+    // Don't show if already shown, or Wi-Fi popup is open, or Wi-Fi is connected
+    if (wifiDisconnectedPopupShown || wifiPopupIsOpen || currentWiFiStatus.connected) {
+        return;
+    }
+
+    wifiDisconnectedPopupShown = true;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'wifi-disconnected-overlay';
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        inset: '0',
+        background: 'rgba(0,0,0,0.65)',
+        zIndex: '2147483640',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    });
+
+    const card = document.createElement('div');
+    card.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 20px;
+            padding: 40px 50px;
+            text-align: center;
+            max-width: 520px;
+            box-shadow: 0 20px 70px rgba(0,0,0,0.5);
+            color: #333;
+        ">
+            <div style="font-size: 80px; color: #ff9800; margin-bottom: 20px;">
+                <span class="material-icons">wifi_off</span>
+            </div>
+            <h2 style="font-size: 38px; margin: 0 0 16px; color: #d32f2f;">
+                Wi-Fi Disconnected
+            </h2>
+            <p style="font-size: 24px; margin: 0 0 32px; color: #555;">
+                The system is not connected to the internet.<br>
+                Please connect to a Wi-Fi network.
+            </p>
+            <button id="connect-wifi-btn" style="
+                padding: 18px 48px;
+                font-size: 28px;
+                font-weight: 600;
+                background: #1976d2;
+                color: white;
+                border: none;
+                border-radius: 12px;
+                cursor: pointer;
+                box-shadow: 0 6px 20px rgba(25,118,210,0.4);
+                transition: all 0.2s;
+            ">
+                Click here to connect to Wi-Fi
+            </button>
+        </div>
+    `;
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    // Button click → open Wi-Fi popup & close this one
+    const btn = document.getElementById('connect-wifi-btn');
+    if (btn) {
+        btn.addEventListener('click', () => {
+            closeWifiDisconnectedPopup();
+            showWiFiPopup();
+        });
+    }
+
+    // Auto-hide after 20 seconds
+    setTimeout(() => {
+        closeWifiDisconnectedPopup();
+    }, 20000);
+}
+
+function closeWifiDisconnectedPopup() {
+    const overlay = document.getElementById('wifi-disconnected-overlay');
+    if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.remove();
+            wifiDisconnectedPopupShown = false;
+        }, 600); // fade out time
+        overlay.style.transition = 'opacity 0.6s ease';
+    }
+}
 
 function liftWiFiPopup() {
     const popup = document.getElementById('wifi-popup');
@@ -1837,6 +1956,7 @@ function togglePasswordVisibility(e) {
 }
 
    function closeWiFiPopup() {
+    wifiPopupIsOpen = false;
     lowerWiFiPopup();   // ← ADD THIS
     ['wifi-popup', 'wifi-overlay'].forEach(id => {
         const el = document.getElementById(id);
