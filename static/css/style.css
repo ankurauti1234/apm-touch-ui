@@ -2326,7 +2326,7 @@ button:focus {
     padding: 50px 70px;
     border-radius: 20px;
     text-align: center;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+    box-shadow: 0 15px 50px rgba(109, 109, 109, 0.5);
     max-width: 80%;
     pointer-events: auto;
     border: 2px solid #eee;
