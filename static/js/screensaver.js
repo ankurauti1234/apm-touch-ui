@@ -544,7 +544,7 @@ window.addEventListener('beforeunload', () => {
         const warningBox = document.createElement('div');
         Object.assign(warningBox.style, {
             background: 'rgba(40, 44, 52, 0.92)',
-            height: '200px',
+            height: '500px',
             color: '#ffca28',
             padding: '48px 56px',
             borderRadius: '24px',
