@@ -558,7 +558,7 @@ window.addEventListener('beforeunload', () => {
         </h2>
         <p style="font-size:32px; line-height:1.45; margin:0 0 18px; color:#f0f0f0;">
             Ակտիվ դիտորդներ չկան!<br>
-            Հաշվի ակտիվացումը պարտադիր է համակարգից օգտվելու համար:
+            Ընտրեք դիտորդի պրոֆիլ
         </p>
         <button id="close-warning-btn" style="
             font-size:32px; 
