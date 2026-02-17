@@ -571,6 +571,126 @@
     }
 }
 
+function showCitySelectionPopup() {
+    // Prevent multiple popups
+    if (document.getElementById('city-popup-overlay')) {
+        return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.id = 'city-popup-overlay';
+    overlay.className = 'overlay'; // assuming you have .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); ... }
+
+    const popup = document.createElement('div');
+    popup.className = 'popup city-popup'; // add .city-popup if you want specific styling
+    popup.innerHTML = `
+        <div class="popup-header">
+            <h2><span class="material-icons">location_city</span> Ընտրեք քաղաքը</h2>
+            <button class="close-btn" onclick="this.closest('#city-popup-overlay').remove()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+
+        <p style="margin: 0.5rem 0 1.5rem; color: #555;">
+            Մուտքագրեք քաղաքի անվանումը (օրինակ՝ Երևան, Գյումրի, Վանաձոր)
+        </p>
+
+        <input type="text" 
+               id="city-input" 
+               placeholder="Քաղաքի անունը..." 
+               autocomplete="off"
+               style="width:100%; padding:14px; font-size:18px; border:1px solid #ccc; border-radius:10px; box-sizing:border-box;">
+
+        <div id="city-error" class="error" style="display:none; margin:12px 0; padding:10px; background:#ffebee; color:#c62828; border-radius:8px;">
+            <!-- error message will go here -->
+        </div>
+
+        <div class="button-group" style="margin-top:1.5rem; display:flex; gap:12px; justify-content:flex-end;">
+            <button class="button secondary" onclick="this.closest('#city-popup-overlay').remove()">
+                Չեղարկել
+            </button>
+            <button id="save-city-btn" class="button primary">
+                Պահպանել
+            </button>
+        </div>
+    `;
+
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+
+    // Auto-focus input
+    const input = document.getElementById('city-input');
+    setTimeout(() => input?.focus(), 100);
+
+    // Close when clicking outside popup content
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.remove();
+        }
+    });
+
+    // Save button handler
+    document.getElementById('save-city-btn').addEventListener('click', async () => {
+        const city = input.value.trim();
+        const errorEl = document.getElementById('city-error');
+
+        if (!city || city.length < 2) {
+            errorEl.textContent = "Խնդրում ենք մուտքագրել քաղաքի անվանումը";
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        errorEl.style.display = 'none';
+        const btn = document.getElementById('save-city-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons" style="vertical-align:middle;">hourglass_empty</span> Որոնում...';
+
+        try {
+            // Use Nominatim (OpenStreetMap) for geocoding
+            const query = encodeURIComponent(city + ", Armenia"); // bias toward Armenia
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=am`
+            );
+            const data = await res.json();
+
+            if (!data || data.length === 0) {
+                throw new Error("Քաղաքը չի գտնվել");
+            }
+
+            const result = data[0];
+            const location = {
+                name: result.display_name.split(',')[0].trim() || city,
+                lat: parseFloat(result.lat),
+                lon: parseFloat(result.lon)
+            };
+
+            // Save to localStorage
+            localStorage.setItem('weatherLocation', JSON.stringify(location));
+
+            // Close popup
+            overlay.remove();
+
+            // Refresh all weather displays
+            if (typeof updateAllWeatherDisplays === 'function') {
+                updateAllWeatherDisplays();
+            }
+
+            // Optional: small success toast
+            if (typeof showToast === 'function') {
+                showToast(`Եղանակը թարմացվել է ${location.name}-ի համար`);
+            }
+
+        } catch (err) {
+            console.error("City geocoding failed:", err);
+            errorEl.textContent = "Քաղաքը չի գտնվել կամ առկա է սխալ։ Խնդրում ենք փորձել այլ անուն։";
+            errorEl.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Պահպանել';
+        }
+    });
+}
+
 //------------------------------------------------------------------
 
    function showMeterIdPopup() {
@@ -2756,7 +2876,7 @@ function getScreensaverContent() {
         </div>
 
         <!-- RIGHT: Weather -->
-        <div id="screensaver-weather" style="... opacity:0; transition:opacity 0.6s;">
+        <div id="screensaver-weather" style="... opacity:0; transition:opacity 0.6s; margin-left: 50px">
             <div style="display:flex; align-items:center; gap:24px; margin-bottom:16px;">
                 <img id="wx-icon" src="/static/assets/sunny.png" style="width:60px; height:80px; object-fit:contain;">
                 <div id="wx-temp" style="font-size:60px; font-weight:700;">--°</div>
