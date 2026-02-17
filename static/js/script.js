@@ -2756,8 +2756,7 @@ function getScreensaverContent() {
         </div>
 
         <!-- RIGHT: Weather -->
-        // Inside the right column:
-<div id="screensaver-weather" style="... opacity:0; transition:opacity 0.6s;">
+        <div id="screensaver-weather" style="... opacity:0; transition:opacity 0.6s;">
     <div style="display:flex; align-items:center; gap:24px; margin-bottom:16px;">
         <img id="wx-icon" src="/static/assets/sunny.png" style="width:110px; height:110px; object-fit:contain;">
         <div id="wx-temp" style="font-size:110px; font-weight:700;">--°</div>
