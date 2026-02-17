@@ -2758,8 +2758,8 @@ function getScreensaverContent() {
         <!-- RIGHT: Weather -->
         <div id="screensaver-weather" style="... opacity:0; transition:opacity 0.6s;">
             <div style="display:flex; align-items:center; gap:24px; margin-bottom:16px;">
-                <img id="wx-icon" src="/static/assets/sunny.png" style="width:80px; height:80px; object-fit:contain;">
-                <div id="wx-temp" style="font-size:80px; font-weight:700;">--°</div>
+                <img id="wx-icon" src="/static/assets/sunny.png" style="width:60px; height:80px; object-fit:contain;">
+                <div id="wx-temp" style="font-size:60px; font-weight:700;">--°</div>
             </div>
             <div id="wx-city-condition" style="font-size:26px; opacity:0.9;"></div>
         </div>
