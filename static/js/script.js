@@ -2798,8 +2798,8 @@ function getScreensaverContent() {
 
         <!-- LEFT: Clock + date -->
         <div style="display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
-            <div id="clock-time" style="font-size: 110px; font-weight:700; line-height:1;"></div>
-            <div id="clock-date" style="font-size:42px; opacity:0.92; margin-top:12px;"></div>
+            <div id="clock-time" style="font-size: 90px; font-weight:700; line-height:1;"></div>
+            <div id="clock-date" style="font-size:35px; opacity:0.92; margin-top:12px;"></div>
         </div>
 
         <!-- RIGHT: Weather -->
