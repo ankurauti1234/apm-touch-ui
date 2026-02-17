@@ -81,7 +81,6 @@ SYSTEM_FILES = {
 }
 
 DB_PATH = "/var/lib/meter.db"
-QUEUE_FILE = "/var/lib/meter_mqtt_queue.json"
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
@@ -367,29 +366,10 @@ def get_cert_paths():
 # ----------------------------------------------------------------------
 # Queue
 # ----------------------------------------------------------------------
-def save_queue_to_file():
-    try:
-        os.makedirs(os.path.dirname(QUEUE_FILE), exist_ok=True)
-        with open(QUEUE_FILE, "w") as f:
-            json.dump(_pub_q, f)
-    except Exception as e:
-        _mqtt_log(f"Queue persist failed: {e}")
 def _enqueue(payload: dict):
     with _q_lock:
         _pub_q.append(payload)
-        save_queue_to_file()
     _mqtt_log(f"QUEUED (size={len(_pub_q)})")
-
-def load_queue_from_file():
-    global _pub_q
-    if os.path.exists(QUEUE_FILE):
-        try:
-            with open(QUEUE_FILE, "r") as f:
-                _pub_q = json.load(f)
-            _mqtt_log(f"Restored {len(_pub_q)} queued events from disk")
-        except:
-            _pub_q = []
-load_queue_from_file()
 
 def _flush_queue():
     with _q_lock:
@@ -409,17 +389,80 @@ def _flush_queue():
 # ----------------------------------------------------------------------
 # MQTT Callbacks
 # ----------------------------------------------------------------------
+
+def send_full_members_state_from_db():
+    """Rebuilds and publishes the CURRENT member state from database (Type 3 full sync)"""
+    try:
+        hhid = load_hhid()
+        if not hhid:
+            _mqtt_log("[FULL SYNC] No HHID — skipping full state publish")
+            return False
+
+        data = load_members_data()
+        members = [
+            {
+                "member_id": m.get("member_code", ""),
+                "age": calculate_age(m["dob"]),
+                "gender": m["gender"],
+                "active": m.get("active", False)
+            }
+            for m in data.get("members", [])
+            if all(k in m for k in ["dob", "gender"]) and calculate_age(m["dob"]) is not None
+        ]
+
+        if not members:
+            _mqtt_log("[FULL SYNC] No valid members in DB — skipping")
+            return False
+
+        payload = {
+            "DEVICE_ID": METER_ID,
+            "TS": str(int(time.time())),
+            "Type": 3,
+            "Details": {"members": members}
+        }
+
+        payload_json = json.dumps(payload)
+
+        _mqtt_log(f"[FULL SYNC] Sending current DB state — {len(members)} members")
+
+        if client and client.is_connected():
+            if wait_for_publish_success(client, payload_json, timeout=10.0):
+                _mqtt_log("[FULL SYNC] Successfully published full state from DB")
+                return True
+            else:
+                _mqtt_log("[FULL SYNC] Publish timed out — queuing instead")
+                _enqueue(payload)
+                return True  # queued = acceptable
+        else:
+            _mqtt_log("[FULL SYNC] MQTT not connected — queuing full state")
+            _enqueue(payload)
+            return True
+
+    except Exception as e:
+        _mqtt_log(f"[FULL SYNC] ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 def on_connect(client_, userdata, flags, rc, *args):
+    if rc == 0:
+        _mqtt_log(f"!!! MQTT CONNECTED SUCCESSFULLY (rc=0) - Queue size: {len(_pub_q)}")
+
+        # Step 1: Flush any old queued events first (normal behavior)
+        _flush_queue()
+
+        # Step 2: Send FULL CURRENT STATE from database (your new safety net)
+        send_full_members_state_from_db()
+
+        # Optional: extra retries for flush
+        threading.Timer(3.0, _flush_queue).start()
+
+    else:
+        _mqtt_log(f"CONNECT FAILED rc={rc}")
     if rc == 0:
         _mqtt_log("CONNECTED → flushing queue")
         _flush_queue()
-        # Extra safety: retry flush after 2 seconds (in case broker is slow)
-        def retry_flush():
-            if _pub_q:
-                _mqtt_log(f"Retry flush after 3s — still {len(_pub_q)} items")
-                _flush_queue()
-        threading.Timer(3.0, retry_flush).start()
-        threading.Timer(10.0, retry_flush).start()  # second retry
     else:
         _mqtt_log(f"CONNECT FAILED rc={rc}")
 
