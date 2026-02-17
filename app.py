@@ -414,12 +414,12 @@ def on_connect(client_, userdata, flags, rc, *args):
         _mqtt_log("CONNECTED → flushing queue")
         _flush_queue()
         # Extra safety: retry flush after 2 seconds (in case broker is slow)
-        def delayed_flush():
-            time.sleep(2)
-            _flush_queue()
-            _mqtt_log("Delayed queue flush completed")
-        
-        threading.Timer(2.0, delayed_flush).start()
+        def retry_flush():
+            if _pub_q:
+                _mqtt_log(f"Retry flush after 3s — still {len(_pub_q)} items")
+                _flush_queue()
+        threading.Timer(3.0, retry_flush).start()
+        threading.Timer(10.0, retry_flush).start()  # second retry
     else:
         _mqtt_log(f"CONNECT FAILED rc={rc}")
 
