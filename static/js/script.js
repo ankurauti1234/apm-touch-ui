@@ -648,8 +648,15 @@ function showCitySelectionPopup() {
         try {
             // Use Nominatim (OpenStreetMap) for geocoding
             const query = encodeURIComponent(city + ", Armenia"); // bias toward Armenia
+            const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=am&addressdetails=1&namedetails=1&featuretype=city|town`;
             const res = await fetch(
-                `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=am`
+                `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=am`,
+                {
+                    headers: {
+                        'User-Agent': 'IndiMeterApp/1.0 (your.email@example.com)',  // ← change to real email
+                        'Referer': 'https://your-domain-or-local-ip'               // optional but helps
+                    }
+                }
             );
             const data = await res.json();
 
