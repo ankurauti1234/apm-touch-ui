@@ -2370,3 +2370,27 @@ button:focus {
     transform: translateY(-3px);
     box-shadow: 0 12px 36px rgba(25, 118, 210, 0.5);
 }
+
+
+.weather-mini {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.18s;
+}
+
+.weather-mini:hover {
+    background: rgba(255,255,255,0.22);
+}
+
+.weather-mini .material-icons {
+    color: #ffd54f;
+}

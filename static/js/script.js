@@ -436,9 +436,14 @@
                         <span class="guest-count">${guests.length} / 8 Guests</span>
                     </div>
                     <button class="bar-btn" onclick="showMeterIdPopup()">
-                            <span class="material-icons">info</span>
-                        </button>
+                        <span class="material-icons">info</span>
+                    </button>
 
+                    <!-- inside .bar-right or right after wifi status -->
+                    <div id="weather-mini" class="weather-mini clickable" onclick="showCitySelectionPopup()">
+                        <span class="material-icons" style="font-size:28px;">wb_sunny</span>
+                        <span id="weather-temp-mini">--°</span>
+                    </div>
                     <div class="bar-right" id="main-wifi-status">
                         <!-- Wi-Fi status injected by JS -->
                     </div>
@@ -448,6 +453,173 @@
        <div id="screensaver"></div>`;
        },
    };
+
+
+   //Wheather STAATUS
+
+   async function updateMiniWeather() {
+    const tempEl = document.getElementById('weather-temp-mini');
+    if (!tempEl) return;
+
+    // Optional: hide when no active members
+    const hasActive = membersData?.members?.some(m => m.active === true) ?? false;
+    if (!hasActive) {
+        tempEl.textContent = '—°';
+        return;
+    }
+
+    try {
+        const loc = await getCurrentWeatherLocation(); // see helper below
+        if (!loc) {
+            tempEl.textContent = '—°';
+            return;
+        }
+
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,is_day&timezone=auto`;
+        const r = await fetch(url);
+        if (!r.ok) throw new Error("API error");
+
+        const data = await r.json();
+        const temp = Math.round(data.current.temperature_2m);
+
+        tempEl.textContent = `${temp}°`;
+    } catch (err) {
+        console.warn("Mini weather failed", err);
+        tempEl.textContent = '—°';
+    }
+}
+
+function showCitySelectionPopup() {
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+
+    const popup = document.createElement('div');
+    popup.className = 'popup city-popup';
+    popup.innerHTML = `
+        <h2><span class="material-icons">location_city</span> Select City</h2>
+        <p>Enter city name (temperature forecast will use nearest weather station)</p>
+
+        <div style="margin: 1.5rem 0;">
+            <input type="text" id="city-input" placeholder="e.g. Mumbai, Yerevan, Delhi" 
+                   style="width:100%; padding:14px; font-size:18px; border-radius:10px; border:1px solid #ccc;">
+        </div>
+
+        <div id="city-error" class="error" style="display:none; margin-bottom:1rem;"></div>
+
+        <div class="button-group">
+            <button class="button secondary" onclick="this.closest('.overlay').remove()">Cancel</button>
+            <button class="button" onclick="saveCityAndUpdate()">Save</button>
+        </div>
+    `;
+
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+
+    // Auto-focus
+    setTimeout(() => document.getElementById('city-input')?.focus(), 100);
+
+    // Close on outside click
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) overlay.remove();
+    });
+}
+
+// You can use Nominatim (OpenStreetMap) or any other free geocoding service
+async function saveCityAndUpdate() {
+    const input = document.getElementById('city-input');
+    const errEl = document.getElementById('city-error');
+    const city = input?.value.trim();
+
+    if (!city || city.length < 2) {
+        errEl.textContent = "Please enter a city name";
+        errEl.style.display = 'block';
+        return;
+    }
+
+    errEl.style.display = 'none';
+
+    try {
+        // Very simple Nominatim search (you can replace with better service)
+        const q = encodeURIComponent(city);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`);
+        const data = await res.json();
+
+        if (!data?.length) throw new Error("City not found");
+
+        const loc = {
+            name: data[0].display_name.split(',')[0].trim(),
+            lat: parseFloat(data[0].lat),
+            lon: parseFloat(data[0].lon)
+        };
+
+        localStorage.setItem('weatherLocation', JSON.stringify(loc));
+
+        // Close popup
+        input.closest('.overlay').remove();
+
+        // Refresh displays
+        updateMiniWeather();
+        if (saver.style.visibility === 'visible') {
+            showScreensaver(); // refresh screensaver content
+        }
+
+    } catch (err) {
+        errEl.textContent = "Could not find city. Try again.";
+        errEl.style.display = 'block';
+        console.warn(err);
+    }
+}
+
+async function getCurrentWeatherLocation() {
+    try {
+        const saved = localStorage.getItem('weatherLocation');
+        if (saved) return JSON.parse(saved);
+    } catch {}
+
+    // fallback – you can hardcode one city
+    return {
+        name: "Yerevan",
+        lat: 19.0760,
+        lon: 72.8777
+    };
+}
+
+async function updateScreensaverWeather() {
+    const tempEl   = document.getElementById('wx-temp');
+    const iconEl   = document.getElementById('wx-icon');
+    const cityCond = document.getElementById('wx-city-condition');
+
+    if (!tempEl || !iconEl || !cityCond) return;
+
+    try {
+        const loc = await getCurrentWeatherLocation();
+        if (!loc) throw new Error("no location");
+
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,is_day&timezone=auto`;
+        const r = await fetch(url);
+        const data = await r.json();
+
+        const temp = Math.round(data.current.temperature_2m);
+        const code = data.current.weather_code;
+        const isNight = new Date(data.current.time).getHours() >= 18;
+
+        let icon = '/static/assets/sunny.png';
+        let condition = 'Clear';
+
+        // Reuse your existing icon/condition logic here
+        // ... paste your weather code → icon mapping ...
+
+        tempEl.textContent = `${temp}°`;
+        iconEl.src = icon;
+        cityCond.textContent = `${loc.name} • ${condition}`;
+    } catch (err) {
+        tempEl.textContent = '--°';
+        iconEl.src = '/static/assets/error.png';
+        cityCond.textContent = 'Weather unavailable';
+    }
+}
+
+//------------------------------------------------------------------
 
    function showMeterIdPopup() {
     // Use the existing meterId variable
@@ -1400,6 +1572,9 @@ function showToast(message) {
            resetScreensaverTimer();
            container.innerHTML = html;
            progressBar.style.display = 'none';
+
+           updateMiniWeather();
+           setInterval(updateMiniWeather, 15 * 60 * 1000); // 15 min
    
            // wait until DOM updates before attaching brightness control
            setTimeout(() => {
@@ -2611,63 +2786,66 @@ function getScreensaverContent() {
     
         return `
     <div style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;     /* Pushes clock to top, avatars to bottom */
-        color: white;
-        text-shadow: 0 4px 16px black;
         width: 100%;
         height: 100%;
-        padding: 40px 0;                    /* Top/bottom breathing room */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        color: white;
+        text-shadow: 0 3px 12px black;
+        padding: 40px;
         box-sizing: border-box;
     ">
 
-    <div id="saver-wifi-warning" style="
-        position: absolute;
-        inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 5;
-        pointer-events: none;
-    "></div>
-    
-        <!-- Clock Time & Date – FIXED AT THE TOP -->
-        <div style="
-            text-align: center;
-            width: 100%;
-            margin-top: 5px;                   /* Slight top offset */
-        ">
-            <div id="clock-time" style="
-                font-size: 90px;               /* ← Feel free to adjust size */
-                font-weight: 700;
-                line-height: 1;
-                letter-spacing: -3px;
-            "></div>
-
-            <div id="clock-date" style="
-                font-size: 35px;
-                font-weight: 400;
-                margin-top: 8px;
-                opacity: 0.92;
-                margin-bottom: 5px;
-            "></div>
+        <!-- LEFT: Clock + date -->
+        <div style="display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
+            <div id="clock-time" style="font-size: 110px; font-weight:700; line-height:1;"></div>
+            <div id="clock-date" style="font-size:42px; opacity:0.92; margin-top:12px;"></div>
         </div>
 
-        <!-- Avatars + member codes – FIXED AT THE BOTTOM -->
+        <!-- RIGHT: Weather -->
+        <div id="screensaver-weather" style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            text-align: right;
+        ">
+            <div style="display:flex; align-items:center; gap:24px; margin-bottom:16px;">
+                <img id="wx-icon" src="/static/assets/sunny.png" style="width:110px; height:110px;">
+                <div id="wx-temp" style="font-size:110px; font-weight:700;">--°</div>
+            </div>
+            <div id="wx-city-condition" style="font-size:36px; opacity:0.9;"></div>
+        </div>
+
+        <!-- BOTTOM: Avatars (spans both columns) -->
         <div style="
+            grid-column: 1 / -1;
+            margin-top: auto;
             display: flex;
             flex-wrap: wrap;
-            gap: 40px;
+            gap: 48px;
             justify-content: center;
-            max-width: 90%;
-            margin-bottom: 40px;                /* Space from bottom edge */
+            padding-top: 60px;
         ">
-            ${avatarsHtml}
+            ${activeMembers.slice(0,8).map(m => `
+                <div style="text-align:center;">
+                    <div style="
+                        width:110px;
+                        height:110px;
+                        border-radius:50%;
+                        background: center/cover url('${avatar(m.gender, m.dob)}') no-repeat;
+                        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+                    "></div>
+                    <div style="
+                        margin-top:12px;
+                        font-size:32px;
+                        font-weight:600;
+                    ">${m.name || m.member_code || '??'}</div>
+                </div>
+            `).join('')}
         </div>
     </div>
-        `;
+    `;
     }
 }
 
