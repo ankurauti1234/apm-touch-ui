@@ -373,95 +373,30 @@ def _enqueue(payload: dict):
 
 def _flush_queue():
     with _q_lock:
+        if not _pub_q:
+            _mqtt_log("Flush called — queue empty, nothing to do")
+            return
+
         to_send = _pub_q[:]
         _pub_q.clear()
+
+    _mqtt_log(f"Flushing {len(to_send)} queued events...")
     for pl in to_send:
         try:
-            _mqtt_log(f"FLUSHING: {pl}")
+            _mqtt_log(f"  Sending Type {pl.get('Type')} ...")
             client.publish(MQTT_TOPIC, json.dumps(pl))
         except Exception as e:
-            _mqtt_log(f"Publish failed during flush: {e}")
-            # Put back if failed
+            _mqtt_log(f"  Publish failed: {e} — re-queuing this event")
             with _q_lock:
-                _pub_q.extend(to_send[to_send.index(pl):])
-            break
-
+                _pub_q.append(pl)  # only re-queue the failed one
+            break  # stop on first error — retry on next connect
+    _mqtt_log("Flush attempt done")
 # ----------------------------------------------------------------------
 # MQTT Callbacks
 # ----------------------------------------------------------------------
-
-def send_full_members_state_from_db():
-    """Rebuilds and publishes the CURRENT member state from database (Type 3 full sync)"""
-    try:
-        hhid = load_hhid()
-        if not hhid:
-            _mqtt_log("[FULL SYNC] No HHID — skipping full state publish")
-            return False
-
-        data = load_members_data()
-        members = [
-            {
-                "member_id": m.get("member_code", ""),
-                "age": calculate_age(m["dob"]),
-                "gender": m["gender"],
-                "active": m.get("active", False)
-            }
-            for m in data.get("members", [])
-            if all(k in m for k in ["dob", "gender"]) and calculate_age(m["dob"]) is not None
-        ]
-
-        if not members:
-            _mqtt_log("[FULL SYNC] No valid members in DB — skipping")
-            return False
-
-        payload = {
-            "DEVICE_ID": METER_ID,
-            "TS": str(int(time.time())),
-            "Type": 3,
-            "Details": {"members": members}
-        }
-
-        payload_json = json.dumps(payload)
-
-        _mqtt_log(f"[FULL SYNC] Sending current DB state — {len(members)} members")
-
-        if client and client.is_connected():
-            if wait_for_publish_success(client, payload_json, timeout=10.0):
-                _mqtt_log("[FULL SYNC] Successfully published full state from DB")
-                return True
-            else:
-                _mqtt_log("[FULL SYNC] Publish timed out — queuing instead")
-                _enqueue(payload)
-                return True  # queued = acceptable
-        else:
-            _mqtt_log("[FULL SYNC] MQTT not connected — queuing full state")
-            _enqueue(payload)
-            return True
-
-    except Exception as e:
-        _mqtt_log(f"[FULL SYNC] ERROR: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-
 def on_connect(client_, userdata, flags, rc, *args):
     if rc == 0:
-        _mqtt_log(f"!!! MQTT CONNECTED SUCCESSFULLY (rc=0) - Queue size: {len(_pub_q)}")
-
-        # Step 1: Flush any old queued events first (normal behavior)
-        _flush_queue()
-
-        # Step 2: Send FULL CURRENT STATE from database (your new safety net)
-        send_full_members_state_from_db()
-
-        # Optional: extra retries for flush
-        threading.Timer(3.0, _flush_queue).start()
-
-    else:
-        _mqtt_log(f"CONNECT FAILED rc={rc}")
-    if rc == 0:
-        _mqtt_log("CONNECTED → flushing queue")
+        _mqtt_log(f"CONNECTED → flushing queue (size={len(_pub_q)})")
         _flush_queue()
     else:
         _mqtt_log(f"CONNECT FAILED rc={rc}")
