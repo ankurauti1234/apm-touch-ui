@@ -457,165 +457,117 @@
 
    //Wheather STAATUS
 
-   async function updateMiniWeather() {
-    const tempEl = document.getElementById('weather-temp-mini');
-    if (!tempEl) return;
+   async function updateAllWeatherDisplays() {
+    // Default: Yerevan, Armenia
+    let lat = 40.1811;
+    let lon = 44.5136;
+    let cityName = "Yerevan";
 
-    // Optional: hide when no active members
-    const hasActive = membersData?.members?.some(m => m.active === true) ?? false;
-    if (!hasActive) {
-        tempEl.textContent = '—°';
-        return;
-    }
-
-    try {
-        const loc = await getCurrentWeatherLocation(); // see helper below
-        if (!loc) {
-            tempEl.textContent = '—°';
-            return;
-        }
-
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,is_day&timezone=auto`;
-        const r = await fetch(url);
-        if (!r.ok) throw new Error("API error");
-
-        const data = await r.json();
-        const temp = Math.round(data.current.temperature_2m);
-
-        tempEl.textContent = `${temp}°`;
-    } catch (err) {
-        console.warn("Mini weather failed", err);
-        tempEl.textContent = '—°';
-    }
-}
-
-function showCitySelectionPopup() {
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay';
-
-    const popup = document.createElement('div');
-    popup.className = 'popup city-popup';
-    popup.innerHTML = `
-        <h2><span class="material-icons">location_city</span> Select City</h2>
-        <p>Enter city name (temperature forecast will use nearest weather station)</p>
-
-        <div style="margin: 1.5rem 0;">
-            <input type="text" id="city-input" placeholder="e.g. Mumbai, Yerevan, Delhi" 
-                   style="width:100%; padding:14px; font-size:18px; border-radius:10px; border:1px solid #ccc;">
-        </div>
-
-        <div id="city-error" class="error" style="display:none; margin-bottom:1rem;"></div>
-
-        <div class="button-group">
-            <button class="button secondary" onclick="this.closest('.overlay').remove()">Cancel</button>
-            <button class="button" onclick="saveCityAndUpdate()">Save</button>
-        </div>
-    `;
-
-    overlay.appendChild(popup);
-    document.body.appendChild(overlay);
-
-    // Auto-focus
-    setTimeout(() => document.getElementById('city-input')?.focus(), 100);
-
-    // Close on outside click
-    overlay.addEventListener('click', e => {
-        if (e.target === overlay) overlay.remove();
-    });
-}
-
-// You can use Nominatim (OpenStreetMap) or any other free geocoding service
-async function saveCityAndUpdate() {
-    const input = document.getElementById('city-input');
-    const errEl = document.getElementById('city-error');
-    const city = input?.value.trim();
-
-    if (!city || city.length < 2) {
-        errEl.textContent = "Please enter a city name";
-        errEl.style.display = 'block';
-        return;
-    }
-
-    errEl.style.display = 'none';
-
-    try {
-        // Very simple Nominatim search (you can replace with better service)
-        const q = encodeURIComponent(city);
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`);
-        const data = await res.json();
-
-        if (!data?.length) throw new Error("City not found");
-
-        const loc = {
-            name: data[0].display_name.split(',')[0].trim(),
-            lat: parseFloat(data[0].lat),
-            lon: parseFloat(data[0].lon)
-        };
-
-        localStorage.setItem('weatherLocation', JSON.stringify(loc));
-
-        // Close popup
-        input.closest('.overlay').remove();
-
-        // Refresh displays
-        updateMiniWeather();
-        if (saver.style.visibility === 'visible') {
-            showScreensaver(); // refresh screensaver content
-        }
-
-    } catch (err) {
-        errEl.textContent = "Could not find city. Try again.";
-        errEl.style.display = 'block';
-        console.warn(err);
-    }
-}
-
-async function getCurrentWeatherLocation() {
+    // Try to load user-saved location (overrides default if exists)
     try {
         const saved = localStorage.getItem('weatherLocation');
-        if (saved) return JSON.parse(saved);
-    } catch {}
+        if (saved) {
+            const loc = JSON.parse(saved);
+            if (loc.lat && loc.lon && loc.name) {
+                lat = loc.lat;
+                lon = loc.lon;
+                cityName = loc.name;
+            }
+        }
+    } catch (e) {
+        console.warn("Invalid saved weather location", e);
+    }
 
-    // fallback – you can hardcode one city
-    return {
-        name: "Yerevan",
-        lat: 19.0760,
-        lon: 72.8777
-    };
-}
+    // Only proceed if there are active members
+    const hasActive = membersData?.members?.some(m => m.active === true) ?? false;
+    if (!hasActive) {
+        const miniTemp = document.getElementById('weather-temp-mini');
+        if (miniTemp) miniTemp.textContent = '--°';
 
-async function updateScreensaverWeather() {
-    const tempEl   = document.getElementById('wx-temp');
-    const iconEl   = document.getElementById('wx-icon');
-    const cityCond = document.getElementById('wx-city-condition');
+        const ssWeather = document.getElementById('screensaver-weather');
+        if (ssWeather) ssWeather.style.opacity = '0';
 
-    if (!tempEl || !iconEl || !cityCond) return;
+        return;
+    }
 
     try {
-        const loc = await getCurrentWeatherLocation();
-        if (!loc) throw new Error("no location");
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Weather API ${res.status}`);
 
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,is_day&timezone=auto`;
-        const r = await fetch(url);
-        const data = await r.json();
+        const data = await res.json();
+        const current = data.current;
 
-        const temp = Math.round(data.current.temperature_2m);
-        const code = data.current.weather_code;
-        const isNight = new Date(data.current.time).getHours() >= 18;
+        const temp = Math.round(current.temperature_2m);
+        const code = current.weather_code;
+        const isNight = current.is_day === 0;
 
-        let icon = '/static/assets/sunny.png';
+        let iconPath = '/static/assets/sunny.png';
         let condition = 'Clear';
 
-        // Reuse your existing icon/condition logic here
-        // ... paste your weather code → icon mapping ...
+        if (code === 0 || code === 1) {
+            iconPath = isNight ? '/static/assets/clear-night.png' : '/static/assets/sunny.png';
+            condition = isNight ? 'Clear' : 'Sunny';
+        }
+        else if (code === 2) {
+            iconPath = isNight ? '/static/assets/partly-cloudy-night.png' : '/static/assets/partly-cloudy.png';
+            condition = 'Partly Cloudy';
+        }
+        else if (code === 3) {
+            iconPath = isNight ? '/static/assets/cloudy-night.png' : '/static/assets/cloudy.png';
+            condition = 'Overcast';
+        }
+        else if (code >= 45 && code <= 48) {
+            iconPath = '/static/assets/fog.png';
+            condition = 'Foggy';
+        }
+        else if (code >= 51 && code <= 67) {
+            iconPath = '/static/assets/rainy.png';
+            condition = code <= 57 ? 'Drizzle' : 'Rain';
+        }
+        else if (code >= 71 && code <= 77) {
+            iconPath = '/static/assets/snow.png';
+            condition = 'Snow';
+        }
+        else if (code >= 80 && code <= 99) {
+            if (code >= 95) {
+                iconPath = '/static/assets/thunderstrom.png';
+                condition = 'Thunderstorm';
+            } else {
+                iconPath = '/static/assets/rainy.png';
+                condition = 'Showers';
+            }
+        }
 
-        tempEl.textContent = `${temp}°`;
-        iconEl.src = icon;
-        cityCond.textContent = `${loc.name} • ${condition}`;
+        // Update mini weather (bottom bar)
+        const miniTempEl = document.getElementById('weather-temp-mini');
+        if (miniTempEl) {
+            miniTempEl.textContent = `${temp}°`;
+        }
+
+        // Update screensaver weather
+        const ssIcon   = document.getElementById('wx-icon');
+        const ssTemp   = document.getElementById('wx-temp');
+        const ssCity   = document.getElementById('wx-city-condition');
+
+        if (ssIcon && ssTemp && ssCity) {
+            ssIcon.src = iconPath;
+            ssTemp.textContent = `${temp}°`;
+            ssCity.textContent = `${cityName} • ${condition}`;
+            document.getElementById('screensaver-weather').style.opacity = '1';
+        }
+
     } catch (err) {
-        tempEl.textContent = '--°';
-        iconEl.src = '/static/assets/error.png';
-        cityCond.textContent = 'Weather unavailable';
+        console.error("Weather update failed:", err);
+
+        const miniTempEl = document.getElementById('weather-temp-mini');
+        if (miniTempEl) miniTempEl.textContent = '--°';
+
+        const ssWeather = document.getElementById('screensaver-weather');
+        if (ssWeather) {
+            ssWeather.innerHTML = `<div style="font-size:36px; opacity:0.7;">Weather unavailable</div>`;
+            ssWeather.style.opacity = '0.7';
+        }
     }
 }
 
@@ -1572,9 +1524,6 @@ function showToast(message) {
            resetScreensaverTimer();
            container.innerHTML = html;
            progressBar.style.display = 'none';
-
-           updateMiniWeather();
-           setInterval(updateMiniWeather, 15 * 60 * 1000); // 15 min
    
            // wait until DOM updates before attaching brightness control
            setTimeout(() => {
@@ -2311,6 +2260,10 @@ function togglePasswordVisibility(e) {
            setTimeout(() => {
                if (currentState === 'main') resetScreensaverTimer();
            }, 100);
+
+           updateAllWeatherDisplays();
+            // Optional: refresh every 12 minutes
+            setInterval(updateAllWeatherDisplays, 12 * 60 * 1000);
            return;   // <-- important: stop further execution
        }
        render();
@@ -2803,19 +2756,14 @@ function getScreensaverContent() {
         </div>
 
         <!-- RIGHT: Weather -->
-        <div id="screensaver-weather" style="
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-end;
-            text-align: right;
-        ">
-            <div style="display:flex; align-items:center; gap:24px; margin-bottom:16px;">
-                <img id="wx-icon" src="/static/assets/sunny.png" style="width:110px; height:110px;">
-                <div id="wx-temp" style="font-size:110px; font-weight:700;">--°</div>
-            </div>
-            <div id="wx-city-condition" style="font-size:36px; opacity:0.9;"></div>
-        </div>
+        // Inside the right column:
+<div id="screensaver-weather" style="... opacity:0; transition:opacity 0.6s;">
+    <div style="display:flex; align-items:center; gap:24px; margin-bottom:16px;">
+        <img id="wx-icon" src="/static/assets/sunny.png" style="width:110px; height:110px; object-fit:contain;">
+        <div id="wx-temp" style="font-size:110px; font-weight:700;">--°</div>
+    </div>
+    <div id="wx-city-condition" style="font-size:36px; opacity:0.9;"></div>
+</div>
 
         <!-- BOTTOM: Avatars (spans both columns) -->
         <div style="
@@ -2885,6 +2833,12 @@ async function getWifiStatusHtmlForScreensaver() {
 async function showScreensaver() {
     const content = getScreensaverContent();
     saver.innerHTML = content;
+
+    setTimeout(() => {
+        if (saver.style.visibility === 'visible') {
+            updateAllWeatherDisplays();
+        }
+    }, 300);
 
     const hasActive = (membersData?.members || []).some(m => m.active !== false);
 
