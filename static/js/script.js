@@ -481,7 +481,11 @@
     });
 }
 
-   async function updateMainDashboardWiFiStatus() {
+
+let disconnectPopupHideTimer = null;
+
+// ────────────────────────────────────────────────
+async function updateMainDashboardWiFiStatus() {
     const statusEl = document.getElementById('main-wifi-status');
     if (!statusEl) return;
 
@@ -490,13 +494,30 @@
         const data = await res.json();
 
         let icon = 'wifi_off';
-        let color = '#999'; // gray
+        let color = '#999';
         let text = 'Disconnected';
 
         if (data.success && data.ssid) {
+            // ── Connected ───────────────────────────────────────────────
             icon = 'wifi';
-            color = '#4caf50'; // green
+            color = '#4caf50';
             text = data.ssid;
+
+            currentWiFiStatus = { connected: true, ssid: data.ssid, strength: 'good' };
+
+            // When connected → immediately close popup and clear any timers
+            closeWifiDisconnectedPopup();
+        } else {
+            // ── Disconnected ────────────────────────────────────────────
+            currentWiFiStatus = { connected: false, ssid: null, strength: null };
+
+            // Only show popup if:
+            //   - not currently visible
+            //   - Wi-Fi selection popup is NOT open
+            //   - not in cooldown period
+            if (!wifiDisconnectedPopupShown && !wifiPopupIsOpen && !disconnectCooldownTimer) {
+                showWifiDisconnectedPopup();
+            }
         }
 
         statusEl.innerHTML = `
@@ -504,13 +525,19 @@
             <span class="material-icons" style="color:${color};">${icon}</span>
         `;
     } catch (e) {
+        // Treat fetch error as disconnected
+        currentWiFiStatus = { connected: false, ssid: null, strength: null };
+
+        if (!wifiDisconnectedPopupShown && !wifiPopupIsOpen && !disconnectCooldownTimer) {
+            showWifiDisconnectedPopup();
+        }
+
         statusEl.innerHTML = `
             <span>Disconnected</span>
             <span class="material-icons" style="color:#999;">wifi_off</span>
         `;
     }
 }
-
    //ADD Guest option
 /* ==============================================================
    GUEST MANAGEMENT (Max 8 guests)
@@ -1520,7 +1547,14 @@ function showToast(message) {
    /* --------------------------------------------------------------
       Call initWiFiLift() right after the popup is created
       -------------------------------------------------------------- */
+
+      let wifiDisconnectedPopupShown = false;     // prevent multiple popups at once
+      let wifiPopupIsOpen = false;                // flag to know if Wi-Fi selection is visible
+
+
       async function showWiFiPopup() {
+        wifiPopupIsOpen = true;
+
         closeSettingsPopup();
         closeWiFiPopup();
     
@@ -1627,6 +1661,108 @@ function showToast(message) {
 
     // === ADD THIS ANYWHERE AFTER showWiFiPopup() can see it ===
 let wifiPopupLifted = false;
+let disconnectCooldownTimer = null;   // ← NEW: for 25-second cooldown
+
+function showWifiDisconnectedPopup() {
+    // Safety checks: don't show if already visible, Wi-Fi popup open, or on cooldown
+    if (wifiDisconnectedPopupShown || wifiPopupIsOpen || disconnectCooldownTimer) {
+        return;
+    }
+
+    wifiDisconnectedPopupShown = true;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'wifi-disconnected-overlay';
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        inset: '0',
+        background: 'rgba(0,0,0,0.65)',
+        zIndex: '999999999',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: '0',
+        transition: 'opacity 0.5s ease'
+    });
+
+    const card = document.createElement('div');
+    card.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 20px;
+            padding: 40px 50px;
+            text-align: center;
+            max-width: 520px;
+            box-shadow: 0 20px 70px rgba(0,0,0,0.5);
+            color: #333;
+        ">
+            <div style="color: #ff9800; margin-bottom: 24px;">
+                <span class="material-icons" style="font-size: 110px;">wifi_off</span>
+            </div>
+            <h2 style="font-size: 38px; margin: 0 0 16px; color: #d32f2f;">
+                Wi-Fi-ը անջատված է
+            </h2>
+            <p style="font-size: 24px; margin: 0 0 22px; color: #555;">
+                Խնդրում ենք միանալ Wi-Fi ցանցին։
+            </p>
+            <button id="connect-wifi-btn" style="
+                padding: 18px 48px;
+                font-size: 28px;
+                font-weight: 600;
+                background: #1976d2;
+                color: white;
+                border: none;
+                border-radius: 12px;
+                cursor: pointer;
+                box-shadow: 0 6px 20px rgba(25,118,210,0.4);
+            ">
+                Միացեք Wi-Fi-ին
+            </button>
+        </div>
+    `;
+
+    overlay.appendChild(card);
+    document.getElementById('screensaver').appendChild(overlay);
+
+    // Fade in
+    setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+
+    // Button action
+    const btn = document.getElementById('connect-wifi-btn');
+    if (btn) {
+        btn.addEventListener('click', () => {
+            closeWifiDisconnectedPopup();
+            showWiFiPopup();
+        });
+    }
+
+    // Auto-hide after **10 seconds**
+    disconnectPopupHideTimer = setTimeout(() => {
+        closeWifiDisconnectedPopup();
+    }, 10000);
+}
+
+function closeWifiDisconnectedPopup() {
+    // Clear the hide timer if it exists
+    if (disconnectPopupHideTimer) {
+        clearTimeout(disconnectPopupHideTimer);
+        disconnectPopupHideTimer = null;
+    }
+
+    const overlay = document.getElementById('wifi-disconnected-overlay');
+    if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.remove();
+            wifiDisconnectedPopupShown = false;
+
+            // Start 25-second cooldown before next possible popup
+            disconnectCooldownTimer = setTimeout(() => {
+                disconnectCooldownTimer = null;
+            }, 25000);
+        }, 600);
+    }
+}
 
 function liftWiFiPopup() {
     const popup = document.getElementById('wifi-popup');
@@ -1837,6 +1973,7 @@ function togglePasswordVisibility(e) {
 }
 
    function closeWiFiPopup() {
+    wifiPopupIsOpen = false;
     lowerWiFiPopup();   // ← ADD THIS
     ['wifi-popup', 'wifi-overlay'].forEach(id => {
         const el = document.getElementById(id);
@@ -2360,96 +2497,367 @@ function togglePasswordVisibility(e) {
    // ==============================================================
    
    // -------------------- Raspberry-proof screensaver (fixed) --------------------
-   let saver = document.getElementById('screensaver');
-   if (!saver) {
-       saver = document.createElement('div');
-       saver.id = 'screensaver';
-       Object.assign(saver.style, {
-           position: 'fixed',
-           left: '0',
-           top: '0',
-           width: '100%',
-           height: '100%',
-           display: 'flex',
-           flexDirection: 'column',
-           alignItems: 'center',
-           justifyContent: 'center',
-           background: 'black',
-           zIndex: '2147483647',
-           pointerEvents: 'all',
-           touchAction: 'none',
-           WebkitUserSelect: 'none',
-           userSelect: 'none',
-           margin: '0',
-           padding: '0',
-           color: 'white',
-           gap: '10px',
-           opacity: '0',
-           transition: 'opacity 1s ease', // <— smooth fade animation
-           visibility: 'hidden',
-           outline: 'none',
-       });
-   
-       saver.tabIndex = -1;
-       document.body.appendChild(saver);
-   
-       const wrapper = document.createElement('div');
-       wrapper.id = 'clock-wrapper';
-       Object.assign(wrapper.style, {
-           width: '100%',
-           height: '100%',
-           display: 'flex',
-           flexDirection: 'column',
-           justifyContent: 'center',
-           alignItems: 'center',
-       });
-   
-       // time
-       const timeEl = document.createElement('div');
-       timeEl.id = 'clock-time';
-       Object.assign(timeEl.style, {
-           fontSize: '200px',
-           fontWeight: '600',
-           marginBottom: '10px',
-           lineHeight: '1',
-           textAlign: 'center',
-       });
-   
-       // date
-       const dateEl = document.createElement('div');
-       dateEl.id = 'clock-date';
-       Object.assign(dateEl.style, {
-           fontSize: "70px",
-           fontWeight: '400',
-           textAlign: 'center',
-       });
-   
-       wrapper.appendChild(timeEl);
-       wrapper.appendChild(dateEl);
-       saver.appendChild(wrapper);
-   }
+// ==============================================================
+// SCREENSAVER – WARNING CARD vs FULL AVATARS+CLOCK
+// ==============================================================
+
+let saver = document.getElementById('screensaver');
+if (!saver) {
+    saver = document.createElement('div');
+    saver.id = 'screensaver';
+    Object.assign(saver.style, {
+        position: 'fixed',
+        inset: '0',
+        background: 'rgba(0,0,0,0.0)',           // ← start transparent
+        zIndex: '2147483647',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: '0',
+        transition: 'opacity 1.2s ease, background 0.8s ease',
+        visibility: 'hidden',
+        pointerEvents: 'all',
+        touchAction: 'none',
+        userSelect: 'none',
+    });
+    saver.tabIndex = -1;
+    document.body.appendChild(saver);
+}
+
+// Helper: decide content based on active members
+function getScreensaverContent() {
+    const activeMembers = (membersData?.members || []).filter(m => m.active !== false);
+    const hasActive = activeMembers.length > 0;
+
+    if (!hasActive) {
+        // ── POPUP CARD STYLE WARNING ──
+        return `
+            <div class="screensaver-card" style="
+                background: white;
+                border-radius: 50px;
+                padding: 48px 36px;
+                max-width: 580px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 20px 70px rgba(0,0,0,0.55);
+                color: #1a1a1a;
+                position: relative;
+                animation: popIn 0.4s ease-out;
+            ">
+                
+                <h2 class="warning-text" style="
+                    font-size: 42px;
+                    font-weight: 700;
+                    margin: 0 0 0.4em;
+                    color: #d32f2f;
+                ">
+                Ակտիվ դիտորդներ չկան!<br>
+                Ընտրեք դիտորդի պրոֆիլ
+                </h2>
+                
+
+                <button id="declare-members-btn" style="
+                    padding: 24px 64px;
+                    font-size: 28px;
+                    font-weight: 600;
+                    background: #d32f2f;
+                    color: white;
+                    border: none;
+                    border-radius: 16px;
+                    box-shadow: 0 8px 32px rgba(211,47,47,0.4);
+                    cursor: pointer;
+                    transition: all 0.18s;
+                ">
+                    Հայտարարել անդամներ
+                </button>
+
+                <style>
+                    @keyframes popIn {
+                        from { transform: scale(0.85); opacity: 0; }
+                        to   { transform: scale(1);   opacity: 1; }
+                    }
+                    .screensaver-card button:hover {
+                        background: #c62828;
+                        transform: translateY(-3px);
+                        box-shadow: 0 12px 40px rgba(211,47,47,0.5);
+                    }
+                </style>
+            </div>
+        `;
+    } else {
+        // ── FULL SCREEN: CLOCK ON TOP → AVATARS BELOW → MEMBER CODE BELOW EACH AVATAR ──
+        const avatarsHtml = activeMembers.slice(0, 8).map((m, index) => `
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div style="
+                    width: 100px;
+                    height: 100px;
+                    border-radius: 50%;
+                    background: center/cover url('${avatar(m.gender, m.dob)}') no-repeat;                "></div>
+                <div style="
+                    color: white;
+                    font-size: 44px;
+                    font-weight: 600;
+                    text-shadow: 0 2px 8px black;
+                    max-width: 110px;
+                    text-align: center;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                ">
+                    ${m.name || m.member_code || '??'}
+                </div>
+            </div>
+        `).join('');
+    
+        return `
+    <div style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;     /* Pushes clock to top, avatars to bottom */
+        color: white;
+        text-shadow: 0 4px 16px black;
+        width: 100%;
+        height: 100%;
+        padding: 40px 0;                    /* Top/bottom breathing room */
+        box-sizing: border-box;
+    ">
+
+    <div id="saver-wifi-warning" style="
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+        pointer-events: none;
+    "></div>
+    
+        <!-- Clock Time & Date – FIXED AT THE TOP -->
+        <div style="
+            text-align: center;
+            width: 100%;
+            margin-top: 5px;                   /* Slight top offset */
+        ">
+            <div id="clock-time" style="
+                font-size: 90px;               /* ← Feel free to adjust size */
+                font-weight: 700;
+                line-height: 1;
+                letter-spacing: -3px;
+            "></div>
+
+            <div id="clock-date" style="
+                font-size: 35px;
+                font-weight: 400;
+                margin-top: 8px;
+                opacity: 0.92;
+                margin-bottom: 5px;
+            "></div>
+        </div>
+
+        <!-- Avatars + member codes – FIXED AT THE BOTTOM -->
+        <div style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+            max-width: 90%;
+            margin-bottom: 40px;                /* Space from bottom edge */
+        ">
+            ${avatarsHtml}
+        </div>
+    </div>
+        `;
+    }
+}
+
+async function getWifiStatusHtmlForScreensaver() {
+    try {
+        const res = await fetch('/api/current_wifi');
+        const data = await res.json();
+
+        if (data.success && data.ssid) {
+            // Connected → show green dot or nothing
+            return `
+                <div class="wifi-status-pill connected">
+                    <span class="material-icons">wifi</span>
+                    ${data.ssid.length > 12 ? data.ssid.substring(0,12)+'…' : data.ssid}
+                </div>
+            `;
+        } else {
+            // Disconnected → show warning
+            return `
+                <div class="wifi-status-pill disconnected">
+                    <span class="material-icons">wifi_off</span>
+                    No Wi-Fi
+                </div>
+            `;
+        }
+    } catch (err) {
+        return `
+            <div class="wifi-status-pill disconnected">
+                <span class="material-icons">wifi_off</span>
+                No Wi-Fi
+            </div>
+        `;
+    }
+}
+
+// Show screensaver – different behavior per mode
+async function showScreensaver() {
+    const content = getScreensaverContent();
+    saver.innerHTML = content;
+
+    const hasActive = (membersData?.members || []).some(m => m.active !== false);
+
+    // Background
+    if (!hasActive) {
+        saver.style.background = 'rgba(0,0,0,0.65)';
+    } else {
+        saver.style.background = 'black';
+    }
+
+    saver.style.visibility = 'visible';
+    saver.style.opacity = '1';
+
+    try {
+        saver.focus({ preventScroll: true });
+    } catch (_) {}
+
+    // Clock (only when active members exist)
+    if (hasActive && document.getElementById('clock-time')) {
+        updateClock();
+        clockInterval = setInterval(updateClock, 1000);
+    }
+
+    // ────────────────────────────────────────────────
+    //       BIG CENTERED Wi-Fi DISCONNECTED WARNING
+    // ────────────────────────────────────────────────
+    const wifiContainer = document.getElementById('saver-wifi-warning');
+    if (wifiContainer) {
+        try {
+            const res = await fetch('/api/current_wifi');
+            const data = await res.json();
+
+            if (data.success && data.ssid) {
+                // Connected → hide warning or show subtle status
+                wifiContainer.innerHTML = '';
+                wifiContainer.style.display = 'none';
+            } else {
+                // Disconnected → show big centered warning
+                wifiContainer.innerHTML = `
+                    <div class="wifi-disconnected-big">
+                        <span class="material-icons wifi-icon">wifi_off</span>
+                        <h2>Wi-Fi-ը անջատված է</h2>
+                        <p>Խնդրում ենք միանալ ցանցին</p>
+                        <button class="connect-btn">Միացեք հիմա</button>
+                    </div>
+                `;
+                wifiContainer.style.display = 'flex';
+
+                // Make button clickable → open Wi-Fi popup
+                const btn = wifiContainer.querySelector('.connect-btn');
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        hideScreensaver();
+                        resetScreensaverTimer();
+                        showWiFiPopup();
+                    });
+                }
+            }
+        } catch (err) {
+            // Network error → treat as disconnected
+            wifiContainer.innerHTML = `
+                <div class="wifi-disconnected-big">
+                    <span class="material-icons wifi-icon">wifi_off</span>
+                    <h2>Wi-Fi Disconnected</h2>
+                    <p>Please connect to a network</p>
+                    <button class="connect-btn">Connect Now</button>
+                </div>
+            `;
+            wifiContainer.style.display = 'flex';
+
+            const btn = wifiContainer.querySelector('.connect-btn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    hideScreensaver();
+                    resetScreensaverTimer();
+                    showWiFiPopup();
+                });
+            }
+        }
+    }
+
+    // Existing handlers for no-active-members mode
+    const declareBtn = document.getElementById('declare-members-btn');
+    if (declareBtn) {
+        declareBtn.addEventListener('click', () => {
+            hideScreensaver();
+            resetScreensaverTimer();
+        });
+    }
+
+    saver.addEventListener('click', function closeOnBackdrop(e) {
+        if (!hasActive && !e.target.closest('.screensaver-card')) {
+            hideScreensaver();
+            resetScreensaverTimer();
+            saver.removeEventListener('click', closeOnBackdrop);
+        }
+    });
+}
+
+async function checkAndShowWifiDisconnectedOnSaver() {
+    // Don't show if already visible, Wi-Fi popup open, or on cooldown
+    if (wifiDisconnectedPopupShown || wifiPopupIsOpen || disconnectCooldownTimer) {
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/current_wifi');
+        const data = await res.json();
+
+        // If disconnected → show the popup
+        if (!data.success || !data.ssid) {
+            showWifiDisconnectedPopup();
+        }
+        // If connected → nothing to do
+    } catch (err) {
+        // Network error → treat as disconnected
+        showWifiDisconnectedPopup();
+    }
+}
+
+function hideScreensaver() {
+    saver.style.opacity = '0';
+    setTimeout(() => {
+        saver.style.visibility = 'hidden';
+        saver.style.background = 'rgba(0,0,0,0)';
+        saver.innerHTML = '';
+        clearInterval(clockInterval);
+    }, 1300);
+}
+
+let clockInterval = null;
    
    // --- Clock update ---
    function updateClock() {
-       const now = new Date();
-   
-       // Time: 09:41 (24-hour format)
-       const time = now.toLocaleTimeString([], { 
-           hour: '2-digit', 
-           minute: '2-digit' 
-       });
-   
-       // Custom formatting to get: Monday, 24 November 2025
-       const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });     // Monday
-       const day     = now.getDate();                                             // 24
-       const month   = now.toLocaleDateString('en-IN', { month: 'short' });        // November
-       const year    = now.getFullYear();                                         // 2025
-   
-       const date = `${weekday}, ${day} ${month} ${year}`;
-   
-       document.getElementById('clock-time').textContent = time;
-       document.getElementById('clock-date').textContent = date;
-   }
+    if (saver.style.visibility !== 'visible') return;
+
+    const now = new Date();
+    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });
+    const day = now.getDate();
+    const month = now.toLocaleDateString('en-IN', { month: 'short' });
+    const year = now.getFullYear();
+
+    const dateStr = `${weekday}, ${day} ${month} ${year}`;
+
+    const timeEl = document.getElementById('clock-time');
+    const dateEl = document.getElementById('clock-date');
+
+    if (timeEl) timeEl.textContent = time;
+    if (dateEl) dateEl.textContent = dateStr;
+}
    
    setInterval(updateClock, 1000);
    updateClock(); // initial update
@@ -2461,23 +2869,7 @@ function togglePasswordVisibility(e) {
    let originalBrightness = 153; // Track original brightness
    let isDimmed = false;
    
-   function showScreensaver() {
-       saver.style.visibility = "visible";
-       saver.style.opacity = "1"; // fade in
-       try {
-           saver.focus({ preventScroll: true });
-       } catch (e) { }
-   }
-   
-   function hideScreensaver() {
-       saver.style.opacity = "0"; // fade out
-       setTimeout(() => {
-           saver.style.visibility = "hidden";
-       }, 1000); // matches transition duration
-       try {
-           saver.blur();
-       } catch (e) { }
-   }
+
    
    // --- Pre-dim brightness logic (go straight to mapped minimum) ---
    async function preDimBrightness() {
@@ -2538,17 +2930,14 @@ function togglePasswordVisibility(e) {
    // --- Screensaver with pre-dim at 20s (30s - 10s) ---
    
    function resetScreensaverTimer() {
-       clearTimeout(screensaverTimeout);
-       clearTimeout(preDimTimeout);
-       hideScreensaver();
-       restoreBrightness();
-   
-       // Pre-dim at 20 seconds (10 seconds before screensaver)
-       preDimTimeout = setTimeout(preDimBrightness, 20000);
-   
-       // Show screensaver at 30 seconds
-       screensaverTimeout = setTimeout(showScreensaver, 30000);
-   }
+    clearTimeout(screensaverTimeout);
+    clearTimeout(preDimTimeout);
+    hideScreensaver();
+    restoreBrightness();
+
+    preDimTimeout  = setTimeout(preDimBrightness,  20000);
+    screensaverTimeout = setTimeout(showScreensaver, 30000);
+}
    
    // Start screensaver timer ONLY when on the main dashboard
    // if (currentState === 'main') resetScreensaverTimer();
@@ -2566,22 +2955,33 @@ function togglePasswordVisibility(e) {
        }
        return false;
    }
-   ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend', 'keydown', 'keyup', 'keypress'].forEach(evt => {
-       document.addEventListener(evt, (e) => blockEventIfActive(e), { capture: true, passive: false });
-   });
-   ['click', 'pointerdown', 'touchstart', 'pointermove', 'mousemove'].forEach(evt => {
-       saver.addEventListener(evt, (ev) => {
-           ev.stopImmediatePropagation();
-           ev.preventDefault();
-           hideScreensaver();
-           resetScreensaverTimer();
-       }, { capture: true, passive: false });
-   });
-   ['mousemove', 'keypress', 'click', 'touchstart'].forEach(evt => {
-       document.addEventListener(evt, () => {
-           if (currentState === 'main') resetScreensaverTimer();
-       }, { passive: true });
-   });
+// ─── Interaction still resets timer ──────────────────────
+['mousemove', 'keydown', 'click', 'touchstart'].forEach(evt => {
+    document.addEventListener(evt, () => {
+        if (currentState === 'main') resetScreensaverTimer();
+    }, { passive: true });
+});
+
+// Block events when saver is visible (your existing code)
+['pointerdown', 'mousedown', 'click', 'touchstart', 'keydown'].forEach(evt => {
+    document.addEventListener(evt, e => {
+        if (saver.style.opacity === '1' && !saver.contains(e.target)) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, { capture: true, passive: false });
+});
+
+// Click/touch on saver → hide
+saver.addEventListener('click', () => {
+    hideScreensaver();
+    resetScreensaverTimer();
+}, { passive: false });
+
+saver.addEventListener('touchstart', () => {
+    hideScreensaver();
+    resetScreensaverTimer();
+}, { passive: false });
    
    async function initBrightnessControl() {
        const slider = document.getElementById('brightness-slider');

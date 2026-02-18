@@ -373,25 +373,30 @@ def _enqueue(payload: dict):
 
 def _flush_queue():
     with _q_lock:
+        if not _pub_q:
+            _mqtt_log("Flush called — queue empty, nothing to do")
+            return
+
         to_send = _pub_q[:]
         _pub_q.clear()
+
+    _mqtt_log(f"Flushing {len(to_send)} queued events...")
     for pl in to_send:
         try:
-            _mqtt_log(f"FLUSHING: {pl}")
+            _mqtt_log(f"  Sending Type {pl.get('Type')} ...")
             client.publish(MQTT_TOPIC, json.dumps(pl))
         except Exception as e:
-            _mqtt_log(f"Publish failed during flush: {e}")
-            # Put back if failed
+            _mqtt_log(f"  Publish failed: {e} — re-queuing this event")
             with _q_lock:
-                _pub_q.extend(to_send[to_send.index(pl):])
-            break
-
+                _pub_q.append(pl)  # only re-queue the failed one
+            break  # stop on first error — retry on next connect
+    _mqtt_log("Flush attempt done")
 # ----------------------------------------------------------------------
 # MQTT Callbacks
 # ----------------------------------------------------------------------
 def on_connect(client_, userdata, flags, rc, *args):
     if rc == 0:
-        _mqtt_log("CONNECTED → flushing queue")
+        _mqtt_log(f"CONNECTED → flushing queue (size={len(_pub_q)})")
         _flush_queue()
     else:
         _mqtt_log(f"CONNECT FAILED rc={rc}")
@@ -1152,38 +1157,23 @@ def get_members():
 
 
 # --- Add this helper at the top with other functions ---
-def wait_for_publish_success(client, payload_json: str, timeout: float = 10.0) -> bool:
-    """
-    Attempts to publish synchronously and waits for confirmation.
-    Returns True if mid received and publish callback fired.
-    """
+def attempt_publish(payload_json: str) -> bool:
+    """Attempts async publish and returns True if accepted by MQTT client."""
     if not client or not client.is_connected():
+        _mqtt_log("Cannot publish: not connected")
         return False
-
-    success = False
-    event = threading.Event()
-
-    def on_publish_temp(client_, userdata, mid):
-        nonlocal success
-        success = True
-        event.set()
-
-    # Temporarily override callback
-    original = client.on_publish
-    client.on_publish = on_publish_temp
-
+    
     try:
         result = client.publish(MQTT_TOPIC, payload_json)
-        if result.rc != mqtt.MQTT_ERR_SUCCESS:
+        if result.rc == mqtt.MQTT_ERR_SUCCESS:
+            _mqtt_log(f"Publish accepted (mid={result.mid}) - will send async")
+            return True
+        else:
+            _mqtt_log(f"Publish rejected (rc={result.rc})")
             return False
-
-        # Wait for on_publish callback
-        event.wait(timeout=timeout)
-        return success
-    finally:
-        client.on_publish = original  # restore
-    return False
-
+    except Exception as e:
+        _mqtt_log(f"Publish exception: {e}")
+        return False
 
 @app.route("/api/toggle_member_status", methods=["POST"])
 def toggle_member_status():
@@ -1195,98 +1185,22 @@ def toggle_member_status():
         data = load_members_data()
         members = data.get("members", [])
         if not (0 <= index < len(members)):
-            return jsonify({"success": False, "error": "Index out of range"}), 400
-
-        member = members[index]
-        old_state = member.get("active", False)
-        new_state = not old_state
-
-        # Build full member list with updated state for the toggled member
-        members_payload = []
-        for i, m in enumerate(members):
-            age = calculate_age(m.get("dob"))
-            if age is None:
-                continue  # skip invalid entries
-            members_payload.append({
-                "member_id": m.get("member_code", ""),
-                "age": age,
-                "gender": m["gender"],
-                "active": new_state if i == index else m.get("active", False)
-            })
-
-        payload = {
-            "DEVICE_ID": METER_ID,
-            "TS": str(int(time.time())),
-            "Type": 3,
-            "Details": {
-                "members": members_payload
-            }
-        }
-
-        payload_json = json.dumps(payload)
-
-        _mqtt_log(f"TOGGLING member {index}: {old_state} → {new_state} | Sending full state to MQTT")
-
-        publish_ok = False
-
-        if client and client.is_connected():
-            publish_ok = wait_for_publish_success(client, payload_json, timeout=8.0)
-            _mqtt_log("Direct MQTT publish succeeded" if publish_ok else "Direct publish failed")
-
-        if not publish_ok:
-            _mqtt_log("Queueing member state update (will send when online)")
-            _enqueue(payload)
-            publish_ok = True  # queued = success for consistency
-
-        if not publish_ok:
-            _mqtt_log("CRITICAL: Failed to publish or queue member toggle!")
-            return jsonify({"success": False, "error": "Offline and cannot queue update"}), 503
-
-        # ONLY update local state if MQTT was sent or queued
-        member["active"] = new_state
-        save_members_data(data)
-
-        _mqtt_log(f"Member {index} toggled successfully → active = {new_state}")
-
-        return jsonify({
-            "success": True,
-            "member": member,
-            "active": new_state,
-            "mqtt_status": "sent" if client and client.is_connected() else "queued"
-        }), 200
-
-    except Exception as e:
-        _mqtt_log(f"ERROR in toggle_member_status: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({"success": False, "error": "Server error"}), 500
-    index = request.json.get("index")
-    if not isinstance(index, int):
-        return jsonify({"success": False, "error": "Invalid index"}), 400
-
-    try:
-        data = load_members_data()
-        members = data.get("members", [])
-        if not (0 <= index < len(members)):
-            return jsonify({"success": False, "error": "Index out of range"}), 400
+            return jupytext({"success": False, "error": "Index out of range"}), 400
 
         member = members[index]
         new_active_state = not member.get("active", False)
 
-        # --- Build payload with the NEW intended state ---
-        age = calculate_age(member["dob"])
-        if age is None:
-            return jsonify({"success": False, "error": "Invalid DOB"}), 400
-
-        members_payload = [
-            {
-                "age": calculate_age(m["dob"]),
+        members_payload = []
+        for i, m in enumerate(members):
+            age = calculate_age(m.get("dob"))
+            if age is None:
+                continue
+            members_payload.append({
+                "member_id": m.get("member_code", ""),
+                "age": age,
                 "gender": m["gender"],
-                "active": (i == index and new_active_state) or m.get("active", False)
-            }
-            for i, m in enumerate(members)
-            if calculate_age(m["dob"]) is not None
-        ]
+                "active": new_active_state if i == index else m.get("active", False)
+            })
 
         payload = {
             "DEVICE_ID": METER_ID,
@@ -1294,40 +1208,22 @@ def toggle_member_status():
             "Type": 3,
             "Details": {"members": members_payload}
         }
-
         payload_json = json.dumps(payload)
 
-        # --- Try to send via MQTT ---
-        publish_ok = False
-
-        if client and client.is_connected():
-            # Try synchronous publish with confirmation
-            _mqtt_log(f"Attempting direct publish for member toggle (index={index})")
-            publish_ok = wait_for_publish_success(client, payload_json, timeout=8.0)
-
+        publish_ok = attempt_publish(payload_json)
         if not publish_ok:
-            # Fallback: enqueue (will be sent when reconnected)
-            _mqtt_log("Direct publish failed or not connected → queuing toggle event")
-            _enqueue(payload)  # your existing robust queue
-            publish_ok = True  # we consider queued = acceptable (will eventually sync)
+            _enqueue(payload)
+            if client and client.is_connected():
+                _flush_queue()  # Immediately try sending the queue if connected
+            _mqtt_log("Publish failed - enqueued and attempted flush")
 
-        if not publish_ok:
-            _mqtt_log("MQTT publish failed and could not queue")
-            return jsonify({
-                "success": False,
-                "error": "Failed to send update (offline and queue failed)"
-            }), 503
-
-        # --- ONLY IF PUBLISH/QUEUE SUCCEEDED → update local state ---
         member["active"] = new_active_state
         save_members_data(data)
-
-        _mqtt_log(f"Member {index} toggled → active={new_active_state} (MQTT confirmed/queued)")
 
         return jsonify({
             "success": True,
             "member": member,
-            "mqtt_sent": True
+            "mqtt_sent": publish_ok  # True if direct, False if enqueued/flushed
         }), 200
 
     except Exception as e:
@@ -1582,12 +1478,77 @@ def save_current_boot_id():
             print(f"[BOOT_ID] Saved current boot_id: {current}")
         except Exception as e:
             print(f"[BOOT_ID] Failed to save boot_id: {e}")
+
+# ----------------------------------------------------------------------
+# Periodic Type 3 (members state) heartbeat - every 60 minutes
+# ----------------------------------------------------------------------
+
+HEARTBEAT_INTERVAL_SECONDS = 3600  # 60 minutes
+
+def send_periodic_members_heartbeat():
+    """Builds and publishes current members state every hour"""
+    while True:
+        try:
+            time.sleep(HEARTBEAT_INTERVAL_SECONDS)
+
+            # Only send if we have a valid HHID (installation probably done)
+            hhid = load_hhid()
+            if not hhid:
+                _mqtt_log("[HEARTBEAT] No HHID yet → skipping periodic Type 3")
+                continue
+
+            # Build current payload (same logic as publish_member_event)
+            data = load_members_data()
+            members = [
+                {
+                    "member_id": m.get("member_code", ""),
+                    "age": calculate_age(m["dob"]),
+                    "gender": m["gender"],
+                    "active": m.get("active", False)
+                }
+                for m in data.get("members", [])
+                if all(k in m for k in ["dob", "gender"]) and calculate_age(m["dob"]) is not None
+            ]
+
+            if not members:
+                _mqtt_log("[HEARTBEAT] No valid members → skipping")
+                continue
+
+            payload = {
+                "DEVICE_ID": METER_ID,
+                "TS": str(int(time.time())),
+                "Type": 3,
+                "Details": {"members": members}
+            }
+
+            payload_json = json.dumps(payload)
+
+            _mqtt_log(f"[HEARTBEAT] Sending periodic Type 3 (members snapshot) - {len(members)} members")
+
+            publish_ok = False
+            if client and client.is_connected():
+                publish_ok = wait_for_publish_success(client, payload_json, timeout=8.0)
+
+            if publish_ok:
+                _mqtt_log("[HEARTBEAT] Periodic Type 3 published successfully")
+            else:
+                _enqueue(payload)
+                _mqtt_log("[HEARTBEAT] Periodic Type 3 QUEUED (MQTT not connected)")
+
+        except Exception as e:
+            _mqtt_log(f"[HEARTBEAT] Error in periodic members heartbeat: {e}")
+            time.sleep(60)  # wait 1 min before retrying if crashed
 # ----------------------------------------------------------------------
 # 10. Main
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
     init_db()
 
+    # Start periodic heartbeat thread
+    heartbeat_thread = threading.Thread(target=send_periodic_members_heartbeat, daemon=True)
+    heartbeat_thread.start()
+    print("[STARTUP] Periodic members heartbeat thread started (every 60 min)")
+    
     # === 1. Start MQTT thread FIRST and give it time to initialize ===
     mqtt_thread = threading.Thread(target=init_mqtt, daemon=True)
     mqtt_thread.start()
