@@ -1157,38 +1157,23 @@ def get_members():
 
 
 # --- Add this helper at the top with other functions ---
-def wait_for_publish_success(client, payload_json: str, timeout: float = 10.0) -> bool:
-    """
-    Attempts to publish synchronously and waits for confirmation.
-    Returns True if mid received and publish callback fired.
-    """
+def attempt_publish(payload_json: str) -> bool:
+    """Attempts async publish and returns True if accepted by MQTT client."""
     if not client or not client.is_connected():
+        _mqtt_log("Cannot publish: not connected")
         return False
-
-    success = False
-    event = threading.Event()
-
-    def on_publish_temp(client_, userdata, mid):
-        nonlocal success
-        success = True
-        event.set()
-
-    # Temporarily override callback
-    original = client.on_publish
-    client.on_publish = on_publish_temp
-
+    
     try:
         result = client.publish(MQTT_TOPIC, payload_json)
-        if result.rc != mqtt.MQTT_ERR_SUCCESS:
+        if result.rc == mqtt.MQTT_ERR_SUCCESS:
+            _mqtt_log(f"Publish accepted (mid={result.mid}) - will send async")
+            return True
+        else:
+            _mqtt_log(f"Publish rejected (rc={result.rc})")
             return False
-
-        # Wait for on_publish callback
-        event.wait(timeout=timeout)
-        return success
-    finally:
-        client.on_publish = original  # restore
-    return False
-
+    except Exception as e:
+        _mqtt_log(f"Publish exception: {e}")
+        return False
 
 @app.route("/api/toggle_member_status", methods=["POST"])
 def toggle_member_status():
@@ -1200,7 +1185,7 @@ def toggle_member_status():
         data = load_members_data()
         members = data.get("members", [])
         if not (0 <= index < len(members)):
-            return jsonify({"success": False, "error": "Index out of range"}), 400
+            return jupytext({"success": False, "error": "Index out of range"}), 400
 
         member = members[index]
         new_active_state = not member.get("active", False)
@@ -1225,16 +1210,12 @@ def toggle_member_status():
         }
         payload_json = json.dumps(payload)
 
-        publish_ok = False
-        if client and client.is_connected():
-            publish_ok = wait_for_publish_success(client, payload_json, timeout=8.0)
-
+        publish_ok = attempt_publish(payload_json)
         if not publish_ok:
             _enqueue(payload)
-            publish_ok = True
-
-        if not publish_ok:
-            return jsonify({"success": False, "error": "Failed to send update"}), 503
+            if client and client.is_connected():
+                _flush_queue()  # Immediately try sending the queue if connected
+            _mqtt_log("Publish failed - enqueued and attempted flush")
 
         member["active"] = new_active_state
         save_members_data(data)
@@ -1242,7 +1223,7 @@ def toggle_member_status():
         return jsonify({
             "success": True,
             "member": member,
-            "mqtt_sent": True
+            "mqtt_sent": publish_ok  # True if direct, False if enqueued/flushed
         }), 200
 
     except Exception as e:
