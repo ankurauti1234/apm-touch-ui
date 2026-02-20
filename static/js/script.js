@@ -2704,19 +2704,304 @@ async function getWifiStatusHtmlForScreensaver() {
 }
 
 // Show screensaver – different behavior per mode
+// async function showScreensaver() {
+//     const content = getScreensaverContent();
+//     saver.innerHTML = content;
+
+//     const hasActive = (membersData?.members || []).some(m => m.active !== false);
+
+//     // Background
+//     if (!hasActive) {
+//         saver.style.background = 'rgba(0,0,0,0.65)';
+//     } else {
+//         saver.style.background = 'black';
+//     }
+
+//     saver.style.visibility = 'visible';
+//     saver.style.opacity = '1';
+
+//     try {
+//         saver.focus({ preventScroll: true });
+//     } catch (_) {}
+
+//     // Clock (only when active members exist)
+//     if (hasActive && document.getElementById('clock-time')) {
+//         updateClock();
+//         clockInterval = setInterval(updateClock, 1000);
+//     }
+
+//     // ────────────────────────────────────────────────
+//     //       BIG CENTERED Wi-Fi DISCONNECTED WARNING
+//     // ────────────────────────────────────────────────
+//     const wifiContainer = document.getElementById('saver-wifi-warning');
+//     if (wifiContainer) {
+//         try {
+//             const res = await fetch('/api/current_wifi');
+//             const data = await res.json();
+
+//             if (data.success && data.ssid) {
+//                 // Connected → hide warning or show subtle status
+//                 wifiContainer.innerHTML = '';
+//                 wifiContainer.style.display = 'none';
+//             } else {
+//                 // Disconnected → show big centered warning
+//                 wifiContainer.innerHTML = `
+//                     <div class="wifi-disconnected-big">
+//                         <span class="material-icons wifi-icon">wifi_off</span>
+//                         <h2>Wi-Fi-ը անջատված է</h2>
+//                         <p>Խնդրում ենք միանալ ցանցին</p>
+//                         <button class="connect-btn">Միացեք հիմա</button>
+//                     </div>
+//                 `;
+//                 wifiContainer.style.display = 'flex';
+
+//                 // Make button clickable → open Wi-Fi popup
+//                 const btn = wifiContainer.querySelector('.connect-btn');
+//                 if (btn) {
+//                     btn.addEventListener('click', () => {
+//                         hideScreensaver();
+//                         resetScreensaverTimer();
+//                         showWiFiPopup();
+//                     });
+//                 }
+//             }
+//         } catch (err) {
+//             // Network error → treat as disconnected
+//             wifiContainer.innerHTML = `
+//                 <div class="wifi-disconnected-big">
+//                     <span class="material-icons wifi-icon">wifi_off</span>
+//                     <h2>Wi-Fi Disconnected</h2>
+//                     <p>Please connect to a network</p>
+//                     <button class="connect-btn">Connect Now</button>
+//                 </div>
+//             `;
+//             wifiContainer.style.display = 'flex';
+
+//             const btn = wifiContainer.querySelector('.connect-btn');
+//             if (btn) {
+//                 btn.addEventListener('click', () => {
+//                     hideScreensaver();
+//                     resetScreensaverTimer();
+//                     showWiFiPopup();
+//                 });
+//             }
+//         }
+//     }
+
+//     // Existing handlers for no-active-members mode
+//     const declareBtn = document.getElementById('declare-members-btn');
+//     if (declareBtn) {
+//         declareBtn.addEventListener('click', () => {
+//             hideScreensaver();
+//             resetScreensaverTimer();
+//         });
+//     }
+
+//     saver.addEventListener('click', function closeOnBackdrop(e) {
+//         if (!hasActive && !e.target.closest('.screensaver-card')) {
+//             hideScreensaver();
+//             resetScreensaverTimer();
+//             saver.removeEventListener('click', closeOnBackdrop);
+//         }
+//     });
+// }
+
 async function showScreensaver() {
-    const content = getScreensaverContent();
-    saver.innerHTML = content;
+    saver.innerHTML = '';  // clear previous content first
 
-    const hasActive = (membersData?.members || []).some(m => m.active !== false);
+    // ────────────────────────────────────────────────
+    //  Priority 1: Check Wi-Fi status FIRST
+    // ────────────────────────────────────────────────
+    let isWifiConnected = false;
 
-    // Background
+    try {
+        const res = await fetch('/api/current_wifi');
+        const data = await res.json();
+        isWifiConnected = data.success && !!data.ssid;
+    } catch (err) {
+        // network error → treat as disconnected
+        isWifiConnected = false;
+    }
+
+    // ────────────────────────────────────────────────
+    // If Wi-Fi is disconnected → show ONLY Wi-Fi warning
+    // ────────────────────────────────────────────────
+    if (!isWifiConnected) {
+        saver.style.background = 'rgba(0,0,0,0.65)';
+        saver.style.visibility = 'visible';
+        saver.style.opacity = '1';
+
+        // Big centered Wi-Fi warning
+        saver.innerHTML = `
+            <div class="wifi-disconnected-big" style="
+                background: white;
+                border-radius: 24px;
+                padding: 48px 56px;
+                text-align: center;
+                max-width: 620px;
+                box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+                color: #333;
+            ">
+                <span class="material-icons" style="font-size: 120px; color: #d32f2f; margin-bottom: 24px;">wifi_off</span>
+                <h2 style="font-size: 42px; margin: 0 0 16px; color: #d32f2f;">
+                    Wi-Fi-ը անջատված է
+                </h2>
+                <p style="font-size: 24px; margin: 0 0 32px; color: #555;">
+                    Խնդրում ենք միանալ Wi-Fi ցանցին։
+                </p>
+                <button class="connect-btn" style="
+                    padding: 20px 60px;
+                    font-size: 28px;
+                    font-weight: 600;
+                    background: #1976d2;
+                    color: white;
+                    border: none;
+                    border-radius: 16px;
+                    cursor: pointer;
+                    box-shadow: 0 8px 32px rgba(25,118,210,0.35);
+                ">
+                    Միացեք հիմա
+                </button>
+            </div>
+        `;
+
+        // Button action
+        const btn = saver.querySelector('.connect-btn');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                hideScreensaver();
+                resetScreensaverTimer();
+                showWiFiPopup();
+            });
+        }
+
+        try { saver.focus({ preventScroll: true }); } catch (_) {}
+        return;   // ← IMPORTANT: stop here — do NOT show member warning
+    }
+
+    // ────────────────────────────────────────────────
+    // Wi-Fi is connected → normal screensaver logic
+    // ────────────────────────────────────────────────
+    const activeMembers = (membersData?.members || []).filter(m => m.active !== false);
+    const hasActive = activeMembers.length > 0;
+
+    let contentHtml = '';
+
     if (!hasActive) {
+        // No active members → red warning card
+        contentHtml = `
+            <div class="screensaver-card" style="
+                background: white;
+                border-radius: 50px;
+                padding: 48px 36px;
+                max-width: 580px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 20px 70px rgba(0,0,0,0.55);
+                color: #1a1a1a;
+                position: relative;
+                animation: popIn 0.4s ease-out;
+            ">
+                <h2 class="warning-text" style="
+                    font-size: 42px;
+                    font-weight: 700;
+                    margin: 0 0 0.4em;
+                    color: #d32f2f;
+                ">
+                    Ակտիվ դիտորդներ չկան!<br>
+                    Ընտրեք դիտորդի պրոֆիլ
+                </h2>
+
+                <button id="declare-members-btn" style="
+                    padding: 24px 64px;
+                    font-size: 28px;
+                    font-weight: 600;
+                    background: #d32f2f;
+                    color: white;
+                    border: none;
+                    border-radius: 16px;
+                    box-shadow: 0 8px 32px rgba(211,47,47,0.4);
+                    cursor: pointer;
+                    transition: all 0.18s;
+                ">
+                    Հայտարարել անդամներ
+                </button>
+            </div>
+        `;
         saver.style.background = 'rgba(0,0,0,0.65)';
     } else {
+        // Has active members → clock + avatars
+        const avatarsHtml = activeMembers.slice(0, 8).map((m) => `
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div style="
+                    width: 100px;
+                    height: 100px;
+                    border-radius: 50%;
+                    background: center/cover url('${avatar(m.gender, m.dob)}') no-repeat;
+                "></div>
+                <div style="
+                    color: white;
+                    font-size: 44px;
+                    font-weight: 600;
+                    text-shadow: 0 2px 8px black;
+                    max-width: 110px;
+                    text-align: center;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                ">
+                    ${m.name || m.member_code || '??'}
+                </div>
+            </div>
+        `).join('');
+
+        contentHtml = `
+            <div style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: space-between;
+                color: white;
+                text-shadow: 0 4px 16px black;
+                width: 100%;
+                height: 100%;
+                padding: 40px 0;
+                box-sizing: border-box;
+            ">
+                <!-- Clock -->
+                <div style="text-align: center; width: 100%; margin-top: 5px;">
+                    <div id="clock-time" style="
+                        font-size: 90px;
+                        font-weight: 700;
+                        line-height: 1;
+                        letter-spacing: -3px;
+                    "></div>
+                    <div id="clock-date" style="
+                        font-size: 35px;
+                        font-weight: 400;
+                        margin-top: 8px;
+                        opacity: 0.92;
+                        margin-bottom: 5px;
+                    "></div>
+                </div>
+
+                <!-- Avatars -->
+                <div style="
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 40px;
+                    justify-content: center;
+                    max-width: 90%;
+                    margin-bottom: 40px;
+                ">
+                    ${avatarsHtml}
+                </div>
+            </div>
+        `;
         saver.style.background = 'black';
     }
 
+    saver.innerHTML = contentHtml;
     saver.style.visibility = 'visible';
     saver.style.opacity = '1';
 
@@ -2724,71 +3009,15 @@ async function showScreensaver() {
         saver.focus({ preventScroll: true });
     } catch (_) {}
 
-    // Clock (only when active members exist)
+    // Clock only when we have active members
     if (hasActive && document.getElementById('clock-time')) {
         updateClock();
         clockInterval = setInterval(updateClock, 1000);
     }
 
     // ────────────────────────────────────────────────
-    //       BIG CENTERED Wi-Fi DISCONNECTED WARNING
+    // Handlers for no-active-members mode
     // ────────────────────────────────────────────────
-    const wifiContainer = document.getElementById('saver-wifi-warning');
-    if (wifiContainer) {
-        try {
-            const res = await fetch('/api/current_wifi');
-            const data = await res.json();
-
-            if (data.success && data.ssid) {
-                // Connected → hide warning or show subtle status
-                wifiContainer.innerHTML = '';
-                wifiContainer.style.display = 'none';
-            } else {
-                // Disconnected → show big centered warning
-                wifiContainer.innerHTML = `
-                    <div class="wifi-disconnected-big">
-                        <span class="material-icons wifi-icon">wifi_off</span>
-                        <h2>Wi-Fi-ը անջատված է</h2>
-                        <p>Խնդրում ենք միանալ ցանցին</p>
-                        <button class="connect-btn">Միացեք հիմա</button>
-                    </div>
-                `;
-                wifiContainer.style.display = 'flex';
-
-                // Make button clickable → open Wi-Fi popup
-                const btn = wifiContainer.querySelector('.connect-btn');
-                if (btn) {
-                    btn.addEventListener('click', () => {
-                        hideScreensaver();
-                        resetScreensaverTimer();
-                        showWiFiPopup();
-                    });
-                }
-            }
-        } catch (err) {
-            // Network error → treat as disconnected
-            wifiContainer.innerHTML = `
-                <div class="wifi-disconnected-big">
-                    <span class="material-icons wifi-icon">wifi_off</span>
-                    <h2>Wi-Fi Disconnected</h2>
-                    <p>Please connect to a network</p>
-                    <button class="connect-btn">Connect Now</button>
-                </div>
-            `;
-            wifiContainer.style.display = 'flex';
-
-            const btn = wifiContainer.querySelector('.connect-btn');
-            if (btn) {
-                btn.addEventListener('click', () => {
-                    hideScreensaver();
-                    resetScreensaverTimer();
-                    showWiFiPopup();
-                });
-            }
-        }
-    }
-
-    // Existing handlers for no-active-members mode
     const declareBtn = document.getElementById('declare-members-btn');
     if (declareBtn) {
         declareBtn.addEventListener('click', () => {
@@ -2803,7 +3032,7 @@ async function showScreensaver() {
             resetScreensaverTimer();
             saver.removeEventListener('click', closeOnBackdrop);
         }
-    });
+    }, { once: true });
 }
 
 async function checkAndShowWifiDisconnectedOnSaver() {
