@@ -1538,6 +1538,110 @@ def send_periodic_members_heartbeat():
         except Exception as e:
             _mqtt_log(f"[HEARTBEAT] Error in periodic members heartbeat: {e}")
             time.sleep(60)  # wait 1 min before retrying if crashed
+
+@app.route("/api/usb_status", methods=["GET"])
+def get_usb_status():
+    db_path = "/run/usb_actions.db"
+    
+    if not os.path.exists(db_path):
+        return jsonify({
+            "success": True,
+            "should_show_popup": False,
+            "reason": "usb_actions.db not found",
+            "latest_action": None
+        }), 200
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cur = conn.cursor()
+            # Get the MOST RECENT event (highest id)
+            cur.execute("""
+                SELECT event 
+                FROM usbdevices 
+                ORDER BY id DESC 
+                LIMIT 1
+            """)
+            row = cur.fetchone()
+            
+            if row is None:
+                return jsonify({
+                    "success": True,
+                    "should_show_popup": False,
+                    "reason": "No USB events recorded",
+                    "latest_action": None
+                }), 200
+
+            event_json_str = row[0]
+            try:
+                event_data = json.loads(event_json_str)
+                latest_action = event_data.get("action", "").lower()
+                
+                should_show = (latest_action == "remove")
+                
+                return jsonify({
+                    "success": True,
+                    "should_show_popup": should_show,
+                    "latest_action": latest_action,
+                    "usb_id": event_data.get("usb_id"),
+                    "reason": f"Latest action is '{latest_action}'"
+                }), 200
+                
+            except json.JSONDecodeError:
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid JSON in event column",
+                    "should_show_popup": False
+                }), 200
+
+    except Exception as e:
+        print(f"[USB STATUS] Error: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "should_show_popup": False
+        }), 200
+    db_path = "/run/usb_actions.db"
+    
+    if not os.path.exists(db_path):
+        return jsonify({
+            "success": False,
+            "error": "usb_actions.db not found",
+            "connected": False
+        }), 200
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cur = conn.cursor()
+            # Get the latest row (assuming highest id is most recent)
+            cur.execute("""
+                SELECT pending 
+                FROM usbdevices 
+                ORDER BY id DESC 
+                LIMIT 1
+            """)
+            row = cur.fetchone()
+            
+            if row is None:
+                return jsonify({
+                    "success": True,
+                    "connected": False,
+                    "message": "No USB events recorded"
+                }), 200
+
+            pending = bool(row[0])  # 1 → disconnected, 0 → connected
+            return jsonify({
+                "success": True,
+                "connected": not pending,          # inverted: pending=0 → connected=True
+                "pending": pending
+            }), 200
+
+    except Exception as e:
+        print(f"[USB STATUS] Error reading db: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "connected": False
+        }), 200
 # ----------------------------------------------------------------------
 # 10. Main
 # ----------------------------------------------------------------------
