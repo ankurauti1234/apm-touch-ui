@@ -1668,6 +1668,7 @@ function showWifiDisconnectedPopup() {
     if (wifiDisconnectedPopupShown || wifiPopupIsOpen || disconnectCooldownTimer) {
         return;
     }
+    hideScreensaver();
 
     wifiDisconnectedPopupShown = true;
 
@@ -2724,8 +2725,6 @@ async function showScreensaver() {
     // If Wi-Fi is disconnected → show ONLY Wi-Fi warning
     // ────────────────────────────────────────────────
     if (!isWifiConnected) {
-
-        closeWifiDisconnectedPopup();
 
         saver.style.background = 'rgba(0,0,0,0.65)';
         saver.style.visibility = 'visible';
