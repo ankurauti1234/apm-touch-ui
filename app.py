@@ -330,7 +330,7 @@ def load_members_data() -> dict:
 MQTT_TOPIC          = "indi/AM/meter"
 AWS_IOT_ENDPOINT    = "a3uoz4wfsx2nz3-ats.iot.ap-south-1.amazonaws.com"
 RECONNECT_DELAY     = 5
-MAX_RECONNECT_DELAY = 60
+MAX_RECONNECT_DELAY = 300
 
 client   = None
 _pub_q   = []
