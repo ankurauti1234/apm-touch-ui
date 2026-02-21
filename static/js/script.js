@@ -1689,7 +1689,7 @@ function showWifiDisconnectedPopup() {
     card.innerHTML = `
         <div class="wifi-disconnected-modal">
             <div class="wifi-card">
-                <span class="material-icons wifi-icon">Wi-Fi-ը անջատված է</span>
+                <span class="material-icons wifi-icon">Wifi Disconnected</span>
                 
                 <h2>Wi-Fi-ը անջատված է</h2>
                 
@@ -1722,7 +1722,7 @@ function showWifiDisconnectedPopup() {
     // Auto-hide after **10 seconds**
     disconnectPopupHideTimer = setTimeout(() => {
         closeWifiDisconnectedPopup();
-    }, 15000);
+    }, 10000);
 }
 
 
