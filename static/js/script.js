@@ -1703,22 +1703,6 @@ function showWifiDisconnectedPopup() {
             </div>
         </div>
     `;
-    <div class="wifi-disconnected-modal">
-                    <div class="wifi-card">
-                        <span class="material-icons wifi-icon">wifi_off</span>
-                        
-                        <h2>Wi-Fi Disconnected</h2>
-                        
-                        <p>
-                            Please connect to a Wi-Fi network to continue.
-                        </p>
-
-                        <button class="connect-btn">
-                            Connect Now
-                        </button>
-                    </div>
-                </div>
-    
 
     overlay.appendChild(card);
     document.getElementById('screensaver').appendChild(overlay);
