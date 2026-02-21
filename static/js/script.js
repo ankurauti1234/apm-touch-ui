@@ -1687,15 +1687,15 @@ function showWifiDisconnectedPopup() {
 
     const card = document.createElement('div');
     card.innerHTML = `
-    <div class="wifi-disconnected-modal">
+            <div class="wifi-disconnected-modal">
             <div class="wifi-card">
                 <span class="material-icons wifi-icon">wifi_off</span>
-               
-               <h2>Wi-Fi Disconnected</h2>
-               
-               <p>
+                
+                <h2>Wi-Fi Disconnected</h2>
+                
+                <p>
                     Please connect to a Wi-Fi network to continue.
-             </p>
+                </p>
 
                 <button class="connect-btn">
                     Connect Now
@@ -1703,7 +1703,6 @@ function showWifiDisconnectedPopup() {
             </div>
         </div>
     `;
-
 
     overlay.appendChild(card);
     document.getElementById('screensaver').appendChild(overlay);
@@ -2693,60 +2692,60 @@ async function showScreensaver() {
     // ────────────────────────────────────────────────
     //  Priority 1: Check Wi-Fi status FIRST
     // ────────────────────────────────────────────────
-    // let isWifiConnected = false;
+    let isWifiConnected = false;
 
-    // try {
-    //     const res = await fetch('/api/current_wifi');
-    //     const data = await res.json();
-    //     isWifiConnected = data.success && !!data.ssid;
-    // } catch (err) {
-    //     // network error → treat as disconnected
-    //     isWifiConnected = false;
-    // }
+    try {
+        const res = await fetch('/api/current_wifi');
+        const data = await res.json();
+        isWifiConnected = data.success && !!data.ssid;
+    } catch (err) {
+        // network error → treat as disconnected
+        isWifiConnected = false;
+    }
 
-    // // ────────────────────────────────────────────────
-    // // If Wi-Fi is disconnected → show ONLY Wi-Fi warning
-    // // ────────────────────────────────────────────────
-    // if (!isWifiConnected) {
+    // ────────────────────────────────────────────────
+    // If Wi-Fi is disconnected → show ONLY Wi-Fi warning
+    // ────────────────────────────────────────────────
+    if (!isWifiConnected) {
 
-    //     closeWifiDisconnectedPopup();
+        closeWifiDisconnectedPopup();
 
-    //     saver.style.background = 'rgba(0,0,0,0.65)';
-    //     saver.style.visibility = 'visible';
-    //     saver.style.opacity = '1';
+        saver.style.background = 'rgba(0,0,0,0.65)';
+        saver.style.visibility = 'visible';
+        saver.style.opacity = '1';
 
-    //     // Big centered Wi-Fi warning
-    //     saver.innerHTML = `
-    //             <div class="wifi-disconnected-modal">
-    //                 <div class="wifi-card">
-    //                     <span class="material-icons wifi-icon">wifi_off</span>
+        // Big centered Wi-Fi warning
+        saver.innerHTML = `
+                <div class="wifi-disconnected-modal">
+                    <div class="wifi-card">
+                        <span class="material-icons wifi-icon">wifi_off</span>
                         
-    //                     <h2>Wi-Fi Disconnected</h2>
+                        <h2>Wi-Fi Disconnected</h2>
                         
-    //                     <p>
-    //                         Please connect to a Wi-Fi network to continue.
-    //                     </p>
+                        <p>
+                            Please connect to a Wi-Fi network to continue.
+                        </p>
 
-    //                     <button class="connect-btn">
-    //                         Connect Now
-    //                     </button>
-    //                 </div>
-    //             </div>
-    //         `;
+                        <button class="connect-btn">
+                            Connect Now
+                        </button>
+                    </div>
+                </div>
+            `;
 
-    //     // Button action
-    //     const btn = saver.querySelector('.connect-btn');
-    //     if (btn) {
-    //         btn.addEventListener('click', () => {
-    //             hideScreensaver();
-    //             resetScreensaverTimer();
-    //             showWiFiPopup();
-    //         });
-    //     }
+        // Button action
+        const btn = saver.querySelector('.connect-btn');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                hideScreensaver();
+                resetScreensaverTimer();
+                showWiFiPopup();
+            });
+        }
 
-    //     try { saver.focus({ preventScroll: true }); } catch (_) {}
-    //     return;   // ← IMPORTANT: stop here — do NOT show member warning
-    // }
+        try { saver.focus({ preventScroll: true }); } catch (_) {}
+        return;   // ← IMPORTANT: stop here — do NOT show member warning
+    }
 
     // ────────────────────────────────────────────────
     // Wi-Fi is connected → normal screensaver logic
