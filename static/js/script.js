@@ -1668,7 +1668,6 @@ function showWifiDisconnectedPopup() {
     if (wifiDisconnectedPopupShown || wifiPopupIsOpen || disconnectCooldownTimer) {
         return;
     }
-    hideScreensaver();
 
     wifiDisconnectedPopupShown = true;
 
@@ -1688,39 +1687,23 @@ function showWifiDisconnectedPopup() {
 
     const card = document.createElement('div');
     card.innerHTML = `
-        <div style="
-            background: white;
-            border-radius: 20px;
-            padding: 40px 50px;
-            text-align: center;
-            max-width: 520px;
-            box-shadow: 0 20px 70px rgba(0,0,0,0.5);
-            color: #333;
-        ">
-            <div style="color: #ff9800; margin-bottom: 24px;">
-                <span class="material-icons" style="font-size: 110px;">wifi_off</span>
+    <div class="wifi-disconnected-modal">
+            <div class="wifi-card">
+                <span class="material-icons wifi-icon">wifi_off</span>
+               
+               <h2>Wi-Fi Disconnected</h2>
+               
+               <p>
+                    Please connect to a Wi-Fi network to continue.
+             </p>
+
+                <button class="connect-btn">
+                    Connect Now
+                </button>
             </div>
-            <h2 style="font-size: 38px; margin: 0 0 16px; color: #d32f2f;">
-                Wi-Fi-ը անջատված է
-            </h2>
-            <p style="font-size: 24px; margin: 0 0 22px; color: #555;">
-                Խնդրում ենք միանալ Wi-Fi ցանցին։
-            </p>
-            <button id="connect-wifi-btn" style="
-                padding: 18px 48px;
-                font-size: 28px;
-                font-weight: 600;
-                background: #1976d2;
-                color: white;
-                border: none;
-                border-radius: 12px;
-                cursor: pointer;
-                box-shadow: 0 6px 20px rgba(25,118,210,0.4);
-            ">
-                Միացեք Wi-Fi-ին
-            </button>
         </div>
     `;
+
 
     overlay.appendChild(card);
     document.getElementById('screensaver').appendChild(overlay);
@@ -2710,58 +2693,60 @@ async function showScreensaver() {
     // ────────────────────────────────────────────────
     //  Priority 1: Check Wi-Fi status FIRST
     // ────────────────────────────────────────────────
-    let isWifiConnected = false;
+    // let isWifiConnected = false;
 
-    try {
-        const res = await fetch('/api/current_wifi');
-        const data = await res.json();
-        isWifiConnected = data.success && !!data.ssid;
-    } catch (err) {
-        // network error → treat as disconnected
-        isWifiConnected = false;
-    }
+    // try {
+    //     const res = await fetch('/api/current_wifi');
+    //     const data = await res.json();
+    //     isWifiConnected = data.success && !!data.ssid;
+    // } catch (err) {
+    //     // network error → treat as disconnected
+    //     isWifiConnected = false;
+    // }
 
-    // ────────────────────────────────────────────────
-    // If Wi-Fi is disconnected → show ONLY Wi-Fi warning
-    // ────────────────────────────────────────────────
-    if (!isWifiConnected) {
+    // // ────────────────────────────────────────────────
+    // // If Wi-Fi is disconnected → show ONLY Wi-Fi warning
+    // // ────────────────────────────────────────────────
+    // if (!isWifiConnected) {
 
-        saver.style.background = 'rgba(0,0,0,0.65)';
-        saver.style.visibility = 'visible';
-        saver.style.opacity = '1';
+    //     closeWifiDisconnectedPopup();
 
-        // Big centered Wi-Fi warning
-        saver.innerHTML = `
-            <div class="wifi-disconnected-modal">
-                <div class="wifi-card">
-                    <span class="material-icons wifi-icon">wifi_off</span>
-                    
-                    <h2>Wi-Fi Disconnected</h2>
-                    
-                    <p>
-                        Please connect to a Wi-Fi network to continue.
-                    </p>
+    //     saver.style.background = 'rgba(0,0,0,0.65)';
+    //     saver.style.visibility = 'visible';
+    //     saver.style.opacity = '1';
 
-                    <button class="connect-btn">
-                        Connect Now
-                    </button>
-                </div>
-            </div>
-        `;
+    //     // Big centered Wi-Fi warning
+    //     saver.innerHTML = `
+    //             <div class="wifi-disconnected-modal">
+    //                 <div class="wifi-card">
+    //                     <span class="material-icons wifi-icon">wifi_off</span>
+                        
+    //                     <h2>Wi-Fi Disconnected</h2>
+                        
+    //                     <p>
+    //                         Please connect to a Wi-Fi network to continue.
+    //                     </p>
 
-        // Button action
-        const btn = saver.querySelector('.connect-btn');
-        if (btn) {
-            btn.addEventListener('click', () => {
-                hideScreensaver();
-                resetScreensaverTimer();
-                showWiFiPopup();
-            });
-        }
+    //                     <button class="connect-btn">
+    //                         Connect Now
+    //                     </button>
+    //                 </div>
+    //             </div>
+    //         `;
 
-        try { saver.focus({ preventScroll: true }); } catch (_) {}
-        return;   // ← IMPORTANT: stop here — do NOT show member warning
-    }
+    //     // Button action
+    //     const btn = saver.querySelector('.connect-btn');
+    //     if (btn) {
+    //         btn.addEventListener('click', () => {
+    //             hideScreensaver();
+    //             resetScreensaverTimer();
+    //             showWiFiPopup();
+    //         });
+    //     }
+
+    //     try { saver.focus({ preventScroll: true }); } catch (_) {}
+    //     return;   // ← IMPORTANT: stop here — do NOT show member warning
+    // }
 
     // ────────────────────────────────────────────────
     // Wi-Fi is connected → normal screensaver logic
