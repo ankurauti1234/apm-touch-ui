@@ -1697,7 +1697,7 @@ function showWifiDisconnectedPopup() {
                     Please connect to a Wi-Fi network to continue.
                 </p>
 
-                <button id="connect-wifi-btn">
+                <button class="connect-btn" id="connect-wifi-btn">
                     Connect Now
                 </button>
             </div>
