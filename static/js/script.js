@@ -1689,7 +1689,7 @@ function showWifiDisconnectedPopup() {
     card.innerHTML = `
         <div class="wifi-disconnected-modal">
             <div class="wifi-card">
-                <span class="material-icons wifi-icon">Wifi Disconnected</span>
+                <span class="material-icons wifi-icon">no_wifi</span>
                 
                 <h2>Wi-Fi-ը անջատված է</h2>
                 
