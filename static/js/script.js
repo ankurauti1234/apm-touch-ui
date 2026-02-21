@@ -1719,10 +1719,10 @@ function showWifiDisconnectedPopup() {
         });
     }
 
-    // Auto-hide after **10 seconds**
+    // Auto-hide after **20 seconds**
     disconnectPopupHideTimer = setTimeout(() => {
         closeWifiDisconnectedPopup();
-    }, 10000);
+    }, 20000);
 }
 
 
