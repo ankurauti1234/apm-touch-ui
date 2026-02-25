@@ -1669,7 +1669,7 @@ function showWifiDisconnectedPopup() {
         return;
     }
 
-    if (!wifiPopupIsOpen) {
+    if (wifiPopupIsOpen) {
         return;
     }
 
