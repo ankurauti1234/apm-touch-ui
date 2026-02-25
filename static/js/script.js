@@ -1665,7 +1665,7 @@ let disconnectCooldownTimer = null;   // ← NEW: for 25-second cooldown
 
 function showWifiDisconnectedPopup() {
     // Safety checks: don't show if already visible, Wi-Fi popup open, or on cooldown
-    if (wifiDisconnectedPopupShown || wifiPopupIsOpen || disconnectCooldownTimer) {
+    if (wifiDisconnectedPopupShown || !wifiPopupIsOpen || disconnectCooldownTimer) {
         return;
     }
 
